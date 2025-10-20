@@ -3,7 +3,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// A custom horizontal-only joystick optimized for rotation controls.
+/// A custom vertical-only joystick optimized for rotation controls.
+/// Players pull up/down to control rotation direction.
 /// Feeds input directly to the InputManager for maximum performance.
 /// </summary>
 public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
@@ -25,13 +26,13 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
     [SerializeField] private bool enableDebugLogs = false;
 
     // Internal state
-    private float horizontalInput = 0f;
+    private float verticalInput = 0f;  // Changed from horizontalInput
     private bool isDragging = false;
     private Camera uiCamera;
     private Canvas parentCanvas;
 
     // Public property for InputManager to read
-    public float HorizontalInput => horizontalInput;
+    public float VerticalInput => verticalInput;  // Changed property name
     public int PlayerNumber => playerNumber;
 
     void Start()
@@ -90,7 +91,7 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
         if (snapToZeroOnRelease)
         {
             // Snap back to center
-            SetHorizontalInput(0f);
+            SetVerticalInput(0f);
         }
 
         DebugLog($"Player {playerNumber} rotation stick - pointer up");
@@ -106,42 +107,43 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
             background, eventData.position, uiCamera, out localPosition))
         {
             // Normalize the position relative to movement range
-            float normalizedX = localPosition.x / movementRange;
+            // NOW USING Y-AXIS instead of X-axis for up/down movement
+            float normalizedY = localPosition.y / movementRange;
 
             // Clamp to -1 to 1 range
-            normalizedX = Mathf.Clamp(normalizedX, -1f, 1f);
+            normalizedY = Mathf.Clamp(normalizedY, -1f, 1f);
 
             // Apply deadzone
-            if (Mathf.Abs(normalizedX) < deadZone)
+            if (Mathf.Abs(normalizedY) < deadZone)
             {
-                normalizedX = 0f;
+                normalizedY = 0f;
             }
 
-            SetHorizontalInput(normalizedX);
+            SetVerticalInput(normalizedY);
         }
     }
 
-    private void SetHorizontalInput(float value)
+    private void SetVerticalInput(float value)
     {
-        horizontalInput = value;
+        verticalInput = value;
         UpdateKnobPosition();
 
-        DebugLog($"Player {playerNumber} rotation input: {horizontalInput:F3}");
+        DebugLog($"Player {playerNumber} rotation input: {verticalInput:F3}");
     }
 
     private void UpdateKnobPosition()
     {
         if (knob == null) return;
 
-        // Position knob based on input (only horizontal movement)
-        Vector2 knobPosition = new Vector2(horizontalInput * movementRange, 0f);
+        // Position knob based on input (only vertical movement)
+        Vector2 knobPosition = new Vector2(0f, verticalInput * movementRange);
         knob.anchoredPosition = knobPosition;
     }
 
     void OnDisable()
     {
         isDragging = false;
-        SetHorizontalInput(0f);
+        SetVerticalInput(0f);
 
         // Unregister from InputManager
         if (InputManager.Instance != null)
@@ -173,18 +175,18 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
             Gizmos.color = Color.yellow;
             Vector3 worldPos = background.transform.position;
 
-            // Draw horizontal constraint line
+            // Draw vertical constraint line (up/down movement)
             Gizmos.color = Color.red;
-            Vector3 leftPos = worldPos + Vector3.left * movementRange;
-            Vector3 rightPos = worldPos + Vector3.right * movementRange;
-            Gizmos.DrawLine(leftPos, rightPos);
+            Vector3 upPos = worldPos + Vector3.up * movementRange;
+            Vector3 downPos = worldPos + Vector3.down * movementRange;
+            Gizmos.DrawLine(upPos, downPos);
 
             // Draw deadzone
             Gizmos.color = Color.blue;
             float deadZoneRange = movementRange * deadZone;
-            Vector3 deadZoneLeft = worldPos + Vector3.left * deadZoneRange;
-            Vector3 deadZoneRight = worldPos + Vector3.right * deadZoneRange;
-            Gizmos.DrawLine(deadZoneLeft, deadZoneRight);
+            Vector3 deadZoneUp = worldPos + Vector3.up * deadZoneRange;
+            Vector3 deadZoneDown = worldPos + Vector3.down * deadZoneRange;
+            Gizmos.DrawLine(deadZoneUp, deadZoneDown);
         }
     }
 }

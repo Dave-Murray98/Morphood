@@ -228,9 +228,9 @@ public class InputManager : MonoBehaviour
         player1MovementInput = player1MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
         player2MovementInput = player2MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
 
-        // Read rotation input from custom rotation sticks
-        player1RotationInput = player1RotationStick?.HorizontalInput ?? 0f;
-        player2RotationInput = player2RotationStick?.HorizontalInput ?? 0f;
+        // Read rotation input from custom rotation sticks (now vertical input)
+        player1RotationInput = player1RotationStick?.VerticalInput ?? 0f;
+        player2RotationInput = player2RotationStick?.VerticalInput ?? 0f;
     }
 
     private void CombineInputs()
