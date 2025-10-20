@@ -12,7 +12,7 @@ public class InputManager : MonoBehaviour
     public InputActionAsset inputActions;
 
     #region Action Maps
-    private InputActionMap locomotionActionMap;
+    private InputActionMap gameplayActionMap;
     private InputActionMap uiActionMap;
 
     #endregion
@@ -70,10 +70,10 @@ public class InputManager : MonoBehaviour
             DebugLog("UI ActionMap enabled immediately");
         }
 
-        if (locomotionActionMap != null)
+        if (gameplayActionMap != null)
         {
-            locomotionActionMap.Enable();
-            DebugLog("Locomotion ActionMap enabled immediately");
+            gameplayActionMap.Enable();
+            DebugLog("Gameplay ActionMap enabled immediately");
         }
     }
 
@@ -88,10 +88,10 @@ public class InputManager : MonoBehaviour
         }
 
         uiActionMap = inputActions.FindActionMap("UI");
-        locomotionActionMap = inputActions.FindActionMap("Locomotion");
+        gameplayActionMap = inputActions.FindActionMap("Gameplay");
 
         SetUpUIInputActions();
-        SetUpCoreLocomotionActions();
+        SetUpCoreGameplayActions();
 
         // Subscribe to events
         SubscribeToInputActions();
@@ -106,12 +106,12 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    private void SetUpCoreLocomotionActions()
+    private void SetUpCoreGameplayActions()
     {
-        moveAction = locomotionActionMap.FindAction("Move");
+        moveAction = gameplayActionMap.FindAction("Move");
 
 
-        rotateAction = locomotionActionMap.FindAction("Rotate");
+        rotateAction = gameplayActionMap.FindAction("Rotate");
         if (rotateAction == null)
         {
             Debug.LogError("[InputManager] Rotate action not found in Locomotion ActionMap!");
@@ -123,7 +123,7 @@ public class InputManager : MonoBehaviour
     private void Update()
     {
         // Update input values
-        if (locomotionActionMap?.enabled == true)
+        if (gameplayActionMap?.enabled == true)
             UpdateLocomotionInputValues();
     }
 
@@ -182,12 +182,12 @@ public class InputManager : MonoBehaviour
 
     public void EnableGameplayInput()
     {
-        locomotionActionMap.Enable();
+        gameplayActionMap.Enable();
     }
 
     public void DisableGameplayInput()
     {
-        locomotionActionMap.Disable();
+        gameplayActionMap.Disable();
     }
 
     private void OnDestroy()

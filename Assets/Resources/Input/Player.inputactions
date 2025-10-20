@@ -3,7 +3,7 @@
     "name": "Player",
     "maps": [
         {
-            "name": "Locomotion",
+            "name": "Gameplay",
             "id": "d3231243-5ee0-4a64-a70f-c6c3d1b70f8b",
             "actions": [
                 {
