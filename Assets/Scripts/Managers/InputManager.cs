@@ -226,11 +226,28 @@ public class InputManager : MonoBehaviour
     {
         // Read movement input from Input Actions
         player1MovementInput = player1MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
-        player2MovementInput = player2MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
 
-        // Read rotation input from custom rotation sticks (now vertical input)
+        // Player 2's movement input - apply inversion if needed for upside-down orientation
+        Vector2 rawPlayer2Movement = player2MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
+
+        player2MovementInput = new Vector2(-rawPlayer2Movement.x, -rawPlayer2Movement.y);
+
+        // Read rotation input from custom rotation sticks
         player1RotationInput = player1RotationStick?.VerticalInput ?? 0f;
-        player2RotationInput = player2RotationStick?.VerticalInput ?? 0f;
+
+        // Player 2's rotation input - apply inversion if needed for upside-down orientation
+        float rawPlayer2Rotation = player2RotationStick?.VerticalInput ?? 0f;
+
+        player2RotationInput = -rawPlayer2Rotation;
+
+
+        if (enableDebugLogs && (player1MovementInput.magnitude > 0.1f || player2MovementInput.magnitude > 0.1f ||
+                               Mathf.Abs(player1RotationInput) > 0.1f || Mathf.Abs(player2RotationInput) > 0.1f))
+        {
+            DebugLog($"P1 Move: {player1MovementInput}, P2 Move: {rawPlayer2Movement} -> {player2MovementInput})");
+            DebugLog($"P1 Rotate: {player1RotationInput:F2}, P2 Rotate: {rawPlayer2Rotation:F2} -> {player2RotationInput:F2})");
+
+        }
     }
 
     private void CombineInputs()
