@@ -7,7 +7,7 @@
             "id": "d3231243-5ee0-4a64-a70f-c6c3d1b70f8b",
             "actions": [
                 {
-                    "name": "Move",
+                    "name": "Move1",
                     "type": "Value",
                     "id": "2385ecc3-e78f-410e-a8e1-3acd6861c72d",
                     "expectedControlType": "Vector2",
@@ -16,7 +16,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Rotate",
+                    "name": "Move2",
                     "type": "Value",
                     "id": "0719000d-3de9-4aa2-830e-7456e272e209",
                     "expectedControlType": "Vector2",
@@ -33,7 +33,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move",
+                    "action": "Move1",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -44,7 +44,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Rotate",
+                    "action": "Move2",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
