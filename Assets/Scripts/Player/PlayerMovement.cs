@@ -9,10 +9,11 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
 
     private Vector2 movementInput;
-    private Vector2 rotationInput;  // Store rotation input
+    private Vector2 rotationInput;  // NEW: Store rotation input
 
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 5f;
+    [Tooltip("This is now controlled by InputManager's speed system")]
+    [SerializeField] private float moveSpeed = 5f;  // Fallback/legacy value
 
     [Tooltip("How quickly the player reaches target speed")]
     public float acceleration = 50f;
@@ -20,7 +21,8 @@ public class PlayerMovement : MonoBehaviour
     public float deceleration = 50f;
 
     [Header("Rotation")]
-    [SerializeField] private float rotationSpeed = 90f;  // Degrees per second
+    [Tooltip("This is now controlled by InputManager's rotation speed system")]
+    [SerializeField] private float rotationSpeed = 90f;  // Fallback/legacy value
     [Tooltip("Minimum joystick input required to rotate")]
     [SerializeField] private float rotationDeadzone = 0.1f;
 
@@ -48,7 +50,7 @@ public class PlayerMovement : MonoBehaviour
         movementInput = moveInput;
     }
 
-    public void HandleRotation(Vector2 rotateInput)  // Handle rotation input
+    public void HandleRotation(Vector2 rotateInput)  // NEW: Handle rotation input
     {
         rotationInput = rotateInput;
     }
@@ -95,19 +97,21 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(force, ForceMode.Acceleration);
     }
 
-    private void ApplyRotation()  // NEW: Handle joystick-based rotation
+    private void ApplyRotation()
     {
         if (rb == null) return;
 
-        // Check if there's significant rotation input
-        if (rotationInput.magnitude > rotationDeadzone)
+        // Get dynamic rotation speed from InputManager
+        float currentRotationSpeed = InputManager.Instance?.CurrentRotationSpeed ?? rotationSpeed;
+
+        // Check if there's significant rotation input and rotation is allowed
+        if (rotationInput.magnitude > rotationDeadzone && currentRotationSpeed > 0f)
         {
-            // Use X-axis of right joystick for rotation
-            // Positive X = rotate clockwise, Negative X = rotate counter-clockwise
+            // Use X-axis of rotation input for rotation direction
             float rotationDirection = rotationInput.x;
 
-            // Calculate rotation amount for this frame
-            float rotationAmount = rotationDirection * rotationSpeed * Time.fixedDeltaTime;
+            // Calculate rotation amount for this frame using dynamic speed
+            float rotationAmount = rotationDirection * currentRotationSpeed * Time.fixedDeltaTime;
 
             // Apply rotation around Y-axis (up/down in world space)
             Quaternion rotationDelta = Quaternion.Euler(0, rotationAmount, 0);
@@ -117,10 +121,18 @@ public class PlayerMovement : MonoBehaviour
 
             if (enableDebugLogs)
             {
-                DebugLog($"Rotation Input: {rotationInput.x:F2}, Rotation Amount: {rotationAmount:F2}");
+                DebugLog($"Rotation Input: {rotationInput.x:F2}, Rotation Speed: {currentRotationSpeed:F1}, Amount: {rotationAmount:F2}");
             }
         }
-        // If no input, the player simply stops rotating (no additional code needed)
+        else if (currentRotationSpeed <= 0f && rotationInput.magnitude > rotationDeadzone)
+        {
+            // Rotation is blocked due to conflict
+            if (enableDebugLogs)
+            {
+                DebugLog("Rotation blocked due to input conflict");
+            }
+        }
+        // If no input or rotation speed is 0, the player simply stops rotating
     }
 
     private void DebugLog(string message)

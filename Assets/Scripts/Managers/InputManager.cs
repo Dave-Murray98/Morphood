@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -85,11 +84,37 @@ public class InputManager : MonoBehaviour
 
     public Vector2 MovementInput { get; private set; }
     public Vector2 RotationInput { get; private set; }  // We'll use X component for rotation value
+    public float CurrentMovementSpeed { get; private set; }
+    public float CurrentRotationSpeed { get; private set; }
+
+    // Conflict detection properties
+    public bool IsMovementInputConflicting { get; private set; }
+    public bool IsRotationInputConflicting { get; private set; }
 
     #endregion
 
-    [Header("Multiplayer Settings")]
-    [SerializeField] private float rotationSpeedMultiplier = 2f;  // When both players rotate same direction
+    [Header("Movement Settings")]
+    [SerializeField] private bool useVaryingSpeeds = true;
+    [Tooltip("Speed when players move in similar directions")]
+    [SerializeField] private float fastMovementSpeed = 8f;
+    [Tooltip("Speed when players move in different (but not opposite) directions")]
+    [SerializeField] private float slowMovementSpeed = 4f;
+    [Tooltip("Single speed used when useVaryingSpeeds is false")]
+    [SerializeField] private float moveSpeed = 6f;
+    [Tooltip("Threshold for determining opposite movement (0 = exactly opposite, 1 = any difference)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float oppositeDirectionThreshold = 0.3f;
+    [Tooltip("Threshold for determining similar movement directions (0 = exactly same, 1 = any similarity)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float similarDirectionThreshold = 0.7f;
+
+    [Header("Rotation Settings")]
+    [Tooltip("Rotation speed when only one player is rotating")]
+    [SerializeField] private float slowRotationSpeed = 90f;  // degrees per second
+    [Tooltip("Rotation speed when both players rotate in same direction")]
+    [SerializeField] private float fastRotationSpeed = 180f; // degrees per second
+
+    [Header("Input Settings")]
     [Tooltip("Minimum input value to register as intentional input")]
     [SerializeField] private float inputDeadzone = 0.1f;
 
@@ -225,18 +250,68 @@ public class InputManager : MonoBehaviour
 
     private void CombineMovementInputs()
     {
-        // Normalize individual inputs first to ensure fair contribution
-        Vector2 normalizedPlayer1 = player1MovementInput.magnitude > inputDeadzone ? player1MovementInput.normalized : Vector2.zero;
-        Vector2 normalizedPlayer2 = player2MovementInput.magnitude > inputDeadzone ? player2MovementInput.normalized : Vector2.zero;
+        // Apply deadzone to movement inputs
+        Vector2 p1Movement = player1MovementInput.magnitude > inputDeadzone ? player1MovementInput.normalized : Vector2.zero;
+        Vector2 p2Movement = player2MovementInput.magnitude > inputDeadzone ? player2MovementInput.normalized : Vector2.zero;
 
-        // Combine and normalize the result
-        Vector2 combinedMovement = normalizedPlayer1 + normalizedPlayer2;
-        MovementInput = combinedMovement.magnitude > inputDeadzone ? combinedMovement.normalized : Vector2.zero;
+        // Check if both players have input
+        bool player1HasMovement = p1Movement.magnitude > 0f;
+        bool player2HasMovement = p2Movement.magnitude > 0f;
 
-        if (enableDebugLogs && MovementInput.magnitude > 0.1f)
+        Vector2 combinedMovement = Vector2.zero;
+        float appliedSpeed = moveSpeed; // Default speed
+        IsMovementInputConflicting = false;
+
+        if (player1HasMovement && player2HasMovement)
         {
-            DebugLog($"Movement - P1: {normalizedPlayer1}, P2: {normalizedPlayer2}, Combined: {MovementInput}");
+            // Both players have input - analyze their relationship
+            float dotProduct = Vector2.Dot(p1Movement, p2Movement);
+
+            if (dotProduct <= -1f + oppositeDirectionThreshold)
+            {
+                // Opposite directions - no movement, conflict detected
+                combinedMovement = Vector2.zero;
+                appliedSpeed = 0f;
+                IsMovementInputConflicting = true;
+
+                DebugLog($"Movement - Opposite directions: P1({p1Movement}) vs P2({p2Movement}), dot: {dotProduct:F2} - CONFLICT");
+
+            }
+            else if (dotProduct >= similarDirectionThreshold)
+            {
+                // Similar directions - fast speed
+                combinedMovement = (p1Movement + p2Movement).normalized;
+                appliedSpeed = useVaryingSpeeds ? fastMovementSpeed : moveSpeed;
+
+                DebugLog($"Movement - Similar directions: P1({p1Movement}) + P2({p2Movement}), dot: {dotProduct:F2} - FAST");
+
+            }
+            else
+            {
+                // Different but not opposite directions - slow speed
+                combinedMovement = (p1Movement + p2Movement).normalized;
+                appliedSpeed = useVaryingSpeeds ? slowMovementSpeed : moveSpeed;
+
+                DebugLog($"Movement - Different directions: P1({p1Movement}) + P2({p2Movement}), dot: {dotProduct:F2} - SLOW");
+
+            }
         }
+        else if (player1HasMovement || player2HasMovement)
+        {
+            // Only one player has input - use their direction with appropriate speed
+            combinedMovement = (p1Movement + p2Movement).normalized; // One will be zero
+            appliedSpeed = useVaryingSpeeds ? slowMovementSpeed : moveSpeed;
+
+            DebugLog($"Movement - Single input: P1({p1Movement}) + P2({p2Movement}) - SINGLE");
+
+        }
+
+        Debug.Log($"IsMovementInputConflicting = {IsMovementInputConflicting}");
+
+        // If neither player has input, everything stays at zero (default values)
+
+        MovementInput = combinedMovement;
+        CurrentMovementSpeed = appliedSpeed;
     }
 
     private void CombineRotationInputs()
@@ -246,54 +321,58 @@ public class InputManager : MonoBehaviour
         float p2Rotation = Mathf.Abs(player2RotationInput) > inputDeadzone ? player2RotationInput : 0f;
 
         float combinedRotationValue = 0f;
+        float appliedRotationSpeed = 0f;
+        IsRotationInputConflicting = false;
 
         // Check if both players are providing input
-        bool player1HasInput = Mathf.Abs(p1Rotation) > 0f;
-        bool player2HasInput = Mathf.Abs(p2Rotation) > 0f;
+        bool player1HasRotation = Mathf.Abs(p1Rotation) > 0f;
+        bool player2HasRotation = Mathf.Abs(p2Rotation) > 0f;
 
-        if (player1HasInput && player2HasInput)
+        if (player1HasRotation && player2HasRotation)
         {
             // Both players have input - check if they're in the same direction
             bool sameDirection = (p1Rotation > 0 && p2Rotation > 0) || (p1Rotation < 0 && p2Rotation < 0);
 
             if (sameDirection)
             {
-                // Same direction: 2x speed (average input * multiplier)
+                // Same direction: fast rotation speed
                 float averageInput = (p1Rotation + p2Rotation) * 0.5f;
-                combinedRotationValue = averageInput * rotationSpeedMultiplier;
+                combinedRotationValue = averageInput;
+                appliedRotationSpeed = fastRotationSpeed;
 
-                if (enableDebugLogs)
-                {
-                    DebugLog($"Rotation - Same direction: P1({p1Rotation:F2}) + P2({p2Rotation:F2}) = {combinedRotationValue:F2} (2x speed)");
-                }
+                DebugLog($"Rotation - Same direction: P1({p1Rotation:F2}) + P2({p2Rotation:F2}) = {combinedRotationValue:F2} - FAST");
+
             }
             else
             {
-                // Opposite directions: cancel out (0x speed)
+                // Opposite directions: no rotation, conflict detected
                 combinedRotationValue = 0f;
+                appliedRotationSpeed = 0f;
+                IsRotationInputConflicting = true;
 
-                if (enableDebugLogs)
-                {
-                    DebugLog($"Rotation - Opposite directions: P1({p1Rotation:F2}) vs P2({p2Rotation:F2}) = 0 (canceled)");
-                }
+                DebugLog($"Rotation - Opposite directions: P1({p1Rotation:F2}) vs P2({p2Rotation:F2}) - CONFLICT");
             }
         }
-        else if (player1HasInput || player2HasInput)
+        else if (player1HasRotation || player2HasRotation)
         {
-            // Only one player has input: 1x speed
-            combinedRotationValue = p1Rotation + p2Rotation;  // One will be 0, so this gives us the active input
+            // Only one player has input: slow rotation speed
+            combinedRotationValue = p1Rotation + p2Rotation;  // One will be 0
+            appliedRotationSpeed = slowRotationSpeed;
 
-            if (enableDebugLogs)
-            {
-                DebugLog($"Rotation - Single input: P1({p1Rotation:F2}) + P2({p2Rotation:F2}) = {combinedRotationValue:F2} (1x speed)");
-            }
+            DebugLog($"Rotation - Single input: P1({p1Rotation:F2}) + P2({p2Rotation:F2}) = {combinedRotationValue:F2} - SLOW");
+
         }
+        // If neither player has input, everything stays at zero (default values)
 
         // Clamp the result to reasonable bounds
         combinedRotationValue = Mathf.Clamp(combinedRotationValue, -1f, 1f);
 
-        // Store in RotationInput.x (PlayerMovement expects Vector2 but only uses X component)
+        // Store results
         RotationInput = new Vector2(combinedRotationValue, 0f);
+        CurrentRotationSpeed = appliedRotationSpeed;
+
+        Debug.Log($"IsRotationInputConflicting = {IsRotationInputConflicting}");
+
     }
 
     #endregion

@@ -1111,7 +1111,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputActions: {fileID: -944628639613478452, guid: 478ef99a5a25c8147bf4ed19211b8469, type: 3}
-  rotationSpeedMultiplier: 2
+  useVaryingSpeeds: 1
+  fastMovementSpeed: 8
+  slowMovementSpeed: 4
+  moveSpeed: 6
+  oppositeDirectionThreshold: 0.3
+  similarDirectionThreshold: 0.7
+  slowRotationSpeed: 90
+  fastRotationSpeed: 180
   inputDeadzone: 0.1
   enableDebugLogs: 0
 --- !u!1 &832575517
