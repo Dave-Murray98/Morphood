@@ -1,8 +1,6 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 
 /// <summary>
 /// Receives and processes player input, passing it to the player controller and other systems as needed.
@@ -22,6 +20,7 @@ public class InputManager : MonoBehaviour
     #region Public Properties [Core Input Actions]
 
     private InputAction moveAction;
+    private InputAction rotateAction;
 
     private InputAction pauseAction;
 
@@ -30,6 +29,7 @@ public class InputManager : MonoBehaviour
     #region Public Properties
 
     public Vector2 MovementInput { get; private set; }
+    public Vector2 RotationInput { get; private set; }
 
     #endregion
 
@@ -109,6 +109,13 @@ public class InputManager : MonoBehaviour
     private void SetUpCoreLocomotionActions()
     {
         moveAction = locomotionActionMap.FindAction("Move");
+
+
+        rotateAction = locomotionActionMap.FindAction("Rotate");
+        if (rotateAction == null)
+        {
+            Debug.LogError("[InputManager] Rotate action not found in Locomotion ActionMap!");
+        }
     }
 
     #region Update Loop
@@ -118,13 +125,18 @@ public class InputManager : MonoBehaviour
         // Update input values
         if (locomotionActionMap?.enabled == true)
             UpdateLocomotionInputValues();
-
     }
-
 
     private void UpdateLocomotionInputValues()
     {
         MovementInput = moveAction?.ReadValue<Vector2>().normalized ?? Vector2.zero;
+        RotationInput = rotateAction?.ReadValue<Vector2>() ?? Vector2.zero;  // Read rotation input
+
+        // Optional: Debug the rotation input
+        if (enableDebugLogs && RotationInput.magnitude > 0.1f)
+        {
+            DebugLog($"Rotation Input: {RotationInput}");
+        }
     }
 
     #endregion
@@ -192,5 +204,4 @@ public class InputManager : MonoBehaviour
         if (enableDebugLogs)
             Debug.Log($"[InputManager] {message}");
     }
-
 }

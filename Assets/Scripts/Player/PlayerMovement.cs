@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
 
     private Vector2 movementInput;
+    private Vector2 rotationInput;  // Store rotation input
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
@@ -18,6 +19,11 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("How quickly the player stops when no input")]
     public float deceleration = 50f;
 
+    [Header("Rotation")]
+    [SerializeField] private float rotationSpeed = 90f;  // Degrees per second
+    [Tooltip("Minimum joystick input required to rotate")]
+    [SerializeField] private float rotationDeadzone = 0.1f;
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
@@ -26,15 +32,15 @@ public class PlayerMovement : MonoBehaviour
         playerController = controller;
         rb = rigidbody;
 
-        // Freeze rotation on X and Z axes to prevent unwanted tilting/rolling
-        // Keep Y rotation free if you want the player to face movement direction
+        // IMPORTANT: Freeze ALL rotation axes - we'll handle rotation manually
         if (rb != null)
         {
-            rb.freezeRotation = false; // We'll handle rotation manually
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            rb.constraints = RigidbodyConstraints.FreezeRotationX |
+                           RigidbodyConstraints.FreezeRotationY |
+                           RigidbodyConstraints.FreezeRotationZ;
         }
 
-        DebugLog("PlayerMovement initialized");
+        DebugLog("PlayerMovement initialized with manual rotation control");
     }
 
     public void HandleMovement(Vector2 moveInput)
@@ -42,9 +48,15 @@ public class PlayerMovement : MonoBehaviour
         movementInput = moveInput;
     }
 
+    public void HandleRotation(Vector2 rotateInput)  // Handle rotation input
+    {
+        rotationInput = rotateInput;
+    }
+
     private void FixedUpdate()
     {
         ApplyMovement();
+        ApplyRotation();  // NEW: Apply rotation in FixedUpdate for physics consistency
     }
 
     private void ApplyMovement()
@@ -56,10 +68,8 @@ public class PlayerMovement : MonoBehaviour
 
         if (movementInput.magnitude > 0.1f)
         {
-            // X input controls X movement (left/right)
-            // Y input controls Z movement (forward/backward in world space)
+            // Map 2D input to 3D movement for top-down view
             Vector3 moveDirection = new Vector3(movementInput.x, 0, movementInput.y).normalized;
-
             targetVelocity = moveDirection * moveSpeed;
 
             DebugLog($"Movement Input: {movementInput}, Move Direction: {moveDirection}");
@@ -85,7 +95,33 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(force, ForceMode.Acceleration);
     }
 
+    private void ApplyRotation()  // NEW: Handle joystick-based rotation
+    {
+        if (rb == null) return;
 
+        // Check if there's significant rotation input
+        if (rotationInput.magnitude > rotationDeadzone)
+        {
+            // Use X-axis of right joystick for rotation
+            // Positive X = rotate clockwise, Negative X = rotate counter-clockwise
+            float rotationDirection = rotationInput.x;
+
+            // Calculate rotation amount for this frame
+            float rotationAmount = rotationDirection * rotationSpeed * Time.fixedDeltaTime;
+
+            // Apply rotation around Y-axis (up/down in world space)
+            Quaternion rotationDelta = Quaternion.Euler(0, rotationAmount, 0);
+
+            // Apply the rotation to the rigidbody
+            rb.MoveRotation(rb.rotation * rotationDelta);
+
+            if (enableDebugLogs)
+            {
+                DebugLog($"Rotation Input: {rotationInput.x:F2}, Rotation Amount: {rotationAmount:F2}");
+            }
+        }
+        // If no input, the player simply stops rotating (no additional code needed)
+    }
 
     private void DebugLog(string message)
     {

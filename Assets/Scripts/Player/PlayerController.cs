@@ -37,8 +37,9 @@ public class PlayerController : MonoBehaviour
 
         DebugLog("Handling player input");
 
+        // Pass both movement and rotation input to the movement system
         playerMovement.HandleMovement(InputManager.Instance.MovementInput);
-
+        playerMovement.HandleRotation(InputManager.Instance.RotationInput);  // NEW: Pass rotation input
     }
 
     private void DebugLog(string message)
