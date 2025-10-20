@@ -46,17 +46,13 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
-        // Step 1: Get player's forward and right vectors
-        Vector3 forward = playerController.Forward;
-        Vector3 right = playerController.Right;
-
         // Step 2: Calculate target velocity from input
         Vector3 targetVelocity = Vector3.zero;
 
         if (movementInput.magnitude > 0.1f)
         {
             // Create movement direction from input
-            Vector3 moveDirection = (forward * movementInput.y + right * movementInput.x).normalized;
+            Vector3 moveDirection = movementInput.normalized;
 
             targetVelocity = moveDirection * moveSpeed;
         }

@@ -9,10 +9,6 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private Rigidbody rb;
 
-    // Properties for movement direction calculation
-    public Vector3 Forward => transform.forward;
-    public Vector3 Right => transform.right;
-
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
