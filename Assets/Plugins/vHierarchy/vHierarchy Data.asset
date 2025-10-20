@@ -13,5 +13,32 @@ MonoBehaviour:
   m_Name: vHierarchy Data
   m_EditorClassIdentifier: 
   sceneDatasByGuid:
-    keys: []
-    values: []
+    keys:
+    - 99c9720ab356a0642a771bea13969a05
+    values:
+    - goDatasByGlobalId:
+        keys:
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1742528203-0
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-677428740-0
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-185119009-0
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1838223634-0
+        values:
+        - iColor: 1
+          icon: Settings Icon
+        - iColor: 2
+          icon: StandaloneInputModule Icon
+        - iColor: 4
+          icon: AvatarMask On Icon
+        - iColor: 0
+          icon: Camera Icon
+      goDatasByInstanceId:
+        keys: 8687ffffec9cffffdecfffff3ea7ffff
+        values:
+        - iColor: 1
+          icon: Settings Icon
+        - iColor: 2
+          icon: StandaloneInputModule Icon
+        - iColor: 4
+          icon: AvatarMask On Icon
+        - iColor: 0
+          icon: Camera Icon
