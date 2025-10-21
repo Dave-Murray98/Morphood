@@ -227,27 +227,25 @@ public class InputManager : MonoBehaviour
         // Read movement input from Input Actions
         player1MovementInput = player1MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
 
-        // Player 2's movement input - apply inversion if needed for upside-down orientation
+        // Player 2's movement input - no inversion needed for movement
+        // Both players move their joysticks in the same direction despite facing opposite ways
         Vector2 rawPlayer2Movement = player2MoveAction?.ReadValue<Vector2>() ?? Vector2.zero;
-
-        player2MovementInput = new Vector2(-rawPlayer2Movement.x, -rawPlayer2Movement.y);
+        player2MovementInput = new Vector2(rawPlayer2Movement.x, rawPlayer2Movement.y);
 
         // Read rotation input from custom rotation sticks
         player1RotationInput = player1RotationStick?.HorizontalInput ?? 0f;
 
-        // Player 2's rotation input - apply inversion if needed for upside-down orientation 
+        // Player 2's rotation input - apply inversion for rotation only
+        // Since player 2 is facing the opposite direction to player 1 (they're both looking at the phone from opposite ends), their rotation intent needs to be flipped
+        // (e.g., when player 2 wants to turn "left" from their perspective, it's actually "right" in world space)
         float rawPlayer2Rotation = player2RotationStick?.HorizontalInput ?? 0f;
-
-        // (as player 2 is facing opposite direction to player 1, so input needs to be flipped)
         player2RotationInput = -rawPlayer2Rotation;
-
 
         if (enableDebugLogs && (player1MovementInput.magnitude > 0.1f || player2MovementInput.magnitude > 0.1f ||
                                Mathf.Abs(player1RotationInput) > 0.1f || Mathf.Abs(player2RotationInput) > 0.1f))
         {
             DebugLog($"P1 Move: {player1MovementInput}, P2 Move: {rawPlayer2Movement} -> {player2MovementInput})");
             DebugLog($"P1 Rotate: {player1RotationInput:F2}, P2 Rotate: {rawPlayer2Rotation:F2} -> {player2RotationInput:F2})");
-
         }
     }
 
