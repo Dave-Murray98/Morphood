@@ -198,63 +198,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &61944323
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 61944324}
-  - component: {fileID: 61944325}
-  m_Layer: 8
-  m_Name: Plain Station
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &61944324
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61944323}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1616220210}
-  m_Father: {fileID: 2496269765485137155}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &61944325
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61944323}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02c06465df14a5c42980a762a930c2c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stationName: Station
-  stationType: 0
-  itemPlacementPoint: {fileID: 1616220210}
-  placementOffset: {x: 0, y: 0, z: 0}
-  maxItemCapacity: 1
-  allowPlayer1Interaction: 1
-  allowPlayer2Interaction: 1
-  acceptedItemTypes: 000000000100000002000000
-  acceptAllItemTypes: 1
-  enableDebugLogs: 0
-  showStationGizmos: 1
-  allowItemRetrieval: 1
 --- !u!1 &185119009
 GameObject:
   m_ObjectHideFlags: 0
@@ -2762,12 +2705,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1616220209}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.597, y: 0.954, z: -0.502}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.5970001, y: 0.954, z: -0.50199986}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 61944324}
+  m_Father: {fileID: 2496269765485137155}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1657772918
 GameObject:
@@ -4051,7 +3994,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 61944324}
+  - {fileID: 1616220210}
   m_Father: {fileID: 1504051710}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2498541721453767633
@@ -4066,7 +4009,9 @@ GameObject:
   - component: {fileID: 2512414960377339619}
   - component: {fileID: 2520010109703551623}
   - component: {fileID: 2471952079248207171}
-  m_Layer: 0
+  - component: {fileID: 2520010109703551624}
+  - component: {fileID: 2520010109703551625}
+  m_Layer: 8
   m_Name: Kitchen Counter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4126,6 +4071,48 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2520010109703551624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2498541721453767633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02c06465df14a5c42980a762a930c2c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stationName: Station
+  stationType: 0
+  itemPlacementPoint: {fileID: 1616220210}
+  placementOffset: {x: 0, y: 0, z: 0}
+  maxItemCapacity: 1
+  allowPlayer1Interaction: 1
+  allowPlayer2Interaction: 1
+  acceptedItemTypes: 000000000100000002000000
+  acceptAllItemTypes: 1
+  enableDebugLogs: 1
+  showStationGizmos: 1
+  allowItemRetrieval: 1
+--- !u!114 &2520010109703551625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2498541721453767633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a0da4d6340ae28439085c204054e3f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionType: 0
+  interactionPriority: 1
+  interactionPrompt: Interact
+  isCurrentlyAvailable: 1
+  enableDebugLogs: 1
+  plainStation: {fileID: 2520010109703551624}
 --- !u!33 &5952130540269521548
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -4209,7 +4196,7 @@ Transform:
   m_GameObject: {fileID: 5972267657464140920}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -5.597, y: 0.954, z: -2.5019999}
+  m_LocalPosition: {x: -3.45, y: 0.954, z: -5.25}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []

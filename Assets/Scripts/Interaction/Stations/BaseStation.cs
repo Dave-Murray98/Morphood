@@ -41,6 +41,7 @@ public abstract class BaseStation : MonoBehaviour
 
     // Internal state
     protected GameObject currentItem;
+    protected PickupableItem currentPickupableItem; // Reference to the PickupableItem component
     protected bool isOccupied = false;
 
     // Events for other systems to react to
@@ -112,7 +113,7 @@ public abstract class BaseStation : MonoBehaviour
         // Check if station has space
         if (!HasSpace)
         {
-            DebugLog("Station is full, cannot accept more items");
+            DebugLog($"Station is full, cannot accept more items. isOccupied: {isOccupied}, ItemCount: {ItemCount}, MaxCapacity: {maxItemCapacity}");
             return false;
         }
 
@@ -124,7 +125,15 @@ public abstract class BaseStation : MonoBehaviour
         }
 
         // Allow derived classes to add custom logic
-        return CanAcceptItemCustom(item, playerEnd);
+        bool customCheck = CanAcceptItemCustom(item, playerEnd);
+        if (!customCheck)
+        {
+            DebugLog($"Custom acceptance check failed for {item.name}");
+            return false;
+        }
+
+        DebugLog($"Station can accept {item.name} from Player {playerEnd.PlayerNumber}");
+        return true;
     }
 
     /// <summary>
@@ -144,6 +153,8 @@ public abstract class BaseStation : MonoBehaviour
     /// </summary>
     public virtual bool PlaceItem(GameObject item, PlayerEnd playerEnd)
     {
+        DebugLog($"Attempting to place {item.name}. Current state - isOccupied: {isOccupied}, HasSpace: {HasSpace}");
+
         if (!CanAcceptItem(item, playerEnd))
         {
             DebugLog($"Cannot place {item.name} on station");
@@ -162,11 +173,23 @@ public abstract class BaseStation : MonoBehaviour
             rb.isKinematic = true;
         }
 
-        // Enable collider for visual/physics interaction
-        Collider col = item.GetComponent<Collider>();
-        if (col != null)
+        // Get reference to PickupableItem component and disable direct interaction
+        PickupableItem pickupableItem = item.GetComponent<PickupableItem>();
+        if (pickupableItem != null)
         {
-            col.enabled = true;
+            pickupableItem.SetDirectInteractionEnabled(false);
+            currentPickupableItem = pickupableItem;
+            DebugLog($"Disabled direct interaction for {item.name} while on station");
+        }
+        else
+        {
+            // For non-pickupable items, just enable the collider normally
+            Collider col = item.GetComponent<Collider>();
+            if (col != null)
+            {
+                col.enabled = true;
+            }
+            currentPickupableItem = null;
         }
 
         // Update station state
@@ -179,7 +202,7 @@ public abstract class BaseStation : MonoBehaviour
         // Fire events
         OnItemPlaced?.Invoke(item, playerEnd);
 
-        DebugLog($"Placed {item.name} on station by Player {playerEnd.PlayerNumber}");
+        DebugLog($"Successfully placed {item.name} on station by Player {playerEnd.PlayerNumber}. Station state - isOccupied: {isOccupied}, HasSpace: {HasSpace}");
         return true;
     }
 
@@ -202,17 +225,25 @@ public abstract class BaseStation : MonoBehaviour
 
         GameObject itemToRemove = currentItem;
 
+        // Re-enable direct interaction for PickupableItems
+        if (currentPickupableItem != null)
+        {
+            currentPickupableItem.SetDirectInteractionEnabled(true);
+            DebugLog($"Re-enabled direct interaction for {itemToRemove.name}");
+            currentPickupableItem = null;
+        }
+
         // Call derived class logic before removal
         OnItemRemovedInternal(itemToRemove, playerEnd);
 
-        // Reset station state
+        // Reset station state FIRST
         currentItem = null;
         isOccupied = false;
 
         // Fire events
         OnItemRemoved?.Invoke(itemToRemove, playerEnd);
 
-        DebugLog($"Removed {itemToRemove.name} from station by Player {playerEnd.PlayerNumber}");
+        DebugLog($"Removed {itemToRemove.name} from station by Player {playerEnd.PlayerNumber}. Station is now available: {HasSpace}");
         return itemToRemove;
     }
 

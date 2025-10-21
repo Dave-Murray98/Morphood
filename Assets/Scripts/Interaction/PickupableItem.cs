@@ -193,6 +193,29 @@ public class PickupableItem : BaseInteractable
         return true;
     }
 
+    /// <summary>
+    /// Set whether this item can be directly interacted with
+    /// Used by stations to prevent direct pickup when item is placed on them
+    /// </summary>
+    public void SetDirectInteractionEnabled(bool enabled)
+    {
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = enabled;
+            DebugLog($"Direct interaction {(enabled ? "enabled" : "disabled")} for {itemName}");
+        }
+    }
+
+    /// <summary>
+    /// Get whether this item can currently be directly interacted with
+    /// </summary>
+    public bool IsDirectInteractionEnabled()
+    {
+        Collider col = GetComponent<Collider>();
+        return col != null && col.enabled;
+    }
+
     #endregion
 
     #region Debug and Gizmos
