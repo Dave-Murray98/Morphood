@@ -59,6 +59,10 @@ public class InputManager : MonoBehaviour
     private InputAction player1MoveAction;
     private InputAction player2MoveAction;
 
+    // Interaction Actions (add these to your existing action declarations)
+    private InputAction player1InteractAction;
+    private InputAction player2InteractAction;
+
     // UI Actions
     private InputAction pauseAction;
 
@@ -91,7 +95,24 @@ public class InputManager : MonoBehaviour
     public bool IsMovementInputConflicting { get; private set; }
     public bool IsRotationInputConflicting { get; private set; }
 
+    // Current state of interaction inputs
+    public bool Player1InteractPressed { get; private set; }
+    public bool Player2InteractPressed { get; private set; }
+    public bool Player1InteractHeld { get; private set; }
+    public bool Player2InteractHeld { get; private set; }
+
     #endregion
+
+
+    #region Events
+
+    public Action OnPlayer1InteractPressed;
+    public Action OnPlayer1InteractReleased;
+    public Action OnPlayer2InteractPressed;
+    public Action OnPlayer2InteractReleased;
+
+    #endregion
+
 
     [Header("Movement Settings")]
     [SerializeField] private bool useVaryingSpeeds = true;
@@ -176,7 +197,7 @@ public class InputManager : MonoBehaviour
         gameplayActionMap = inputActions.FindActionMap("Gameplay");
 
         SetUpUIInputActions();
-        SetUpLocomotionActions();
+        SetUpGameplayActions();
 
         // Subscribe to events
         SubscribeToInputActions();
@@ -191,7 +212,7 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    private void SetUpLocomotionActions()
+    private void SetUpGameplayActions()
     {
         // Player Movement Actions
         player1MoveAction = gameplayActionMap.FindAction("Move1");
@@ -208,6 +229,21 @@ public class InputManager : MonoBehaviour
 
         // Rotation will be handled by custom HorizontalRotationStick components
         DebugLog("Locomotion actions set up. Rotation will be handled by custom sticks.");
+
+        // Player Interaction Actions
+        player1InteractAction = gameplayActionMap.FindAction("Interact1");
+        if (player1InteractAction == null)
+        {
+            Debug.LogError("[InputManager] Interact1 action not found in Gameplay ActionMap! Make sure to add this action.");
+        }
+
+        player2InteractAction = gameplayActionMap.FindAction("Interact2");
+        if (player2InteractAction == null)
+        {
+            Debug.LogError("[InputManager] Interact2 action not found in Gameplay ActionMap! Make sure to add this action.");
+        }
+
+        DebugLog("Interaction actions set up for both players");
     }
 
     #region Update Loop
@@ -219,6 +255,9 @@ public class InputManager : MonoBehaviour
         {
             UpdateRawInputValues();
             CombineInputs();
+
+            // Update interaction hold states
+            UpdateInteractionHolds();
         }
     }
 
@@ -387,6 +426,13 @@ public class InputManager : MonoBehaviour
 
     }
 
+    private void UpdateInteractionHolds()
+    {
+        // Update hold states based on whether buttons are currently pressed
+        Player1InteractHeld = player1InteractAction != null && player1InteractAction.IsPressed();
+        Player2InteractHeld = player2InteractAction != null && player2InteractAction.IsPressed();
+    }
+
     #endregion
 
     #region Event Subscription
@@ -394,7 +440,9 @@ public class InputManager : MonoBehaviour
     private void SubscribeToInputActions()
     {
         SubscribeToUIInputActions();
+        SubscribeToInteractionInputActions();
     }
+
 
     private void SubscribeToUIInputActions()
     {
@@ -402,6 +450,23 @@ public class InputManager : MonoBehaviour
         if (pauseAction != null)
         {
             pauseAction.performed += OnPausePerformed;
+        }
+    }
+
+    private void SubscribeToInteractionInputActions()
+    {
+        DebugLog("Subscribing to Interaction Input Actions");
+
+        if (player1InteractAction != null)
+        {
+            player1InteractAction.performed += OnPlayer1InteractPerformed;
+            player1InteractAction.canceled += OnPlayer1InteractCanceled;
+        }
+
+        if (player2InteractAction != null)
+        {
+            player2InteractAction.performed += OnPlayer2InteractPerformed;
+            player2InteractAction.canceled += OnPlayer2InteractCanceled;
         }
     }
 
@@ -424,6 +489,36 @@ public class InputManager : MonoBehaviour
         {
             Debug.LogWarning("GameManager.Instance is null - cannot handle pause");
         }
+    }
+
+    private void OnPlayer1InteractPerformed(InputAction.CallbackContext context)
+    {
+        Player1InteractPressed = true;
+        OnPlayer1InteractPressed?.Invoke();
+        DebugLog("Player 1 interact pressed");
+    }
+
+    private void OnPlayer1InteractCanceled(InputAction.CallbackContext context)
+    {
+        Player1InteractPressed = false;
+        Player1InteractHeld = false;
+        OnPlayer1InteractReleased?.Invoke();
+        DebugLog("Player 1 interact released");
+    }
+
+    private void OnPlayer2InteractPerformed(InputAction.CallbackContext context)
+    {
+        Player2InteractPressed = true;
+        OnPlayer2InteractPressed?.Invoke();
+        DebugLog("Player 2 interact pressed");
+    }
+
+    private void OnPlayer2InteractCanceled(InputAction.CallbackContext context)
+    {
+        Player2InteractPressed = false;
+        Player2InteractHeld = false;
+        OnPlayer2InteractReleased?.Invoke();
+        DebugLog("Player 2 interact released");
     }
 
     #endregion
