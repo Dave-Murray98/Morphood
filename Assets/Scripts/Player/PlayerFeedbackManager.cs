@@ -170,6 +170,15 @@ public class PlayerFeedbackManager : MonoBehaviour
         // Clean up tweens when destroyed
         StopShaking();
         CancelInvoke();
+
+        // Clean up any remaining DOTween operations for this transform
+        if (playerBody != null)
+        {
+            playerBody.DOKill();
+        }
+
+        DOTween.KillAll();
+        DOTween.Clear(true);
     }
 
     private void OnDisable()
