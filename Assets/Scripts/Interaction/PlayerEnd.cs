@@ -3,8 +3,9 @@ using UnityEngine;
 
 /// <summary>
 /// Represents one end of the player character (Player 1 or Player 2).
-/// Handles interaction detection, input processing, and object management for that specific player.
+/// Handles interaction detection via trigger collisions, input processing, and object management for that specific player.
 /// </summary>
+[RequireComponent(typeof(Collider))]
 public class PlayerEnd : MonoBehaviour
 {
     [Header("Player Configuration")]
@@ -14,13 +15,6 @@ public class PlayerEnd : MonoBehaviour
     [SerializeField] private PlayerEndType endType = PlayerEndType.Player1;
     [Tooltip("Defines what special abilities this end has")]
 
-    [Header("Interaction Detection")]
-    [SerializeField] private float interactionRange = 2f;
-    [Tooltip("How close objects need to be to interact with them")]
-
-    [SerializeField] private LayerMask interactableLayerMask = -1;
-    [Tooltip("Which layers contain interactable objects")]
-
     [Header("Inventory")]
     [SerializeField] private Transform holdPoint;
     [Tooltip("Where held objects will be positioned")]
@@ -28,16 +22,27 @@ public class PlayerEnd : MonoBehaviour
     [SerializeField] private int maxCarryCapacity = 1;
     [Tooltip("Maximum number of objects this end can carry")]
 
+    [Header("Drop Settings")]
+    [SerializeField] private float dropDistance = 1.5f;
+    [Tooltip("How far in front of the player to drop items when not placing on a station")]
+
+    [SerializeField] private LayerMask groundLayerMask = 1;
+    [Tooltip("Layer mask for ground detection when dropping items")]
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
     [SerializeField] private bool showInteractionGizmos = true;
 
     // Internal state
     private List<IInteractable> interactablesInRange = new List<IInteractable>();
+    private List<BaseStation> stationsInRange = new List<BaseStation>();
     private List<GameObject> heldObjects = new List<GameObject>();
     private IInteractable currentInteractionTarget;
     private bool isInteracting = false;
     private bool isHoldingInteraction = false;
+
+    // Collision detection
+    private Collider triggerCollider;
 
     // Public properties
     public int PlayerNumber => playerNumber;
@@ -60,6 +65,39 @@ public class PlayerEnd : MonoBehaviour
 
     private void Initialize()
     {
+        SetupTriggerCollider();
+        SetupHoldPoint();
+
+        DebugLog($"Player {playerNumber} end initialized with type: {endType}");
+    }
+
+    private void SetupTriggerCollider()
+    {
+        triggerCollider = GetComponent<Collider>();
+
+        if (triggerCollider == null)
+        {
+            // Create a box collider if none exists
+            triggerCollider = gameObject.AddComponent<BoxCollider>();
+            DebugLog("Created BoxCollider for interaction detection");
+        }
+
+        // Ensure it's set up as a trigger
+        triggerCollider.isTrigger = true;
+
+        // Set reasonable default size if it's a box collider
+        if (triggerCollider is BoxCollider boxCollider)
+        {
+            if (boxCollider.size == Vector3.one) // Default size, probably needs adjustment
+            {
+                boxCollider.size = new Vector3(2f, 2f, 2f); // Reasonable interaction area
+                DebugLog("Set default BoxCollider size for interaction detection");
+            }
+        }
+    }
+
+    private void SetupHoldPoint()
+    {
         // Set up hold point if not assigned
         if (holdPoint == null)
         {
@@ -68,53 +106,58 @@ public class PlayerEnd : MonoBehaviour
             holdPointObj.transform.localPosition = Vector3.up * 1.5f; // Slightly above the player
             holdPoint = holdPointObj.transform;
         }
-
-        // Register with the interaction system
-        RegisterWithInputManager();
-
-        DebugLog($"Player {playerNumber} end initialized with type: {endType}");
     }
 
-    private void RegisterWithInputManager()
+    #region Collision Detection
+
+    private void OnTriggerEnter(Collider other)
     {
-        // We'll extend InputManager to handle interaction input
-        if (InputManager.Instance != null)
+        // Check for interactable objects
+        IInteractable interactable = other.GetComponent<IInteractable>();
+        if (interactable != null && interactable.IsAvailable && interactable.CanInteract(this))
         {
-            // This method will be added to InputManager
-            // InputManager.Instance.RegisterPlayerEnd(this);
-        }
-        else
-        {
-            // Try again next frame if InputManager isn't ready
-            Invoke(nameof(RegisterWithInputManager), 0.1f);
-        }
-    }
-
-    private void Update()
-    {
-        UpdateInteractableDetection();
-    }
-
-    #region Interaction Detection
-
-    private void UpdateInteractableDetection()
-    {
-        // Find all interactable objects in range
-        Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, interactionRange, interactableLayerMask);
-
-        // Clear the current list
-        interactablesInRange.Clear();
-
-        // Check each collider for interactable components
-        foreach (Collider col in nearbyColliders)
-        {
-            IInteractable interactable = col.GetComponent<IInteractable>();
-            if (interactable != null && interactable.IsAvailable && interactable.CanInteract(this))
+            if (!interactablesInRange.Contains(interactable))
             {
                 interactablesInRange.Add(interactable);
+                SortInteractablesByPriority();
+                DebugLog($"Interactable entered range: {other.name}");
             }
         }
 
+        // Check for stations
+        BaseStation station = other.GetComponent<BaseStation>();
+        if (station != null && station.CanPlayerInteract(this))
+        {
+            if (!stationsInRange.Contains(station))
+            {
+                stationsInRange.Add(station);
+                SortStationsByDistance();
+                DebugLog($"Station entered range: {other.name}");
+            }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        // Remove interactable objects
+        IInteractable interactable = other.GetComponent<IInteractable>();
+        if (interactable != null)
+        {
+            interactablesInRange.Remove(interactable);
+            DebugLog($"Interactable left range: {other.name}");
+        }
+
+        // Remove stations
+        BaseStation station = other.GetComponent<BaseStation>();
+        if (station != null)
+        {
+            stationsInRange.Remove(station);
+            DebugLog($"Station left range: {other.name}");
+        }
+    }
+
+    private void SortInteractablesByPriority()
+    {
         // Sort by priority (highest first) and then by distance (closest first)
         interactablesInRange.Sort((a, b) =>
         {
@@ -125,12 +168,17 @@ public class PlayerEnd : MonoBehaviour
             float distanceB = Vector3.Distance(transform.position, b.Transform.position);
             return distanceA.CompareTo(distanceB);
         });
+    }
 
-        // Debug logging for nearby interactables
-        if (enableDebugLogs && interactablesInRange.Count > 0)
+    private void SortStationsByDistance()
+    {
+        // Sort stations by distance (closest first)
+        stationsInRange.Sort((a, b) =>
         {
-            DebugLog($"Found {interactablesInRange.Count} interactables in range");
-        }
+            float distanceA = Vector3.Distance(transform.position, a.transform.position);
+            float distanceB = Vector3.Distance(transform.position, b.transform.position);
+            return distanceA.CompareTo(distanceB);
+        });
     }
 
     /// <summary>
@@ -138,7 +186,21 @@ public class PlayerEnd : MonoBehaviour
     /// </summary>
     public IInteractable GetBestInteractable()
     {
+        // Clean up any null or unavailable interactables
+        interactablesInRange.RemoveAll(i => i == null || !i.IsAvailable || !i.CanInteract(this));
+
         return interactablesInRange.Count > 0 ? interactablesInRange[0] : null;
+    }
+
+    /// <summary>
+    /// Get the best station for placing items
+    /// </summary>
+    public BaseStation GetBestStation()
+    {
+        // Clean up any null stations
+        stationsInRange.RemoveAll(s => s == null || !s.CanPlayerInteract(this));
+
+        return stationsInRange.Count > 0 ? stationsInRange[0] : null;
     }
 
     #endregion
@@ -152,6 +214,14 @@ public class PlayerEnd : MonoBehaviour
     {
         if (isInteracting) return;
 
+        // If player is carrying something, try to drop/place it
+        if (IsCarryingItems)
+        {
+            TryDropOrPlaceItem();
+            return;
+        }
+
+        // Otherwise, try to pick up or interact with something
         IInteractable targetInteractable = GetBestInteractable();
         if (targetInteractable == null) return;
 
@@ -202,6 +272,58 @@ public class PlayerEnd : MonoBehaviour
     #endregion
 
     #region Object Management
+
+    /// <summary>
+    /// Try to drop or place the carried item
+    /// </summary>
+    private void TryDropOrPlaceItem()
+    {
+        if (!IsCarryingItems) return;
+
+        GameObject itemToDrop = heldObjects[heldObjects.Count - 1]; // Get the last picked up item
+
+        // First, try to place on a station
+        BaseStation bestStation = GetBestStation();
+        if (bestStation != null && bestStation.CanAcceptItem(itemToDrop, this))
+        {
+            Vector3 placePosition = bestStation.GetPlacementPosition();
+            bool placedSuccessfully = bestStation.PlaceItem(itemToDrop, this);
+
+            if (placedSuccessfully)
+            {
+                // Remove from our inventory (station will handle the object positioning)
+                heldObjects.Remove(itemToDrop);
+                OnItemDropped?.Invoke(itemToDrop);
+
+                DebugLog($"Player {playerNumber} placed {itemToDrop.name} on station: {bestStation.name}");
+                return;
+            }
+        }
+
+        // If no station available or placement failed, drop on ground
+        Vector3 dropPosition = CalculateGroundDropPosition();
+        DropObject(itemToDrop, dropPosition);
+
+        DebugLog($"Player {playerNumber} dropped {itemToDrop.name} on ground");
+    }
+
+    /// <summary>
+    /// Calculate where to drop an item on the ground in front of the player
+    /// </summary>
+    private Vector3 CalculateGroundDropPosition()
+    {
+        Vector3 dropDirection = transform.forward;
+        Vector3 targetPosition = transform.position + dropDirection * dropDistance;
+
+        // Try to drop at ground level
+        if (Physics.Raycast(targetPosition + Vector3.up * 2f, Vector3.down, out RaycastHit hit, 5f, groundLayerMask))
+        {
+            return hit.point + Vector3.up * 0.1f; // Slightly above ground
+        }
+
+        // Fallback to player's Y level
+        return new Vector3(targetPosition.x, transform.position.y, targetPosition.z);
+    }
 
     /// <summary>
     /// Add an object to this player's inventory
@@ -257,7 +379,7 @@ public class PlayerEnd : MonoBehaviour
         heldObjects.Remove(obj);
 
         // Position the object
-        Vector3 finalDropPosition = dropPosition ?? (transform.position + transform.forward * 1f);
+        Vector3 finalDropPosition = dropPosition ?? CalculateGroundDropPosition();
         obj.transform.SetParent(null);
         obj.transform.position = finalDropPosition;
 
@@ -279,17 +401,6 @@ public class PlayerEnd : MonoBehaviour
         DebugLog($"Player {playerNumber} dropped: {obj.name}");
 
         return true;
-    }
-
-    /// <summary>
-    /// Drop the most recently picked up object
-    /// </summary>
-    public bool DropLastObject(Vector3? dropPosition = null)
-    {
-        if (heldObjects.Count == 0) return false;
-
-        GameObject lastObject = heldObjects[heldObjects.Count - 1];
-        return DropObject(lastObject, dropPosition);
     }
 
     /// <summary>
@@ -318,9 +429,17 @@ public class PlayerEnd : MonoBehaviour
     {
         if (!showInteractionGizmos) return;
 
-        // Draw interaction range
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, interactionRange);
+        // Draw trigger collider bounds
+        if (triggerCollider != null)
+        {
+            Gizmos.color = Color.yellow;
+            if (triggerCollider is BoxCollider boxCollider)
+            {
+                Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+                Gizmos.DrawWireCube(boxCollider.center, boxCollider.size);
+                Gizmos.matrix = Matrix4x4.identity;
+            }
+        }
 
         // Draw line to best interactable
         if (Application.isPlaying)
@@ -331,22 +450,29 @@ public class PlayerEnd : MonoBehaviour
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(transform.position, best.Transform.position);
             }
+
+            // Draw line to best station
+            BaseStation bestStation = GetBestStation();
+            if (bestStation != null)
+            {
+                Gizmos.color = Color.blue;
+                Gizmos.DrawLine(transform.position, bestStation.transform.position);
+            }
         }
 
         // Draw hold point
         if (holdPoint != null)
         {
-            Gizmos.color = Color.blue;
+            Gizmos.color = Color.cyan;
             Gizmos.DrawWireCube(holdPoint.position, Vector3.one * 0.3f);
         }
-    }
 
-    private void OnDestroy()
-    {
-        // Clean up when destroyed
-        if (InputManager.Instance != null)
+        // Draw drop position
+        if (Application.isPlaying && IsCarryingItems)
         {
-            // InputManager.Instance.UnregisterPlayerEnd(this);
+            Gizmos.color = Color.red;
+            Vector3 dropPos = CalculateGroundDropPosition();
+            Gizmos.DrawWireSphere(dropPos, 0.2f);
         }
     }
 

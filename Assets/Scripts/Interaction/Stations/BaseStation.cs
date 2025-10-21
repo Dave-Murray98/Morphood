@@ -1,0 +1,371 @@
+using UnityEngine;
+
+/// <summary>
+/// Base class for all stations in the game (cooking, chopping, serving, plain storage, etc.)
+/// Handles item placement, basic station functionality, and player interaction permissions.
+/// </summary>
+public abstract class BaseStation : MonoBehaviour
+{
+    [Header("Station Configuration")]
+    [SerializeField] protected string stationName = "Station";
+    [Tooltip("Display name for this station")]
+
+    [SerializeField] protected StationType stationType = StationType.Plain;
+    [Tooltip("What type of station this is")]
+
+    [Header("Item Placement")]
+    [SerializeField] protected Transform itemPlacementPoint;
+    [Tooltip("Where items will be positioned when placed on this station")]
+
+    [SerializeField] protected Vector3 placementOffset = Vector3.zero;
+    [Tooltip("Additional offset from the placement point")]
+
+    [SerializeField] protected int maxItemCapacity = 1;
+    [Tooltip("Maximum number of items this station can hold")]
+
+    [Header("Player Permissions")]
+    [SerializeField] protected bool allowPlayer1Interaction = true;
+    [SerializeField] protected bool allowPlayer2Interaction = true;
+    [Tooltip("Which players can interact with this station")]
+
+    [Header("Item Filters")]
+    [SerializeField] protected ItemType[] acceptedItemTypes = { ItemType.Ingredient, ItemType.Dish, ItemType.CookedFood };
+    [Tooltip("What types of items this station can accept")]
+
+    [SerializeField] protected bool acceptAllItemTypes = true;
+    [Tooltip("If true, accepts any item type (ignores the accepted types list)")]
+
+    [Header("Debug")]
+    [SerializeField] protected bool enableDebugLogs = false;
+    [SerializeField] protected bool showStationGizmos = true;
+
+    // Internal state
+    protected GameObject currentItem;
+    protected bool isOccupied = false;
+
+    // Events for other systems to react to
+    public System.Action<GameObject, PlayerEnd> OnItemPlaced;
+    public System.Action<GameObject, PlayerEnd> OnItemRemoved;
+
+    // Public properties
+    public string StationName => stationName;
+    public StationType Type => stationType;
+    public bool IsOccupied => isOccupied;
+    public GameObject CurrentItem => currentItem;
+    public int ItemCount => isOccupied ? 1 : 0;
+    public bool HasSpace => !isOccupied && ItemCount < maxItemCapacity;
+
+    protected virtual void Start()
+    {
+        Initialize();
+    }
+
+    protected virtual void Initialize()
+    {
+        // Set up placement point if not assigned
+        if (itemPlacementPoint == null)
+        {
+            GameObject placementObj = new GameObject($"{stationName}_PlacementPoint");
+            placementObj.transform.SetParent(transform);
+            placementObj.transform.localPosition = Vector3.up * 1f; // Default height
+            itemPlacementPoint = placementObj.transform;
+
+            DebugLog("Created default placement point");
+        }
+
+        // Ensure the station has a collider for PlayerEnd detection
+        if (GetComponent<Collider>() == null)
+        {
+            Debug.LogWarning($"[{stationName}] Station has no collider! PlayerEnds won't be able to detect it. Add a collider component.");
+        }
+
+        DebugLog($"Station '{stationName}' initialized as type: {stationType}");
+    }
+
+    #region Player Interaction
+
+    /// <summary>
+    /// Check if a specific player can interact with this station
+    /// </summary>
+    public virtual bool CanPlayerInteract(PlayerEnd playerEnd)
+    {
+        switch (playerEnd.PlayerNumber)
+        {
+            case 1: return allowPlayer1Interaction;
+            case 2: return allowPlayer2Interaction;
+            default: return false;
+        }
+    }
+
+    /// <summary>
+    /// Check if this station can accept a specific item from a specific player
+    /// </summary>
+    public virtual bool CanAcceptItem(GameObject item, PlayerEnd playerEnd)
+    {
+        // Check player permissions
+        if (!CanPlayerInteract(playerEnd))
+        {
+            DebugLog($"Player {playerEnd.PlayerNumber} not allowed to interact with this station");
+            return false;
+        }
+
+        // Check if station has space
+        if (!HasSpace)
+        {
+            DebugLog("Station is full, cannot accept more items");
+            return false;
+        }
+
+        // Check item type compatibility
+        if (!IsItemTypeAccepted(item))
+        {
+            DebugLog($"Station does not accept items of type: {GetItemType(item)}");
+            return false;
+        }
+
+        // Allow derived classes to add custom logic
+        return CanAcceptItemCustom(item, playerEnd);
+    }
+
+    /// <summary>
+    /// Override this in derived classes to add custom acceptance logic
+    /// </summary>
+    protected virtual bool CanAcceptItemCustom(GameObject item, PlayerEnd playerEnd)
+    {
+        return true;
+    }
+
+    #endregion
+
+    #region Item Management
+
+    /// <summary>
+    /// Place an item on this station
+    /// </summary>
+    public virtual bool PlaceItem(GameObject item, PlayerEnd playerEnd)
+    {
+        if (!CanAcceptItem(item, playerEnd))
+        {
+            DebugLog($"Cannot place {item.name} on station");
+            return false;
+        }
+
+        // Position the item
+        item.transform.SetParent(itemPlacementPoint);
+        item.transform.localPosition = placementOffset;
+        item.transform.localRotation = Quaternion.identity;
+
+        // Enable physics but make it kinematic (station controls position)
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
+
+        // Enable collider for visual/physics interaction
+        Collider col = item.GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = true;
+        }
+
+        // Update station state
+        currentItem = item;
+        isOccupied = true;
+
+        // Call derived class logic
+        OnItemPlacedInternal(item, playerEnd);
+
+        // Fire events
+        OnItemPlaced?.Invoke(item, playerEnd);
+
+        DebugLog($"Placed {item.name} on station by Player {playerEnd.PlayerNumber}");
+        return true;
+    }
+
+    /// <summary>
+    /// Remove the current item from this station
+    /// </summary>
+    public virtual GameObject RemoveItem(PlayerEnd playerEnd)
+    {
+        if (!isOccupied || currentItem == null)
+        {
+            DebugLog("No item to remove from station");
+            return null;
+        }
+
+        if (!CanPlayerInteract(playerEnd))
+        {
+            DebugLog($"Player {playerEnd.PlayerNumber} cannot remove items from this station");
+            return null;
+        }
+
+        GameObject itemToRemove = currentItem;
+
+        // Call derived class logic before removal
+        OnItemRemovedInternal(itemToRemove, playerEnd);
+
+        // Reset station state
+        currentItem = null;
+        isOccupied = false;
+
+        // Fire events
+        OnItemRemoved?.Invoke(itemToRemove, playerEnd);
+
+        DebugLog($"Removed {itemToRemove.name} from station by Player {playerEnd.PlayerNumber}");
+        return itemToRemove;
+    }
+
+    /// <summary>
+    /// Get the position where items should be placed
+    /// </summary>
+    public virtual Vector3 GetPlacementPosition()
+    {
+        return itemPlacementPoint.position + placementOffset;
+    }
+
+    #endregion
+
+    #region Item Type Checking
+
+    /// <summary>
+    /// Check if this station accepts a specific item type
+    /// </summary>
+    protected virtual bool IsItemTypeAccepted(GameObject item)
+    {
+        if (acceptAllItemTypes) return true;
+
+        ItemType itemType = GetItemType(item);
+
+        foreach (ItemType acceptedType in acceptedItemTypes)
+        {
+            if (itemType == acceptedType) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Get the ItemType of a GameObject
+    /// </summary>
+    protected virtual ItemType GetItemType(GameObject item)
+    {
+        PickupableItem pickupable = item.GetComponent<PickupableItem>();
+        if (pickupable != null)
+        {
+            return pickupable.Type;
+        }
+
+        // Default fallback
+        return ItemType.Ingredient;
+    }
+
+    #endregion
+
+    #region Virtual Methods for Derived Classes
+
+    /// <summary>
+    /// Called when an item is successfully placed on this station
+    /// Override in derived classes to add specific behavior
+    /// </summary>
+    protected virtual void OnItemPlacedInternal(GameObject item, PlayerEnd playerEnd)
+    {
+        // Default: do nothing
+    }
+
+    /// <summary>
+    /// Called when an item is removed from this station
+    /// Override in derived classes to add specific behavior
+    /// </summary>
+    protected virtual void OnItemRemovedInternal(GameObject item, PlayerEnd playerEnd)
+    {
+        // Default: do nothing
+    }
+
+    #endregion
+
+    #region Debug and Gizmos
+
+    protected virtual void OnDrawGizmos()
+    {
+        if (!showStationGizmos) return;
+
+        // Draw station bounds
+        Collider stationCollider = GetComponent<Collider>();
+        if (stationCollider != null)
+        {
+            Gizmos.color = GetStationColor();
+
+            if (stationCollider is BoxCollider boxCollider)
+            {
+                Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+                Gizmos.DrawWireCube(boxCollider.center, boxCollider.size);
+                Gizmos.matrix = Matrix4x4.identity;
+            }
+            else
+            {
+                Gizmos.DrawWireCube(transform.position, Vector3.one);
+            }
+        }
+
+        // Draw placement point
+        if (itemPlacementPoint != null)
+        {
+            Gizmos.color = isOccupied ? Color.red : Color.green;
+            Gizmos.DrawWireCube(GetPlacementPosition(), Vector3.one * 0.3f);
+        }
+
+        // Draw station type indicator
+        Gizmos.color = GetStationColor();
+        Vector3 indicatorPos = transform.position + Vector3.up * 2f;
+        Gizmos.DrawCube(indicatorPos, Vector3.one * 0.2f);
+
+#if UNITY_EDITOR
+        // Show station name in scene view
+        UnityEditor.Handles.Label(indicatorPos + Vector3.up * 0.5f, stationName);
+#endif
+    }
+
+    protected virtual Color GetStationColor()
+    {
+        switch (stationType)
+        {
+            case StationType.Plain: return Color.white;
+            case StationType.Cooking: return Color.red;
+            case StationType.Chopping: return Color.blue;
+            case StationType.Serving: return Color.yellow;
+            default: return Color.gray;
+        }
+    }
+
+    protected virtual void OnValidate()
+    {
+        // Ensure reasonable values
+        maxItemCapacity = Mathf.Max(1, maxItemCapacity);
+
+        // Ensure station name is not empty
+        if (string.IsNullOrEmpty(stationName))
+        {
+            stationName = $"{stationType}Station";
+        }
+    }
+
+    protected void DebugLog(string message)
+    {
+        if (enableDebugLogs)
+            Debug.Log($"[{stationName}] {message}");
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Defines the different types of stations
+/// </summary>
+public enum StationType
+{
+    Plain,     // Simple storage surface
+    Cooking,   // Frying/boiling stations
+    Chopping,  // Chopping station
+    Serving    // Order delivery station
+}
