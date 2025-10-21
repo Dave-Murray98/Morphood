@@ -322,8 +322,6 @@ public class InputManager : MonoBehaviour
 
         }
 
-        Debug.Log($"IsMovementInputConflicting = {IsMovementInputConflicting}");
-
         // If neither player has input, everything stays at zero (default values)
 
         MovementInput = combinedMovement;
@@ -386,8 +384,6 @@ public class InputManager : MonoBehaviour
         // Store results
         RotationInput = new Vector2(combinedRotationValue, 0f);
         CurrentRotationSpeed = appliedRotationSpeed;
-
-        Debug.Log($"IsRotationInputConflicting = {IsRotationInputConflicting}");
 
     }
 
