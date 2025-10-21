@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// A custom vertical-only joystick optimized for rotation controls.
+/// A custom horizontal-only joystick optimized for rotation controls.
 /// Players pull up/down to control rotation direction.
 /// Feeds input directly to the InputManager for maximum performance.
 /// </summary>
@@ -26,13 +26,13 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
     [SerializeField] private bool enableDebugLogs = false;
 
     // Internal state
-    private float verticalInput = 0f;  // Changed from horizontalInput
+    private float horizontalInput = 0f;
     private bool isDragging = false;
     private Camera uiCamera;
     private Canvas parentCanvas;
 
     // Public property for InputManager to read
-    public float VerticalInput => verticalInput;  // Changed property name
+    public float HorizontalInput => horizontalInput;
     public int PlayerNumber => playerNumber;
 
     void Start()
@@ -91,7 +91,7 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
         if (snapToZeroOnRelease)
         {
             // Snap back to center
-            SetVerticalInput(0f);
+            SetHorizontalInput(0f);
         }
 
         DebugLog($"Player {playerNumber} rotation stick - pointer up");
@@ -107,7 +107,7 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
             background, eventData.position, uiCamera, out localPosition))
         {
             // Normalize the position relative to movement range
-            // NOW USING Y-AXIS instead of X-axis for up/down movement
+            // uses the y axis as the phone will be held vertically (so up/down movement is actually horizontal due to phone orientation)
             float normalizedY = localPosition.y / movementRange;
 
             // Clamp to -1 to 1 range
@@ -119,31 +119,31 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
                 normalizedY = 0f;
             }
 
-            SetVerticalInput(normalizedY);
+            SetHorizontalInput(normalizedY);
         }
     }
 
-    private void SetVerticalInput(float value)
+    private void SetHorizontalInput(float value)
     {
-        verticalInput = value;
+        horizontalInput = value;
         UpdateKnobPosition();
 
-        DebugLog($"Player {playerNumber} rotation input: {verticalInput:F3}");
+        DebugLog($"Player {playerNumber} rotation input: {horizontalInput:F3}");
     }
 
     private void UpdateKnobPosition()
     {
         if (knob == null) return;
 
-        // Position knob based on input (only vertical movement)
-        Vector2 knobPosition = new Vector2(0f, verticalInput * movementRange);
+        // Position knob based on input (only horizontal movement)
+        Vector2 knobPosition = new Vector2(0f, horizontalInput * movementRange);
         knob.anchoredPosition = knobPosition;
     }
 
     void OnDisable()
     {
         isDragging = false;
-        SetVerticalInput(0f);
+        SetHorizontalInput(0f);
 
         // Unregister from InputManager
         if (InputManager.Instance != null)
@@ -175,7 +175,7 @@ public class HorizontalRotationStick : MonoBehaviour, IPointerDownHandler, IPoin
             Gizmos.color = Color.yellow;
             Vector3 worldPos = background.transform.position;
 
-            // Draw vertical constraint line (up/down movement)
+            // Draw horizontal constraint line
             Gizmos.color = Color.red;
             Vector3 upPos = worldPos + Vector3.up * movementRange;
             Vector3 downPos = worldPos + Vector3.down * movementRange;

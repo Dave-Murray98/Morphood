@@ -233,11 +233,12 @@ public class InputManager : MonoBehaviour
         player2MovementInput = new Vector2(-rawPlayer2Movement.x, -rawPlayer2Movement.y);
 
         // Read rotation input from custom rotation sticks
-        player1RotationInput = player1RotationStick?.VerticalInput ?? 0f;
+        player1RotationInput = player1RotationStick?.HorizontalInput ?? 0f;
 
-        // Player 2's rotation input - apply inversion if needed for upside-down orientation
-        float rawPlayer2Rotation = player2RotationStick?.VerticalInput ?? 0f;
+        // Player 2's rotation input - apply inversion if needed for upside-down orientation 
+        float rawPlayer2Rotation = player2RotationStick?.HorizontalInput ?? 0f;
 
+        // (as player 2 is facing opposite direction to player 1, so input needs to be flipped)
         player2RotationInput = -rawPlayer2Rotation;
 
 
