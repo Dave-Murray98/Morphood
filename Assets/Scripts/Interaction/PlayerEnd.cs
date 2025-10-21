@@ -38,6 +38,7 @@ public class PlayerEnd : MonoBehaviour
     private List<BaseStation> stationsInRange = new List<BaseStation>();
     private List<GameObject> heldObjects = new List<GameObject>();
     private IInteractable currentInteractionTarget;
+    private IInteractable currentHighlightedInteractable; // Track what we're currently highlighting
     private bool isInteracting = false;
     private bool isHoldingInteraction = false;
 
@@ -112,6 +113,8 @@ public class PlayerEnd : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        bool needsHighlightUpdate = false;
+
         // Check for interactable objects
         IInteractable interactable = other.GetComponent<IInteractable>();
         if (interactable != null && interactable.IsAvailable && interactable.CanInteract(this))
@@ -120,6 +123,7 @@ public class PlayerEnd : MonoBehaviour
             {
                 interactablesInRange.Add(interactable);
                 SortInteractablesByPriority();
+                needsHighlightUpdate = true;
                 DebugLog($"Interactable entered range: {other.name}");
             }
         }
@@ -132,27 +136,93 @@ public class PlayerEnd : MonoBehaviour
             {
                 stationsInRange.Add(station);
                 SortStationsByDistance();
+                needsHighlightUpdate = true;
                 DebugLog($"Station entered range: {other.name}");
+            }
+        }
+
+        // Update highlighting if needed (but not during interaction)
+        if (needsHighlightUpdate && !isInteracting)
+        {
+            // Force immediate highlight update
+            IInteractable newTarget = GetInteractablePlayerWouldUse();
+            if (newTarget != currentHighlightedInteractable)
+            {
+                // Update highlighting immediately rather than waiting for Update()
+                if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable prevHighlighted)
+                {
+                    prevHighlighted.StopHighlighting();
+                }
+
+                if (newTarget != null && newTarget is BaseInteractable newHighlighted)
+                {
+                    newHighlighted.StartHighlighting();
+                    DebugLog($"Immediately started highlighting: {newHighlighted.name}");
+                }
+
+                currentHighlightedInteractable = newTarget;
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
+        bool needsHighlightUpdate = false;
+
         // Remove interactable objects
         IInteractable interactable = other.GetComponent<IInteractable>();
         if (interactable != null)
         {
-            interactablesInRange.Remove(interactable);
-            DebugLog($"Interactable left range: {other.name}");
+            if (interactablesInRange.Remove(interactable))
+            {
+                needsHighlightUpdate = true;
+                DebugLog($"Interactable left range: {other.name}");
+
+                // If this was the highlighted interactable, stop highlighting it immediately
+                if (currentHighlightedInteractable == interactable && interactable is BaseInteractable highlightedInteractable)
+                {
+                    highlightedInteractable.StopHighlighting();
+                    currentHighlightedInteractable = null;
+                    DebugLog($"Stopped highlighting departing interactable: {other.name}");
+                }
+            }
         }
 
         // Remove stations
         BaseStation station = other.GetComponent<BaseStation>();
         if (station != null)
         {
-            stationsInRange.Remove(station);
-            DebugLog($"Station left range: {other.name}");
+            if (stationsInRange.Remove(station))
+            {
+                needsHighlightUpdate = true;
+                DebugLog($"Station left range: {other.name}");
+
+                // If this station's interactable was highlighted, stop highlighting it
+                PlainStationInteractable stationInteractable = station.GetComponent<PlainStationInteractable>();
+                if (ReferenceEquals(currentHighlightedInteractable, stationInteractable) && stationInteractable is BaseInteractable highlightedStation)
+                {
+                    highlightedStation.StopHighlighting();
+                    currentHighlightedInteractable = null;
+                    DebugLog($"Stopped highlighting departing station: {other.name}");
+                }
+            }
+        }
+
+        // Update highlighting if needed (but not during interaction)
+        if (needsHighlightUpdate && !isInteracting)
+        {
+            // Force immediate highlight update
+            IInteractable newTarget = GetInteractablePlayerWouldUse();
+            if (newTarget != currentHighlightedInteractable)
+            {
+                if (newTarget != null && newTarget is BaseInteractable newHighlighted)
+                {
+                    newHighlighted.StartHighlighting();
+                    DebugLog($"Started highlighting new target: {newHighlighted.name}");
+                }
+
+                currentHighlightedInteractable = newTarget;
+            }
         }
     }
 
@@ -203,6 +273,61 @@ public class PlayerEnd : MonoBehaviour
         return stationsInRange.Count > 0 ? stationsInRange[0] : null;
     }
 
+    /// <summary>
+    /// Get the interactable that the player would actually interact with if they pressed the interact button right now
+    /// This considers whether they're carrying items (would interact with stations) or not (would interact with pickupables)
+    /// </summary>
+    public IInteractable GetInteractablePlayerWouldUse()
+    {
+        if (IsCarryingItems)
+        {
+            // Player is carrying something - they would interact with the best station for placement
+            BaseStation bestStation = GetBestStation();
+            if (bestStation != null && bestStation.CanAcceptItem(heldObjects[heldObjects.Count - 1], this))
+            {
+                // Check if the station has a PlainStationInteractable component
+                PlainStationInteractable stationInteractable = bestStation.GetComponent<PlainStationInteractable>();
+                if (stationInteractable != null && stationInteractable.CanInteract(this))
+                {
+                    return stationInteractable;
+                }
+            }
+            // If no suitable station, player would drop on ground (no highlighting)
+            return null;
+        }
+        else
+        {
+            // Player has free hands - they would interact with the best regular interactable
+            return GetBestInteractable();
+        }
+    }
+
+    /// <summary>
+    /// Update highlighting immediately after carrying state changes (pickup/drop)
+    /// </summary>
+    private void UpdateHighlightingAfterCarryStateChange()
+    {
+        if (isInteracting) return;
+
+        IInteractable newTarget = GetInteractablePlayerWouldUse();
+
+        // Stop current highlighting
+        if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable prevHighlighted)
+        {
+            prevHighlighted.StopHighlighting();
+            DebugLog($"Stopped highlighting after carry state change: {prevHighlighted.name}");
+        }
+
+        // Start new highlighting
+        if (newTarget != null && newTarget is BaseInteractable newHighlighted)
+        {
+            newHighlighted.StartHighlighting();
+            DebugLog($"Started highlighting after carry state change: {newHighlighted.name}");
+        }
+
+        currentHighlightedInteractable = newTarget;
+    }
+
     #endregion
 
     #region Input Handling
@@ -213,6 +338,13 @@ public class PlayerEnd : MonoBehaviour
     public void OnInteractPressed()
     {
         if (isInteracting) return;
+
+        // Stop any current highlighting since we're about to interact
+        if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable highlighted)
+        {
+            highlighted.StopHighlighting();
+            currentHighlightedInteractable = null;
+        }
 
         // If player is carrying something, try to drop/place it
         if (IsCarryingItems)
@@ -255,6 +387,9 @@ public class PlayerEnd : MonoBehaviour
         currentInteractionTarget = null;
         isInteracting = false;
         isHoldingInteraction = false;
+
+        // Resume highlighting after interaction ends
+        // The next Update() call will handle finding the new best interactable
     }
 
     /// <summary>
@@ -361,6 +496,10 @@ public class PlayerEnd : MonoBehaviour
         OnItemPickedUp?.Invoke(obj);
         DebugLog($"Player {playerNumber} picked up: {obj.name}");
 
+        // Update highlighting since carrying state changed
+        // Player now might interact with stations instead of items
+        UpdateHighlightingAfterCarryStateChange();
+
         return true;
     }
 
@@ -399,6 +538,10 @@ public class PlayerEnd : MonoBehaviour
 
         OnItemDropped?.Invoke(obj);
         DebugLog($"Player {playerNumber} dropped: {obj.name}");
+
+        // Update highlighting since carrying state changed
+        // Player now might interact with items instead of stations
+        UpdateHighlightingAfterCarryStateChange();
 
         return true;
     }

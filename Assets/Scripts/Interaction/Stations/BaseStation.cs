@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 /// <summary>
@@ -40,9 +41,9 @@ public abstract class BaseStation : MonoBehaviour
     [SerializeField] protected bool showStationGizmos = true;
 
     // Internal state
-    protected GameObject currentItem;
+    [ShowInInspector] protected GameObject currentItem;
     protected PickupableItem currentPickupableItem; // Reference to the PickupableItem component
-    protected bool isOccupied = false;
+    [ShowInInspector] protected bool isOccupied = false;
 
     // Events for other systems to react to
     public System.Action<GameObject, PlayerEnd> OnItemPlaced;

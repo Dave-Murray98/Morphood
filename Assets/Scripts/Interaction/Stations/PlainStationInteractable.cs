@@ -8,8 +8,9 @@ public class PlainStationInteractable : BaseInteractable
 {
     [SerializeField] private PlainStation plainStation;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         if (plainStation == null)
             plainStation = GetComponent<PlainStation>();
 

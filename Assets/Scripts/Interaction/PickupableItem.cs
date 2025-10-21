@@ -16,16 +16,8 @@ public class PickupableItem : BaseInteractable
     [SerializeField] private bool canBeDroppedAnywhere = true;
     [Tooltip("If false, can only be placed on specific surfaces")]
 
-    [Header("Visual Feedback")]
-    [SerializeField] private float hoverHeight = 0.1f;
-    [Tooltip("How high the item floats when highlighted")]
-
-    [SerializeField] private float hoverSpeed = 2f;
-    [Tooltip("Speed of the hover animation")]
-
     // Internal state
     private Vector3 originalPosition;
-    private bool isHighlighted = false;
     private bool isPickedUp = false;
 
     protected override void Start()
@@ -137,13 +129,6 @@ public class PickupableItem : BaseInteractable
     private void Update()
     {
         if (isPickedUp) return; // Don't animate while being carried
-
-        // Simple hover effect when highlighted
-        if (isHighlighted)
-        {
-            float hoverOffset = Mathf.Sin(Time.time * hoverSpeed) * hoverHeight;
-            transform.position = originalPosition + Vector3.up * hoverOffset;
-        }
     }
 
     /// <summary>
