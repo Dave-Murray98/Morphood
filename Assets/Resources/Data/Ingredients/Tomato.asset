@@ -22,9 +22,9 @@ MonoBehaviour:
   ingredientIcon: {fileID: 0}
   ingredientSound: {fileID: 0}
   canBeChopped: 1
-  choppedResult: {fileID: 0}
+  choppedResult: {fileID: 11400000, guid: d7f0fa7f01ace95469f464df2333432a, type: 2}
   choppingTime: 2
-  canBeCooked: 1
+  canBeCooked: 0
   cookedResult: {fileID: 0}
   cookingTime: 5
   burningTime: 3

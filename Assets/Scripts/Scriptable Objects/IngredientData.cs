@@ -288,9 +288,7 @@ public enum IngredientCategory
     Meat,           // Beef, chicken, fish
     Dairy,          // Cheese, milk, butter
     Grain,          // Bread, rice, pasta
-    Seasoning,      // Salt, pepper, herbs
     Liquid,         // Water, oil, sauce
-    Processed       // Pre-made items
 }
 
 /// <summary>

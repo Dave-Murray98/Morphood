@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0fef22cd5204db428a62f57016c4701, type: 3}
-  m_Name: Chopped Tomato
+  m_Name: Cooked Tomato
   m_EditorClassIdentifier: 
-  ingredientName: Chopped Tomato
+  ingredientName: Tomato
   description: 
-  category: 0
-  preparationState: 1
+  category: 4
+  preparationState: 2
   temperatureState: 2
-  ingredientPrefab: {fileID: 1569515202156182, guid: d18bef735e912664f92fba62cebd627b, type: 3}
+  ingredientPrefab: {fileID: 1144842323900444, guid: 5493fba8dbb39d34d877dea602ae4919, type: 3}
   ingredientMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
   ingredientIcon: {fileID: 0}
   ingredientSound: {fileID: 0}
   canBeChopped: 0
   choppedResult: {fileID: 0}
   choppingTime: 2
-  canBeCooked: 1
+  canBeCooked: 0
   cookedResult: {fileID: 0}
   cookingTime: 5
   burningTime: 3

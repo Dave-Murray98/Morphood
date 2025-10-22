@@ -384,9 +384,7 @@ public class Ingredient : PickupableItem
             case IngredientCategory.Meat: return Color.red;
             case IngredientCategory.Dairy: return Color.white;
             case IngredientCategory.Grain: return Color.yellow;
-            case IngredientCategory.Seasoning: return Color.magenta;
             case IngredientCategory.Liquid: return Color.blue;
-            case IngredientCategory.Processed: return Color.cyan;
             default: return Color.gray;
         }
     }
