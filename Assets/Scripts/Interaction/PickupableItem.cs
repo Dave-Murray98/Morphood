@@ -7,10 +7,16 @@ using UnityEngine;
 public class PickupableItem : BaseInteractable
 {
     [Header("Pickupable Item Settings")]
-    [SerializeField] private string itemName = "Item";
+    public string itemName = "Item";
     [Tooltip("Display name for this item")]
 
-    [SerializeField] private ItemType itemType = ItemType.Ingredient;
+    public ItemType itemType = ItemType.Ingredient;
+
+    public string ItemName => itemName;
+    public ItemType Type => itemType;
+    public bool IsPickedUp => isPickedUp;
+
+
     [Tooltip("What type of item this is")]
 
     [SerializeField] private bool canBeDroppedAnywhere = true;
@@ -149,9 +155,7 @@ public class PickupableItem : BaseInteractable
 
     #region Public Properties and Methods
 
-    public string ItemName => itemName;
-    public ItemType Type => itemType;
-    public bool IsPickedUp => isPickedUp;
+
 
     /// <summary>
     /// Force drop this item at a specific position (useful for placing on surfaces)
