@@ -40,7 +40,18 @@ public class PlainStation : BaseStation
     protected override bool CanAcceptItemCustom(GameObject item, PlayerEnd playerEnd)
     {
         // Plain stations accept any item by default
-        // Could add specific logic here if needed (e.g., size restrictions)
+        // But also check if this item can be combined with what's already on the station
+        if (enableFoodCombination && isOccupied && currentItem != null)
+        {
+            FoodItem newFoodItem = item.GetComponent<FoodItem>();
+            if (newFoodItem != null && CanAcceptForCombination(newFoodItem))
+            {
+                DebugLog($"Station is full but {newFoodItem.FoodData.DisplayName} can be combined with station item");
+                return true; // Allow "placement" for combination purposes
+            }
+        }
+
+        // For non-food items or non-combinable items, use normal logic
         return true;
     }
 
@@ -78,6 +89,26 @@ public class PlainStation : BaseStation
             CancelInvoke(nameof(CheckForFoodCombinations));
             hasPendingCombinationCheck = false;
         }
+    }
+
+    /// <summary>
+    /// Place an item on this station - overridden to handle food combinations
+    /// </summary>
+    public override bool PlaceItem(GameObject item, PlayerEnd playerEnd)
+    {
+        // Check if this is a combination scenario (station is occupied but we can combine)
+        if (enableFoodCombination && isOccupied && currentItem != null)
+        {
+            FoodItem newFoodItem = item.GetComponent<FoodItem>();
+            if (newFoodItem != null && CanAcceptForCombination(newFoodItem))
+            {
+                DebugLog($"Attempting combination placement for {newFoodItem.FoodData.DisplayName}");
+                return TryCombineWithStationItem(newFoodItem, playerEnd);
+            }
+        }
+
+        // Otherwise, use the normal base placement logic
+        return base.PlaceItem(item, playerEnd);
     }
 
     /// <summary>
@@ -149,39 +180,46 @@ public class PlainStation : BaseStation
 
     /// <summary>
     /// Attempt to combine a new food item with the item already on this station
-    /// Called by PlainStationInteractable when a food item is placed
+    /// Called by PlainStationInteractable when a food item is being combined
     /// </summary>
-    /// <param name="newFoodItem">The food item being placed</param>
-    /// <param name="playerEnd">The player placing the item</param>
+    /// <param name="newFoodItem">The food item being combined (can still be held by player)</param>
+    /// <param name="playerEnd">The player performing the combination</param>
     /// <returns>True if a combination occurred</returns>
     public bool TryCombineWithStationItem(FoodItem newFoodItem, PlayerEnd playerEnd)
     {
         if (!enableFoodCombination || FoodManager.Instance == null)
         {
+            DebugLog("Food combination disabled or no FoodManager available");
             return false;
         }
 
         if (!isOccupied || currentItem == null)
         {
+            DebugLog("No item on station to combine with");
             return false; // No item on station to combine with
         }
 
         FoodItem stationFoodItem = currentItem.GetComponent<FoodItem>();
         if (stationFoodItem == null || !stationFoodItem.HasValidFoodData)
         {
+            DebugLog("Station item is not a valid food item");
             return false;
         }
 
         if (newFoodItem == null || !newFoodItem.HasValidFoodData)
         {
+            DebugLog("New item is not a valid food item");
             return false;
         }
 
         // Check if these items can be combined
         if (!FoodManager.Instance.CanCombineFoodItems(stationFoodItem, newFoodItem))
         {
+            DebugLog($"Items cannot be combined: {stationFoodItem.FoodData.DisplayName} + {newFoodItem.FoodData.DisplayName}");
             return false;
         }
+
+        DebugLog($"Combining {stationFoodItem.FoodData.DisplayName} + {newFoodItem.FoodData.DisplayName}");
 
         // Remove the current item from the station (but don't destroy it yet)
         GameObject removedItem = RemoveItem(playerEnd);
@@ -209,6 +247,8 @@ public class PlainStation : BaseStation
             {
                 DebugLog("Failed to place combined item back on station");
                 // The FoodManager already destroyed the original items, so we just have the combined item floating
+                // At least the combination worked, even if placement failed
+                return true;
             }
         }
         else
@@ -216,9 +256,8 @@ public class PlainStation : BaseStation
             // Combination failed, put the original item back on the station
             PlaceItem(removedItem, playerEnd);
             DebugLog("Combination failed, restored original item to station");
+            return false;
         }
-
-        return false;
     }
 
     /// <summary>

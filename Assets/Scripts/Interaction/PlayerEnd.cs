@@ -275,21 +275,45 @@ public class PlayerEnd : MonoBehaviour
 
     /// <summary>
     /// Get the interactable that the player would actually interact with if they pressed the interact button right now
-    /// This considers whether they're carrying items (would interact with stations) or not (would interact with pickupables)
+    /// ENHANCED VERSION with food combination support
+    /// This method should replace the existing GetInteractablePlayerWouldUse method in PlayerEnd.cs
     /// </summary>
     public IInteractable GetInteractablePlayerWouldUse()
     {
         if (IsCarryingItems)
         {
-            // Player is carrying something - they would interact with the best station for placement
+            // Player is carrying something - they would interact with the best station for placement or combination
             BaseStation bestStation = GetBestStation();
-            if (bestStation != null && bestStation.CanAcceptItem(heldObjects[heldObjects.Count - 1], this))
+            if (bestStation != null)
             {
-                // Check if the station has a PlainStationInteractable component
-                PlainStationInteractable stationInteractable = bestStation.GetComponent<PlainStationInteractable>();
-                if (stationInteractable != null && stationInteractable.CanInteract(this))
+                // Check if this is a food item that can be combined with a PlainStation
+                GameObject carriedItem = heldObjects[heldObjects.Count - 1];
+                FoodItem carriedFoodItem = carriedItem.GetComponent<FoodItem>();
+                PlainStation plainStation = bestStation as PlainStation;
+
+                // If it's a food item and PlainStation with combination potential
+                if (carriedFoodItem != null && plainStation != null && plainStation.IsOccupied)
                 {
-                    return stationInteractable;
+                    if (plainStation.CanAcceptForCombination(carriedFoodItem))
+                    {
+                        // Player would interact with the station for combination
+                        PlainStationInteractable stationInteractable = bestStation.GetComponent<PlainStationInteractable>();
+                        if (stationInteractable != null && stationInteractable.CanInteract(this))
+                        {
+                            return stationInteractable;
+                        }
+                    }
+                }
+
+                // Otherwise, check normal placement
+                if (bestStation.CanAcceptItem(carriedItem, this))
+                {
+                    // Check if the station has a PlainStationInteractable component
+                    PlainStationInteractable stationInteractable = bestStation.GetComponent<PlainStationInteractable>();
+                    if (stationInteractable != null && stationInteractable.CanInteract(this))
+                    {
+                        return stationInteractable;
+                    }
                 }
             }
             // If no suitable station, player would drop on ground (no highlighting)
@@ -301,7 +325,6 @@ public class PlayerEnd : MonoBehaviour
             return GetBestInteractable();
         }
     }
-
     /// <summary>
     /// Update highlighting immediately after carrying state changes (pickup/drop)
     /// </summary>
@@ -409,7 +432,8 @@ public class PlayerEnd : MonoBehaviour
     #region Object Management
 
     /// <summary>
-    /// Try to drop or place the carried item
+    /// Try to drop or place the carried item - ENHANCED VERSION with food combination support
+    /// This method should replace the existing TryDropOrPlaceItem method in PlayerEnd.cs
     /// </summary>
     private void TryDropOrPlaceItem()
     {
@@ -417,21 +441,53 @@ public class PlayerEnd : MonoBehaviour
 
         GameObject itemToDrop = heldObjects[heldObjects.Count - 1]; // Get the last picked up item
 
-        // First, try to place on a station
+        // First, try to place on a station or combine with station contents
         BaseStation bestStation = GetBestStation();
-        if (bestStation != null && bestStation.CanAcceptItem(itemToDrop, this))
+        if (bestStation != null)
         {
-            Vector3 placePosition = bestStation.GetPlacementPosition();
-            bool placedSuccessfully = bestStation.PlaceItem(itemToDrop, this);
+            // Check if this is a PlainStation and we can combine
+            PlainStation plainStation = bestStation as PlainStation;
+            FoodItem carriedFoodItem = itemToDrop.GetComponent<FoodItem>();
 
-            if (placedSuccessfully)
+            if (plainStation != null && carriedFoodItem != null && plainStation.IsOccupied)
             {
-                // Remove from our inventory (station will handle the object positioning)
-                heldObjects.Remove(itemToDrop);
-                OnItemDropped?.Invoke(itemToDrop);
+                // Check if we can combine with what's on the station
+                if (plainStation.CanAcceptForCombination(carriedFoodItem))
+                {
+                    DebugLog($"Attempting combination with station item");
 
-                DebugLog($"Player {playerNumber} placed {itemToDrop.name} on station: {bestStation.name}");
-                return;
+                    // Attempt combination
+                    bool combinationSuccessful = plainStation.TryCombineWithStationItem(carriedFoodItem, this);
+                    if (combinationSuccessful)
+                    {
+                        // Remove from our inventory since it was consumed in the combination
+                        heldObjects.Remove(itemToDrop);
+                        OnItemDropped?.Invoke(itemToDrop);
+                        DebugLog($"Successfully combined {itemToDrop.name} with station item");
+                        return;
+                    }
+                    else
+                    {
+                        DebugLog("Combination failed, trying normal placement");
+                    }
+                }
+            }
+
+            // If combination didn't work or wasn't possible, try normal placement
+            if (bestStation.CanAcceptItem(itemToDrop, this))
+            {
+                Vector3 placePosition = bestStation.GetPlacementPosition();
+                bool placedSuccessfully = bestStation.PlaceItem(itemToDrop, this);
+
+                if (placedSuccessfully)
+                {
+                    // Remove from our inventory (station will handle the object positioning)
+                    heldObjects.Remove(itemToDrop);
+                    OnItemDropped?.Invoke(itemToDrop);
+
+                    DebugLog($"Player {playerNumber} placed {itemToDrop.name} on station: {bestStation.name}");
+                    return;
+                }
             }
         }
 

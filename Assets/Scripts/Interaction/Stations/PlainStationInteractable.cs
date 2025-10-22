@@ -101,24 +101,21 @@ public class PlainStationInteractable : BaseInteractable
             FoodItem combinableFoodItem = GetCombinableFoodItem(playerEnd);
             if (combinableFoodItem != null)
             {
-                // Remove the item from player's hands
-                bool dropSuccessful = playerEnd.DropObject(combinableFoodItem.gameObject);
-                if (dropSuccessful)
+                DebugLog($"Attempting to combine {combinableFoodItem.FoodData.DisplayName} with station item");
+
+                // Attempt combination directly without dropping first
+                bool combinationSuccessful = plainStation.TryCombineWithStationItem(combinableFoodItem, playerEnd);
+                if (combinationSuccessful)
                 {
-                    // Attempt combination
-                    bool combinationSuccessful = plainStation.TryCombineWithStationItem(combinableFoodItem, playerEnd);
-                    if (combinationSuccessful)
-                    {
-                        DebugLog($"Successfully combined {combinableFoodItem.FoodData.DisplayName} with station item");
-                        return true;
-                    }
-                    else
-                    {
-                        // Combination failed, give the item back to the player
-                        playerEnd.PickUpObject(combinableFoodItem.gameObject);
-                        DebugLog("Combination failed, returned item to player");
-                        return false;
-                    }
+                    // Remove the item from player's hands after successful combination
+                    playerEnd.DropObject(combinableFoodItem.gameObject);
+                    DebugLog($"Successfully combined {combinableFoodItem.FoodData.DisplayName} with station item");
+                    return true;
+                }
+                else
+                {
+                    DebugLog("Combination failed");
+                    return false;
                 }
             }
         }
