@@ -267,7 +267,6 @@ GameObject:
   - component: {fileID: 260202067}
   - component: {fileID: 260202066}
   - component: {fileID: 260202070}
-  - component: {fileID: 260202072}
   - component: {fileID: 260202071}
   m_Layer: 0
   m_Name: Dish
@@ -415,10 +414,8 @@ MonoBehaviour:
   maxOutlineWidth: 5
   outlineAnimationDuration: 1
   outlineAnimationCurve:
-    serializedVersion: 2
     m_Curve:
-    - serializedVersion: 3
-      time: 0
+    - time: 0
       value: 0
       inSlope: 0
       outSlope: 0
@@ -426,8 +423,7 @@ MonoBehaviour:
       weightedMode: 0
       inWeight: 0
       outWeight: 0
-    - serializedVersion: 3
-      time: 1
+    - time: 1
       value: 1
       inSlope: 0
       outSlope: 0
@@ -439,66 +435,13 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   enableDebugLogs: 0
-  dish: {fileID: 260202072}
+  currentInteractingPlayer: {fileID: 0}
+  isBeingInteractedWith: 0
+  outlineComponent: {fileID: 0}
+  isHighlighted: 0
+  dish: {fileID: 0}
   allowIngredientRemoval: 1
   allowDirectPickup: 1
---- !u!114 &260202072
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 260202065}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9300b3f10ab194a4899813d11f639c68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  interactionType: 0
-  interactionPriority: 1
-  interactionPrompt: Interact
-  isCurrentlyAvailable: 1
-  enableOutlineHighlighting: 1
-  minOutlineWidth: 0
-  maxOutlineWidth: 5
-  outlineAnimationDuration: 1
-  outlineAnimationCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  enableDebugLogs: 0
-  itemName: Item
-  itemType: 1
-  canBeDroppedAnywhere: 1
-  dishType: 0
-  maxIngredients: 4
-  ingredientSlots: []
-  ingredientScale: {x: 0.8, y: 0.8, z: 0.8}
-  autoDetectMeals: 1
-  emptyDishMaterial: {fileID: 0}
-  dishWithFoodMaterial: {fileID: 0}
-  completedMealMaterial: {fileID: 0}
-  enableDishDebugLogs: 0
 --- !u!1 &281036087
 GameObject:
   m_ObjectHideFlags: 0
@@ -1070,7 +1013,6 @@ GameObject:
   - component: {fileID: 938067392}
   - component: {fileID: 938067391}
   - component: {fileID: 938067390}
-  - component: {fileID: 938067396}
   - component: {fileID: 938067395}
   m_Layer: 8
   m_Name: Meat
@@ -1214,58 +1156,6 @@ MonoBehaviour:
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []
---- !u!114 &938067396
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 938067388}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02aed24a10264e34ab11839f2833a0fc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  interactionType: 0
-  interactionPriority: 1
-  interactionPrompt: Interact
-  isCurrentlyAvailable: 1
-  enableOutlineHighlighting: 1
-  minOutlineWidth: 0
-  maxOutlineWidth: 5
-  outlineAnimationDuration: 1
-  outlineAnimationCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  enableDebugLogs: 0
-  itemName: Item
-  itemType: 0
-  canBeDroppedAnywhere: 1
-  ingredientData: {fileID: 0}
-  visualModel: {fileID: 0}
-  ingredientRenderer: {fileID: 938067392}
-  enableIngredientDebugLogs: 0
 --- !u!1 &1038063735
 GameObject:
   m_ObjectHideFlags: 0
@@ -1819,7 +1709,6 @@ GameObject:
   - component: {fileID: 1791481341}
   - component: {fileID: 1791481340}
   - component: {fileID: 1791481339}
-  - component: {fileID: 1791481345}
   - component: {fileID: 1791481344}
   m_Layer: 8
   m_Name: Tomato
@@ -1963,58 +1852,6 @@ MonoBehaviour:
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []
---- !u!114 &1791481345
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1791481337}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02aed24a10264e34ab11839f2833a0fc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  interactionType: 0
-  interactionPriority: 1
-  interactionPrompt: Interact
-  isCurrentlyAvailable: 1
-  enableOutlineHighlighting: 1
-  minOutlineWidth: 0
-  maxOutlineWidth: 5
-  outlineAnimationDuration: 1
-  outlineAnimationCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  enableDebugLogs: 0
-  itemName: Item
-  itemType: 0
-  canBeDroppedAnywhere: 1
-  ingredientData: {fileID: 11400000, guid: 242f2b0683c024b4b8ce5ca125e3016b, type: 2}
-  visualModel: {fileID: 1791481343}
-  ingredientRenderer: {fileID: 1791481341}
-  enableIngredientDebugLogs: 0
 --- !u!1 &1838223634
 GameObject:
   m_ObjectHideFlags: 0
@@ -2893,10 +2730,8 @@ MonoBehaviour:
   maxOutlineWidth: 5
   outlineAnimationDuration: 1
   outlineAnimationCurve:
-    serializedVersion: 2
     m_Curve:
-    - serializedVersion: 3
-      time: 0
+    - time: 0
       value: 0
       inSlope: 0
       outSlope: 0
@@ -2904,8 +2739,7 @@ MonoBehaviour:
       weightedMode: 0
       inWeight: 0
       outWeight: 0
-    - serializedVersion: 3
-      time: 1
+    - time: 1
       value: 1
       inSlope: 0
       outSlope: 0
@@ -2917,6 +2751,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   enableDebugLogs: 0
+  currentInteractingPlayer: {fileID: 0}
+  isBeingInteractedWith: 0
+  outlineComponent: {fileID: 0}
+  isHighlighted: 0
   cookingStation: {fileID: 33568014984005423}
   requireHoldToCook: 0
   allowCookingToggle: 1
@@ -2943,6 +2781,9 @@ MonoBehaviour:
   acceptAllItemTypes: 1
   enableDebugLogs: 0
   showStationGizmos: 1
+  currentItem: {fileID: 0}
+  currentPickupableItem: {fileID: 0}
+  isOccupied: 0
   cookingMethod: 0
   cookingUpdateInterval: 0.1
   cookingIndicator: {fileID: 0}
@@ -2957,6 +2798,10 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   cookingVessel: {fileID: 0}
   enableCookingDebugLogs: 0
+  isCooking: 0
+  ingredientsBeingCooked: []
+  currentCookingPlayer: {fileID: 0}
+  wasPlayingCookingLoop: 0
 --- !u!65 &33568014984005424
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3253,7 +3098,6 @@ GameObject:
   - component: {fileID: 5960372006989106856}
   - component: {fileID: 5975376770985773383}
   - component: {fileID: 5975376770985773384}
-  - component: {fileID: 5975376770985773386}
   - component: {fileID: 5975376770985773385}
   m_Layer: 8
   m_Name: Onion
@@ -3344,58 +3188,6 @@ MonoBehaviour:
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []
---- !u!114 &5975376770985773386
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5972267657464140920}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02aed24a10264e34ab11839f2833a0fc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  interactionType: 0
-  interactionPriority: 1
-  interactionPrompt: Interact
-  isCurrentlyAvailable: 1
-  enableOutlineHighlighting: 1
-  minOutlineWidth: 0
-  maxOutlineWidth: 5
-  outlineAnimationDuration: 1
-  outlineAnimationCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  enableDebugLogs: 0
-  itemName: Item
-  itemType: 0
-  canBeDroppedAnywhere: 1
-  ingredientData: {fileID: 0}
-  visualModel: {fileID: 0}
-  ingredientRenderer: {fileID: 5960372006989106856}
-  enableIngredientDebugLogs: 0
 --- !u!1001 &7169440202349861761
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3653,10 +3445,8 @@ MonoBehaviour:
   maxOutlineWidth: 5
   outlineAnimationDuration: 1
   outlineAnimationCurve:
-    serializedVersion: 2
     m_Curve:
-    - serializedVersion: 3
-      time: 0
+    - time: 0
       value: 0
       inSlope: 0
       outSlope: 0
@@ -3664,8 +3454,7 @@ MonoBehaviour:
       weightedMode: 0
       inWeight: 0
       outWeight: 0
-    - serializedVersion: 3
-      time: 1
+    - time: 1
       value: 1
       inSlope: 0
       outSlope: 0
@@ -3677,6 +3466,10 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   enableDebugLogs: 0
+  currentInteractingPlayer: {fileID: 0}
+  isBeingInteractedWith: 0
+  outlineComponent: {fileID: 0}
+  isHighlighted: 0
   choppingStation: {fileID: 7524951331683871053}
   requireHoldToChop: 1
 --- !u!114 &7524951331683871053
@@ -3702,6 +3495,9 @@ MonoBehaviour:
   acceptAllItemTypes: 1
   enableDebugLogs: 0
   showStationGizmos: 1
+  currentItem: {fileID: 0}
+  currentPickupableItem: {fileID: 0}
+  isOccupied: 0
   choppingTime: 2
   chopsRequired: 3
   choppingSoundDelay: 0.5
@@ -3712,6 +3508,11 @@ MonoBehaviour:
   choppingCompleteSound: {fileID: 0}
   audioSource: {fileID: 0}
   enableChoppingDebugLogs: 0
+  isChopping: 0
+  currentChoppingProgress: 0
+  currentChops: 0
+  currentIngredient: {fileID: 0}
+  currentChoppingPlayer: {fileID: 0}
 --- !u!1001 &8237283000528516526
 PrefabInstance:
   m_ObjectHideFlags: 0
