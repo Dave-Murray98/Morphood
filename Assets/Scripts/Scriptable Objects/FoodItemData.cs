@@ -8,11 +8,14 @@ using UnityEngine;
 public class FoodItemData : ScriptableObject
 {
     [Header("Visual Representation")]
-    [SerializeField] private GameObject meshPrefab;
+    [SerializeField] private Mesh visualMesh;
     [Tooltip("The 3D model/prefab used to represent this food item in the game world")]
 
     [SerializeField] private Material itemMaterial;
     [Tooltip("The material applied to the food item (optional - mesh prefab may have its own materials)")]
+
+    [SerializeField] private Mesh colliderMesh;
+    [Tooltip("The mesh used for the collider (optional - will use meshPrefab's mesh if not specified)")]
 
     [Header("Basic Properties")]
     [SerializeField] private string displayName = "Food Item";
@@ -36,8 +39,9 @@ public class FoodItemData : ScriptableObject
     [SerializeField] private bool enableDebugLogs = false;
 
     // Public properties for easy access
-    public GameObject MeshPrefab => meshPrefab;
+    public Mesh VisualMesh => visualMesh;
     public Material ItemMaterial => itemMaterial;
+    public Mesh ColliderMesh => colliderMesh;
     public string DisplayName => displayName;
     public bool CanBeChopped => canBeChopped;
     public bool CanBeCooked => canBeCooked;

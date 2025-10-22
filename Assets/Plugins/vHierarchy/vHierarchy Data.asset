@@ -20,35 +20,35 @@ MonoBehaviour:
         keys:
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1742528203-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-677428740-0
-        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-185119009-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1838223634-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1585261524-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-185930626-0
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-499420441-0
         values:
         - iColor: 1
           icon: Settings Icon
         - iColor: 5
           icon: StandaloneInputModule Icon
-        - iColor: 4
-          icon: AvatarMask On Icon
         - iColor: 0
           icon: Camera Icon
         - iColor: 2
           icon: Terrain Icon
         - iColor: 9
           icon: Camera Icon
+        - iColor: 8
+          icon: LightProbes Icon
       goDatasByInstanceId:
-        keys: 7ebb000030bb0000e6ba000084bb00009ec7ffff10afffff
+        keys: cebb000078bb0000e4bb0000c4bb000048bb00007e62ffff
         values:
         - iColor: 1
           icon: Settings Icon
         - iColor: 5
           icon: StandaloneInputModule Icon
-        - iColor: 4
-          icon: AvatarMask On Icon
         - iColor: 0
           icon: Camera Icon
         - iColor: 2
           icon: Terrain Icon
         - iColor: 9
           icon: Camera Icon
+        - iColor: 8
+          icon: LightProbes Icon

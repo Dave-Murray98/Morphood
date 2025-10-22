@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1074996721efcc540adefe6ce5c9cc36, type: 3}
   m_Name: Raw Tomato
   m_EditorClassIdentifier: 
-  meshPrefab: {fileID: 0}
-  itemMaterial: {fileID: 0}
+  visualMesh: {fileID: 4300000, guid: b8d676cae6559624bb790d58655b11e0, type: 3}
+  itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
+  colliderMesh: {fileID: 43684258322462498, guid: 867de50bb7fd5c94b87ec27900cc2a82, type: 2}
   displayName: Raw Tomato
   canBeChopped: 1
   canBeCooked: 0

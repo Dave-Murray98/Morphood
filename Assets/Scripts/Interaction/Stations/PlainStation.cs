@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// A simple storage station that acts like a worktop in Overcooked.
 /// Players can place any item on it for temporary storage.
+/// Now supports automatic food combination when compatible food items are placed together.
 /// Both players can interact with it.
 /// </summary>
 public class PlainStation : BaseStation
@@ -10,6 +11,15 @@ public class PlainStation : BaseStation
     [Header("Plain Station Settings")]
     [SerializeField] private bool allowItemRetrieval = true;
     [Tooltip("Whether players can pick up items that are placed on this station")]
+
+    [SerializeField] private bool enableFoodCombination = true;
+    [Tooltip("Whether this station should automatically combine compatible food items")]
+
+    [SerializeField] private float combinationDelay = 0.5f;
+    [Tooltip("Delay before checking for combinations (allows time for placement animation)")]
+
+    // Internal state for combination checking
+    private bool hasPendingCombinationCheck = false;
 
     protected override void Initialize()
     {
@@ -24,7 +34,7 @@ public class PlainStation : BaseStation
 
         base.Initialize();
 
-        DebugLog("Plain station ready for item storage");
+        DebugLog("Plain station ready for item storage and food combination");
     }
 
     protected override bool CanAcceptItemCustom(GameObject item, PlayerEnd playerEnd)
@@ -36,11 +46,23 @@ public class PlainStation : BaseStation
 
     protected override void OnItemPlacedInternal(GameObject item, PlayerEnd playerEnd)
     {
-        // When an item is placed, make it available for pickup by any player
-        PickupableItem pickupableItem = item.GetComponent<PickupableItem>();
-        if (pickupableItem != null)
+        // When an item is placed, check for food combinations if enabled
+        FoodItem placedFoodItem = item.GetComponent<FoodItem>();
+
+        if (placedFoodItem != null && enableFoodCombination && FoodManager.Instance != null)
         {
-            // The item is now on the station and available for pickup
+            DebugLog($"Food item {placedFoodItem.FoodData.DisplayName} placed - checking for combinations");
+
+            // Schedule a combination check after a brief delay
+            // This allows for proper item placement and any animations to complete
+            if (!hasPendingCombinationCheck)
+            {
+                Invoke(nameof(CheckForFoodCombinations), combinationDelay);
+                hasPendingCombinationCheck = true;
+            }
+        }
+        else
+        {
             DebugLog($"Item {item.name} is now available for pickup from this station");
         }
     }
@@ -49,6 +71,154 @@ public class PlainStation : BaseStation
     {
         // When an item is removed, no special cleanup needed for plain stations
         DebugLog($"Item {item.name} removed from storage");
+
+        // Cancel any pending combination checks since the station state changed
+        if (hasPendingCombinationCheck)
+        {
+            CancelInvoke(nameof(CheckForFoodCombinations));
+            hasPendingCombinationCheck = false;
+        }
+    }
+
+    /// <summary>
+    /// Check if food items on this station can be combined
+    /// </summary>
+    private void CheckForFoodCombinations()
+    {
+        hasPendingCombinationCheck = false;
+
+        if (!enableFoodCombination || FoodManager.Instance == null || !isOccupied)
+        {
+            return;
+        }
+
+        // For this implementation, we'll handle the simple case where we have one item on the station
+        // and a player just placed another item. Since BaseStation currently supports only one item,
+        // we need to modify our approach.
+
+        // Get the current food item on the station
+        FoodItem stationFoodItem = currentItem?.GetComponent<FoodItem>();
+
+        if (stationFoodItem == null || !stationFoodItem.HasValidFoodData)
+        {
+            DebugLog("No valid food item on station for combination");
+            return;
+        }
+
+        // In a real scenario, we'd check if there are multiple items that could be combined.
+        // For now, let's check if any players are carrying items that could combine with the station item.
+        CheckForPlayerCombinations(stationFoodItem);
+    }
+
+    /// <summary>
+    /// Check if any players are carrying items that could combine with the item on this station
+    /// </summary>
+    /// <param name="stationFoodItem">The food item currently on the station</param>
+    private void CheckForPlayerCombinations(FoodItem stationFoodItem)
+    {
+        // Find the player controller to check what players are carrying
+        PlayerController playerController = FindFirstObjectByType<PlayerController>();
+        if (playerController == null) return;
+
+        // Check both players
+        for (int playerNum = 1; playerNum <= 2; playerNum++)
+        {
+            PlayerEnd playerEnd = playerController.GetPlayerEnd(playerNum);
+            if (playerEnd == null || !playerEnd.IsCarryingItems) continue;
+
+            // Check each item the player is carrying
+            foreach (GameObject carriedObj in playerEnd.HeldObjects)
+            {
+                FoodItem carriedFoodItem = carriedObj.GetComponent<FoodItem>();
+                if (carriedFoodItem == null || !carriedFoodItem.HasValidFoodData) continue;
+
+                // Check if these items can be combined
+                if (FoodManager.Instance.CanCombineFoodItems(stationFoodItem, carriedFoodItem))
+                {
+                    DebugLog($"Found potential combination: {stationFoodItem.FoodData.DisplayName} + {carriedFoodItem.FoodData.DisplayName}");
+
+                    // For now, just log this. In a full implementation, you might:
+                    // 1. Show a visual indicator
+                    // 2. Auto-combine when player places the item
+                    // 3. Show a prompt to the player
+                    return;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Attempt to combine a new food item with the item already on this station
+    /// Called by PlainStationInteractable when a food item is placed
+    /// </summary>
+    /// <param name="newFoodItem">The food item being placed</param>
+    /// <param name="playerEnd">The player placing the item</param>
+    /// <returns>True if a combination occurred</returns>
+    public bool TryCombineWithStationItem(FoodItem newFoodItem, PlayerEnd playerEnd)
+    {
+        if (!enableFoodCombination || FoodManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (!isOccupied || currentItem == null)
+        {
+            return false; // No item on station to combine with
+        }
+
+        FoodItem stationFoodItem = currentItem.GetComponent<FoodItem>();
+        if (stationFoodItem == null || !stationFoodItem.HasValidFoodData)
+        {
+            return false;
+        }
+
+        if (newFoodItem == null || !newFoodItem.HasValidFoodData)
+        {
+            return false;
+        }
+
+        // Check if these items can be combined
+        if (!FoodManager.Instance.CanCombineFoodItems(stationFoodItem, newFoodItem))
+        {
+            return false;
+        }
+
+        // Remove the current item from the station (but don't destroy it yet)
+        GameObject removedItem = RemoveItem(playerEnd);
+        if (removedItem == null)
+        {
+            DebugLog("Failed to remove item from station for combination");
+            return false;
+        }
+
+        // Perform the combination at the station's placement position
+        Vector3 combinationPosition = GetPlacementPosition();
+        FoodItem combinedItem = FoodManager.Instance.TryCombineFoodItems(stationFoodItem, newFoodItem, combinationPosition);
+
+        if (combinedItem != null)
+        {
+            // Place the combined item on this station
+            bool placementSuccessful = PlaceItem(combinedItem.gameObject, playerEnd);
+
+            if (placementSuccessful)
+            {
+                DebugLog($"Successfully combined and placed {combinedItem.FoodData.DisplayName} on station");
+                return true;
+            }
+            else
+            {
+                DebugLog("Failed to place combined item back on station");
+                // The FoodManager already destroyed the original items, so we just have the combined item floating
+            }
+        }
+        else
+        {
+            // Combination failed, put the original item back on the station
+            PlaceItem(removedItem, playerEnd);
+            DebugLog("Combination failed, restored original item to station");
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -94,11 +264,50 @@ public class PlainStation : BaseStation
         return true;
     }
 
-    #region IInteractable Implementation
+    #region Public Methods
 
-    // Make PlainStation interactable so players can also retrieve items by interacting directly
-    // This allows for both placing (when carrying) and retrieving (when not carrying)
+    /// <summary>
+    /// Enable or disable food combination functionality
+    /// </summary>
+    /// <param name="enabled">Whether food combination should be enabled</param>
+    public void SetFoodCombinationEnabled(bool enabled)
+    {
+        enableFoodCombination = enabled;
+        DebugLog($"Food combination {(enabled ? "enabled" : "disabled")}");
+    }
+
+    /// <summary>
+    /// Check if this station can currently accept a food item for combination
+    /// </summary>
+    /// <param name="newFoodItem">The food item to check</param>
+    /// <returns>True if the item can be combined with what's on the station</returns>
+    public bool CanAcceptForCombination(FoodItem newFoodItem)
+    {
+        if (!enableFoodCombination || !isOccupied || currentItem == null)
+            return false;
+
+        FoodItem stationFoodItem = currentItem.GetComponent<FoodItem>();
+        if (stationFoodItem == null) return false;
+
+        return FoodManager.Instance?.CanCombineFoodItems(stationFoodItem, newFoodItem) ?? false;
+    }
+
+    #endregion
+
+    #region Cleanup
+
+    private void OnDestroy()
+    {
+        // Clean up any pending invokes
+        CancelInvoke();
+    }
+
+    private void OnDisable()
+    {
+        // Clean up any pending invokes
+        CancelInvoke();
+        hasPendingCombinationCheck = false;
+    }
 
     #endregion
 }
-

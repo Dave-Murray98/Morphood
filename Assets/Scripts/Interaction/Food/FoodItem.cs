@@ -12,25 +12,40 @@ public class FoodItem : PickupableItem
     [Tooltip("The ScriptableObject that defines this food item's properties and behavior")]
 
     [Header("Visual Components")]
-    [SerializeField] private Transform meshContainer;
-    [Tooltip("Container for the food item's visual representation. If not assigned, will use this transform.")]
+    [SerializeField] private MeshFilter meshFilter;
 
     [SerializeField] private bool updateMaterialOnStart = true;
     [Tooltip("Whether to apply the food data's material to the mesh renderer on start")]
 
     // Internal components
     private FoodItemInteractable foodInteractable;
-    private GameObject currentMeshInstance;
     private MeshRenderer meshRenderer;
+
+    private MeshCollider meshCollider;
 
     // Public properties
     public FoodItemData FoodData => foodData;
     public bool HasValidFoodData => foodData != null;
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        meshCollider = GetComponent<MeshCollider>();
+        meshRenderer = GetComponent<MeshRenderer>();
+        meshFilter = GetComponent<MeshFilter>();
+    }
+
     protected override void Start()
     {
         // Initialize food-specific setup first
         InitializeFoodItem();
+
+        // Register with FoodManager if available
+        if (FoodManager.Instance != null)
+        {
+            FoodManager.Instance.RegisterFoodItem(this);
+        }
 
         // Then call the base PickupableItem start
         base.Start();
@@ -44,12 +59,6 @@ public class FoodItem : PickupableItem
         {
             Debug.LogError($"[FoodItem] {name} requires a FoodItemInteractable component!");
             return;
-        }
-
-        // Set up mesh container
-        if (meshContainer == null)
-        {
-            meshContainer = transform;
         }
 
         // Apply food data if available
@@ -87,30 +96,11 @@ public class FoodItem : PickupableItem
     {
         if (!HasValidFoodData) return;
 
-        // Remove existing mesh instance if any
-        if (currentMeshInstance != null)
-        {
-            if (Application.isPlaying)
-                Destroy(currentMeshInstance);
-            else
-                DestroyImmediate(currentMeshInstance);
-        }
+        meshFilter.mesh = foodData.VisualMesh;
 
-        // Instantiate new mesh if available
-        if (foodData.MeshPrefab != null)
-        {
-            currentMeshInstance = Instantiate(foodData.MeshPrefab, meshContainer);
-            currentMeshInstance.transform.localPosition = Vector3.zero;
-            currentMeshInstance.transform.localRotation = Quaternion.identity;
+        meshRenderer.material = foodData.ItemMaterial;
 
-            // Get mesh renderer from the instantiated mesh
-            meshRenderer = currentMeshInstance.GetComponentInChildren<MeshRenderer>();
-        }
-        else
-        {
-            // Try to get mesh renderer from existing geometry
-            meshRenderer = GetComponentInChildren<MeshRenderer>();
-        }
+        meshCollider.sharedMesh = foodData.ColliderMesh;
 
         // Apply material if specified and we have a renderer
         if (updateMaterialOnStart && foodData.ItemMaterial != null && meshRenderer != null)
@@ -293,6 +283,21 @@ public class FoodItem : PickupableItem
                 UnityEditor.Handles.Label(gizmoPos + Vector3.up * 0.5f, label);
             }
 #endif
+        }
+    }
+
+    #endregion
+
+    #region Cleanup
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        // Unregister from FoodManager if available
+        if (FoodManager.Instance != null)
+        {
+            FoodManager.Instance.UnregisterFoodItem(this);
         }
     }
 
