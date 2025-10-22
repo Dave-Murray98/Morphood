@@ -39,7 +39,7 @@ public class ChoppingStation : BaseStation
     private bool isChopping = false;
     private float currentChoppingProgress = 0f;
     private int currentChops = 0;
-    private CookingIngredient currentIngredient;
+    private Ingredient currentIngredient;
     private PlayerEnd currentChoppingPlayer;
     private Coroutine choppingCoroutine;
 
@@ -94,18 +94,18 @@ public class ChoppingStation : BaseStation
             return false;
         }
 
-        // Must be a cooking ingredient
-        CookingIngredient ingredient = item.GetComponent<CookingIngredient>();
+        // Must be an ingredient
+        Ingredient ingredient = item.GetComponent<Ingredient>();
         if (ingredient == null)
         {
-            ChoppingDebugLog($"Item {item.name} is not a cooking ingredient");
+            ChoppingDebugLog($"Item {item.name} is not an ingredient");
             return false;
         }
 
         // Ingredient must be choppable
         if (!ingredient.CanBeChopped)
         {
-            ChoppingDebugLog($"Ingredient {ingredient.ItemName} cannot be chopped - current state: {ingredient.State}");
+            ChoppingDebugLog($"Ingredient {ingredient.IngredientName} cannot be chopped");
             return false;
         }
 
@@ -114,8 +114,8 @@ public class ChoppingStation : BaseStation
 
     protected override void OnItemPlacedInternal(GameObject item, PlayerEnd playerEnd)
     {
-        currentIngredient = item.GetComponent<CookingIngredient>();
-        ChoppingDebugLog($"Ingredient {currentIngredient.ItemName} placed on chopping station");
+        currentIngredient = item.GetComponent<Ingredient>();
+        ChoppingDebugLog($"Ingredient {currentIngredient.IngredientName} placed on chopping station");
     }
 
     protected override void OnItemRemovedInternal(GameObject item, PlayerEnd playerEnd)
@@ -288,8 +288,8 @@ public class ChoppingStation : BaseStation
     {
         if (currentIngredient == null) return;
 
-        // Actually chop the ingredient
-        bool choppedSuccessfully = currentIngredient.TryChop();
+        // Start the chopping transformation process
+        bool choppedSuccessfully = currentIngredient.StartProcessing(TransformationType.Chopping);
 
         if (choppedSuccessfully)
         {
@@ -299,11 +299,11 @@ public class ChoppingStation : BaseStation
                 audioSource.PlayOneShot(choppingCompleteSound);
             }
 
-            ChoppingDebugLog($"Successfully chopped {currentIngredient.ItemName}");
+            ChoppingDebugLog($"Successfully started chopping transformation for {currentIngredient.IngredientName}");
         }
         else
         {
-            ChoppingDebugLog($"Failed to chop {currentIngredient.ItemName}");
+            ChoppingDebugLog($"Failed to start chopping transformation for {currentIngredient.IngredientName}");
         }
 
         // Stop chopping process
@@ -385,7 +385,7 @@ public class ChoppingStation : BaseStation
             if (isChopping)
                 info += $"\nChopping: {currentChops}/{chopsRequired}";
             if (currentIngredient != null)
-                info += $"\n{currentIngredient.ItemName}";
+                info += $"\n{currentIngredient.IngredientName}";
             UnityEditor.Handles.Label(transform.position + Vector3.up * 4.5f, info);
         }
 #endif

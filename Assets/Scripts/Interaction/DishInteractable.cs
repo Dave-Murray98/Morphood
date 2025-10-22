@@ -131,7 +131,7 @@ public class DishInteractable : BaseInteractable
         }
 
         GameObject carriedItem = playerEnd.HeldObjects[playerEnd.HeldObjects.Count - 1];
-        CookingIngredient ingredient = carriedItem.GetComponent<CookingIngredient>();
+        Ingredient ingredient = carriedItem.GetComponent<Ingredient>();
 
         if (ingredient == null)
         {
@@ -141,7 +141,7 @@ public class DishInteractable : BaseInteractable
 
         if (!dish.CanAddIngredient(ingredient))
         {
-            DebugLog($"Cannot add {ingredient.ItemName} to dish");
+            DebugLog($"Cannot add {ingredient.IngredientName} to dish");
             return false;
         }
 
@@ -163,7 +163,7 @@ public class DishInteractable : BaseInteractable
             return false;
         }
 
-        DebugLog($"Player {playerEnd.PlayerNumber} added {ingredient.ItemName} to dish");
+        DebugLog($"Player {playerEnd.PlayerNumber} added {ingredient.IngredientName} to dish");
         return true;
     }
 
@@ -185,7 +185,7 @@ public class DishInteractable : BaseInteractable
         }
 
         // Remove the last added ingredient
-        CookingIngredient removedIngredient = dish.RemoveLastIngredient();
+        Ingredient removedIngredient = dish.RemoveLastIngredient();
         if (removedIngredient == null)
         {
             DebugLog($"Failed to remove ingredient from dish");
@@ -202,7 +202,7 @@ public class DishInteractable : BaseInteractable
             return false;
         }
 
-        DebugLog($"Player {playerEnd.PlayerNumber} removed {removedIngredient.ItemName} from dish");
+        DebugLog($"Player {playerEnd.PlayerNumber} removed {removedIngredient.IngredientName} from dish");
         return true;
     }
 
@@ -214,7 +214,7 @@ public class DishInteractable : BaseInteractable
         if (!playerEnd.IsCarryingItems) return false;
 
         GameObject carriedItem = playerEnd.HeldObjects[playerEnd.HeldObjects.Count - 1];
-        CookingIngredient ingredient = carriedItem.GetComponent<CookingIngredient>();
+        Ingredient ingredient = carriedItem.GetComponent<Ingredient>();
 
         if (ingredient == null) return false;
 
@@ -243,8 +243,8 @@ public class DishInteractable : BaseInteractable
         if (playerEnd.IsCarryingItems && CanAddCurrentItem(playerEnd))
         {
             GameObject carriedItem = playerEnd.HeldObjects[playerEnd.HeldObjects.Count - 1];
-            CookingIngredient ingredient = carriedItem.GetComponent<CookingIngredient>();
-            return $"Add {ingredient.ItemName} to dish";
+            Ingredient ingredient = carriedItem.GetComponent<Ingredient>();
+            return $"Add {ingredient.IngredientName} to dish";
         }
 
         if (allowIngredientRemoval && playerEnd.HasFreeHands && dish.IngredientCount > 0)

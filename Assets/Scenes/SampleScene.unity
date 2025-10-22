@@ -1262,20 +1262,10 @@ MonoBehaviour:
   itemName: Item
   itemType: 0
   canBeDroppedAnywhere: 1
-  ingredientType: 3
-  currentState: 0
-  canBeChopped: 0
-  canBeCooked: 1
-  cookingTime: 5
-  burningTime: 3
-  rawMaterial: {fileID: 0}
-  choppedMaterial: {fileID: 0}
-  cookedMaterial: {fileID: 0}
-  burntMaterial: {fileID: 0}
-  choppedSound: {fileID: 0}
-  cookedSound: {fileID: 0}
-  burntSound: {fileID: 0}
-  enableCookingDebugLogs: 0
+  ingredientData: {fileID: 0}
+  visualModel: {fileID: 0}
+  ingredientRenderer: {fileID: 938067392}
+  enableIngredientDebugLogs: 0
 --- !u!1 &1038063735
 GameObject:
   m_ObjectHideFlags: 0
@@ -2021,20 +2011,10 @@ MonoBehaviour:
   itemName: Item
   itemType: 0
   canBeDroppedAnywhere: 1
-  ingredientType: 1
-  currentState: 0
-  canBeChopped: 1
-  canBeCooked: 1
-  cookingTime: 5
-  burningTime: 3
-  rawMaterial: {fileID: 0}
-  choppedMaterial: {fileID: 0}
-  cookedMaterial: {fileID: 0}
-  burntMaterial: {fileID: 0}
-  choppedSound: {fileID: 0}
-  cookedSound: {fileID: 0}
-  burntSound: {fileID: 0}
-  enableCookingDebugLogs: 0
+  ingredientData: {fileID: 11400000, guid: 242f2b0683c024b4b8ce5ca125e3016b, type: 2}
+  visualModel: {fileID: 1791481343}
+  ingredientRenderer: {fileID: 1791481341}
+  enableIngredientDebugLogs: 0
 --- !u!1 &1838223634
 GameObject:
   m_ObjectHideFlags: 0
@@ -3412,20 +3392,10 @@ MonoBehaviour:
   itemName: Item
   itemType: 0
   canBeDroppedAnywhere: 1
-  ingredientType: 0
-  currentState: 0
-  canBeChopped: 1
-  canBeCooked: 1
-  cookingTime: 5
-  burningTime: 3
-  rawMaterial: {fileID: 0}
-  choppedMaterial: {fileID: 0}
-  cookedMaterial: {fileID: 0}
-  burntMaterial: {fileID: 0}
-  choppedSound: {fileID: 0}
-  cookedSound: {fileID: 0}
-  burntSound: {fileID: 0}
-  enableCookingDebugLogs: 0
+  ingredientData: {fileID: 0}
+  visualModel: {fileID: 0}
+  ingredientRenderer: {fileID: 5960372006989106856}
+  enableIngredientDebugLogs: 0
 --- !u!1001 &7169440202349861761
 PrefabInstance:
   m_ObjectHideFlags: 0

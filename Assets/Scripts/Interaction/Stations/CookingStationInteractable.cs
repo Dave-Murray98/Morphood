@@ -188,7 +188,7 @@ public class CookingStationInteractable : BaseInteractable
         if (cookingStation?.CurrentItem == null) return false;
 
         // Check single ingredient
-        CookingIngredient singleIngredient = cookingStation.CurrentItem.GetComponent<CookingIngredient>();
+        Ingredient singleIngredient = cookingStation.CurrentItem.GetComponent<Ingredient>();
         if (singleIngredient != null)
         {
             return singleIngredient.IsSpoiled;
@@ -198,7 +198,7 @@ public class CookingStationInteractable : BaseInteractable
         Dish dish = cookingStation.CurrentItem.GetComponent<Dish>();
         if (dish != null)
         {
-            foreach (CookingIngredient ingredient in dish.Ingredients)
+            foreach (Ingredient ingredient in dish.Ingredients)
             {
                 if (ingredient.IsSpoiled)
                     return true;
@@ -225,7 +225,7 @@ public class CookingStationInteractable : BaseInteractable
 
             // Draw progress bar
             float progress = GetCookingProgress();
-            Gizmos.color = new Color(1f, 0.5f, 0f); //orange
+            Gizmos.color = new Color(1f, 0.5f, 0f);  //orange
             Vector3 progressStart = cookingIndicator + Vector3.left;
             Vector3 progressEnd = Vector3.Lerp(progressStart, cookingIndicator + Vector3.right, progress);
             Gizmos.DrawLine(progressStart, progressEnd);

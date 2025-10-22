@@ -47,7 +47,7 @@ public class CookingStation : BaseStation
 
     // Internal cooking state
     private bool isCooking = false;
-    private List<CookingIngredient> ingredientsBeingCooked = new List<CookingIngredient>();
+    private List<Ingredient> ingredientsBeingCooked = new List<Ingredient>();
     private PlayerEnd currentCookingPlayer;
     private Coroutine cookingCoroutine;
     private bool wasPlayingCookingLoop = false;
@@ -110,13 +110,13 @@ public class CookingStation : BaseStation
             return false;
         }
 
-        // Check if it's a cooking ingredient
-        CookingIngredient ingredient = item.GetComponent<CookingIngredient>();
+        // Check if it's an ingredient
+        Ingredient ingredient = item.GetComponent<Ingredient>();
         if (ingredient != null)
         {
             if (!ingredient.CanBeCooked)
             {
-                CookingDebugLog($"Ingredient {ingredient.ItemName} cannot be cooked - current state: {ingredient.State}");
+                CookingDebugLog($"Ingredient {ingredient.IngredientName} cannot be cooked");
                 return false;
             }
             return true;
@@ -134,7 +134,7 @@ public class CookingStation : BaseStation
 
             // Check if any ingredients in the dish can be cooked
             bool hasCookableIngredients = false;
-            foreach (CookingIngredient dishIngredient in dish.Ingredients)
+            foreach (Ingredient dishIngredient in dish.Ingredients)
             {
                 if (dishIngredient.CanBeCooked)
                 {
@@ -186,7 +186,7 @@ public class CookingStation : BaseStation
         ingredientsBeingCooked.Clear();
 
         // If it's a single ingredient
-        CookingIngredient singleIngredient = item.GetComponent<CookingIngredient>();
+        Ingredient singleIngredient = item.GetComponent<Ingredient>();
         if (singleIngredient != null && singleIngredient.CanBeCooked)
         {
             ingredientsBeingCooked.Add(singleIngredient);
@@ -197,7 +197,7 @@ public class CookingStation : BaseStation
         Dish dish = item.GetComponent<Dish>();
         if (dish != null)
         {
-            foreach (CookingIngredient ingredient in dish.Ingredients)
+            foreach (Ingredient ingredient in dish.Ingredients)
             {
                 if (ingredient.CanBeCooked)
                 {
@@ -221,7 +221,7 @@ public class CookingStation : BaseStation
     private int CountCookableIngredients()
     {
         int count = 0;
-        foreach (CookingIngredient ingredient in ingredientsBeingCooked)
+        foreach (Ingredient ingredient in ingredientsBeingCooked)
         {
             if (ingredient.CanBeCooked)
             {
@@ -252,11 +252,11 @@ public class CookingStation : BaseStation
         currentCookingPlayer = playerEnd;
 
         // Start cooking for all ingredients
-        foreach (CookingIngredient ingredient in ingredientsBeingCooked)
+        foreach (Ingredient ingredient in ingredientsBeingCooked)
         {
             if (ingredient.CanBeCooked)
             {
-                ingredient.StartCooking();
+                ingredient.StartProcessing(TransformationType.Cooking);
             }
         }
 
@@ -280,9 +280,9 @@ public class CookingStation : BaseStation
         isCooking = false;
 
         // Stop cooking for all ingredients
-        foreach (CookingIngredient ingredient in ingredientsBeingCooked)
+        foreach (Ingredient ingredient in ingredientsBeingCooked)
         {
-            ingredient.StopCooking();
+            ingredient.StopProcessing();
         }
 
         // Stop cooking coroutine
@@ -313,14 +313,13 @@ public class CookingStation : BaseStation
             bool anyBurning = false;
 
             // Update each ingredient's cooking progress
-            foreach (CookingIngredient ingredient in ingredientsBeingCooked)
+            foreach (Ingredient ingredient in ingredientsBeingCooked)
             {
-                if (ingredient.IsBeingCooked)
+                if (ingredient.IsBeingProcessed)
                 {
-                    ingredient.UpdateCooking(cookingUpdateInterval);
                     anyStillCooking = true;
 
-                    // Check if ingredient is burning
+                    // Check if ingredient is spoiled (burnt)
                     if (ingredient.IsSpoiled)
                     {
                         anyBurning = true;
@@ -529,11 +528,11 @@ public class CookingStation : BaseStation
     public float GetMaxCookingProgress()
     {
         float maxProgress = 0f;
-        foreach (CookingIngredient ingredient in ingredientsBeingCooked)
+        foreach (Ingredient ingredient in ingredientsBeingCooked)
         {
-            if (ingredient.IsBeingCooked)
+            if (ingredient.IsBeingProcessed)
             {
-                maxProgress = Mathf.Max(maxProgress, ingredient.CookingProgress);
+                maxProgress = Mathf.Max(maxProgress, ingredient.ProcessingProgress);
             }
         }
         return maxProgress;
@@ -592,7 +591,7 @@ public class CookingStation : BaseStation
         {
             case CookingMethod.Frying: return Color.yellow;
             case CookingMethod.Boiling: return Color.blue;
-            default: return new Color(1f, 0.5f, 0f); //orange
+            default: return new Color(1f, 0.5f, 0f); // Orange
         }
     }
 

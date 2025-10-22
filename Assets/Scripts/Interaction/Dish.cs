@@ -36,14 +36,14 @@ public class Dish : PickupableItem
     [SerializeField] private bool enableDishDebugLogs = false;
 
     // Internal state
-    private List<CookingIngredient> ingredientsOnDish = new List<CookingIngredient>();
+    private List<Ingredient> ingredientsOnDish = new List<Ingredient>();
     private DishState currentDishState = DishState.Empty;
     private CompletedMeal detectedMeal = null;
     private Renderer dishRenderer;
 
     // Events
-    public System.Action<Dish, CookingIngredient> OnIngredientAdded;
-    public System.Action<Dish, CookingIngredient> OnIngredientRemoved;
+    public System.Action<Dish, Ingredient> OnIngredientAdded;
+    public System.Action<Dish, Ingredient> OnIngredientRemoved;
     public System.Action<Dish, CompletedMeal> OnMealCompleted;
 
     // Public properties
@@ -52,7 +52,7 @@ public class Dish : PickupableItem
     public int IngredientCount => ingredientsOnDish.Count;
     public bool HasSpace => ingredientsOnDish.Count < maxIngredients;
     public bool IsEmpty => ingredientsOnDish.Count == 0;
-    public IReadOnlyList<CookingIngredient> Ingredients => ingredientsOnDish.AsReadOnly();
+    public IReadOnlyList<Ingredient> Ingredients => ingredientsOnDish.AsReadOnly();
     public CompletedMeal DetectedMeal => detectedMeal;
     public bool IsCompletedMeal => detectedMeal != null;
 
@@ -81,11 +81,11 @@ public class Dish : PickupableItem
     /// <summary>
     /// Try to add an ingredient to this dish
     /// </summary>
-    public bool TryAddIngredient(CookingIngredient ingredient)
+    public bool TryAddIngredient(Ingredient ingredient)
     {
         if (!CanAddIngredient(ingredient))
         {
-            DishDebugLog($"Cannot add {ingredient.ItemName} to dish - HasSpace: {HasSpace}, IsEdible: {ingredient.IsEdible}");
+            DishDebugLog($"Cannot add {ingredient.IngredientName} to dish - HasSpace: {HasSpace}, IsEdible: {ingredient.IsEdible}");
             return false;
         }
 
@@ -109,18 +109,18 @@ public class Dish : PickupableItem
         // Fire event
         OnIngredientAdded?.Invoke(this, ingredient);
 
-        DishDebugLog($"Added {ingredient.ItemName} to dish (slot {slotIndex})");
+        DishDebugLog($"Added {ingredient.IngredientName} to dish (slot {slotIndex})");
         return true;
     }
 
     /// <summary>
     /// Try to remove an ingredient from this dish
     /// </summary>
-    public bool TryRemoveIngredient(CookingIngredient ingredient)
+    public bool TryRemoveIngredient(Ingredient ingredient)
     {
         if (!ingredientsOnDish.Contains(ingredient))
         {
-            DishDebugLog($"Ingredient {ingredient.ItemName} not found on dish");
+            DishDebugLog($"Ingredient {ingredient.IngredientName} not found on dish");
             return false;
         }
 
@@ -136,18 +136,18 @@ public class Dish : PickupableItem
         // Fire event
         OnIngredientRemoved?.Invoke(this, ingredient);
 
-        DishDebugLog($"Removed {ingredient.ItemName} from dish");
+        DishDebugLog($"Removed {ingredient.IngredientName} from dish");
         return true;
     }
 
     /// <summary>
     /// Remove the last added ingredient (for easy removal)
     /// </summary>
-    public CookingIngredient RemoveLastIngredient()
+    public Ingredient RemoveLastIngredient()
     {
         if (IsEmpty) return null;
 
-        CookingIngredient lastIngredient = ingredientsOnDish[ingredientsOnDish.Count - 1];
+        Ingredient lastIngredient = ingredientsOnDish[ingredientsOnDish.Count - 1];
         if (TryRemoveIngredient(lastIngredient))
         {
             return lastIngredient;
@@ -159,11 +159,11 @@ public class Dish : PickupableItem
     /// <summary>
     /// Clear all ingredients from the dish
     /// </summary>
-    public List<CookingIngredient> ClearAllIngredients()
+    public List<Ingredient> ClearAllIngredients()
     {
-        List<CookingIngredient> removedIngredients = new List<CookingIngredient>(ingredientsOnDish);
+        List<Ingredient> removedIngredients = new List<Ingredient>(ingredientsOnDish);
 
-        foreach (CookingIngredient ingredient in removedIngredients)
+        foreach (Ingredient ingredient in removedIngredients)
         {
             RestoreIngredientProperties(ingredient);
         }
@@ -178,19 +178,19 @@ public class Dish : PickupableItem
     /// <summary>
     /// Check if an ingredient can be added to this dish
     /// </summary>
-    public bool CanAddIngredient(CookingIngredient ingredient)
+    public bool CanAddIngredient(Ingredient ingredient)
     {
         // Must have space
         if (!HasSpace) return false;
 
-        // Ingredient must be edible (cooked) or processable (chopped)
-        if (!ingredient.IsEdible && ingredient.State != IngredientState.Chopped) return false;
+        // Ingredient must be edible or processable
+        if (!ingredient.IsEdible && !ingredient.Data.IsEdible) return false;
 
         // Cannot add spoiled ingredients
         if (ingredient.IsSpoiled) return false;
 
         // Cannot add duplicate ingredient types (optional rule)
-        // if (ingredientsOnDish.Any(i => i.IngredientType == ingredient.IngredientType)) return false;
+        // if (ingredientsOnDish.Any(i => i.Data.Category == ingredient.Data.Category)) return false;
 
         return true;
     }
@@ -252,43 +252,42 @@ public class Dish : PickupableItem
     {
         if (ingredientsOnDish.Count < 2) return null;
 
-        // Get ingredient types on the dish
-        var ingredientTypes = ingredientsOnDish.Select(i => i.IngredientType).OrderBy(t => t).ToList();
+        // Get ingredient categories on the dish
+        var ingredientCategories = ingredientsOnDish.Select(i => i.Data.Category).OrderBy(c => c).ToList();
 
         // Simple meal detection logic
         // In a full game, this would query a recipe database
 
-        // Burger: Bread + Meat + (optional: Lettuce, Tomato, Cheese)
-        if (ingredientTypes.Contains(IngredientType.Bread) && ingredientTypes.Contains(IngredientType.Meat))
+        // Burger: Grain + Meat + (optional: Vegetable, Dairy)
+        if (ingredientCategories.Contains(IngredientCategory.Grain) && ingredientCategories.Contains(IngredientCategory.Meat))
         {
-            bool hasLettuce = ingredientTypes.Contains(IngredientType.Lettuce);
-            bool hasTomato = ingredientTypes.Contains(IngredientType.Tomato);
-            bool hasCheese = ingredientTypes.Contains(IngredientType.Cheese);
+            bool hasVegetable = ingredientCategories.Contains(IngredientCategory.Vegetable);
+            bool hasDairy = ingredientCategories.Contains(IngredientCategory.Dairy);
 
             string mealName = "Basic Burger";
             int score = 10;
 
-            if (hasLettuce && hasTomato && hasCheese)
+            if (hasVegetable && hasDairy)
             {
                 mealName = "Deluxe Burger";
                 score = 30;
             }
-            else if ((hasLettuce && hasTomato) || (hasLettuce && hasCheese) || (hasTomato && hasCheese))
+            else if (hasVegetable || hasDairy)
             {
                 mealName = "Premium Burger";
                 score = 20;
             }
 
-            return new CompletedMeal(mealName, score, new List<IngredientType>(ingredientTypes));
+            return new CompletedMeal(mealName, score, new List<IngredientCategory>(ingredientCategories));
         }
 
-        // Salad: Lettuce + Tomato + (optional: Cheese)
-        if (ingredientTypes.Contains(IngredientType.Lettuce) && ingredientTypes.Contains(IngredientType.Tomato))
+        // Salad: Multiple vegetables + (optional: Dairy)
+        if (ingredientCategories.Count(c => c == IngredientCategory.Vegetable) >= 2)
         {
-            string mealName = ingredientTypes.Contains(IngredientType.Cheese) ? "Cheese Salad" : "Garden Salad";
-            int score = ingredientTypes.Contains(IngredientType.Cheese) ? 20 : 15;
+            string mealName = ingredientCategories.Contains(IngredientCategory.Dairy) ? "Garden Salad with Cheese" : "Garden Salad";
+            int score = ingredientCategories.Contains(IngredientCategory.Dairy) ? 20 : 15;
 
-            return new CompletedMeal(mealName, score, new List<IngredientType>(ingredientTypes));
+            return new CompletedMeal(mealName, score, new List<IngredientCategory>(ingredientCategories));
         }
 
         // Add more meal combinations here...
@@ -335,7 +334,7 @@ public class Dish : PickupableItem
     /// <summary>
     /// Position an ingredient on the dish at a specific slot
     /// </summary>
-    private void PositionIngredientOnDish(CookingIngredient ingredient, int slotIndex)
+    private void PositionIngredientOnDish(Ingredient ingredient, int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= ingredientSlots.Length) return;
 
@@ -359,7 +358,7 @@ public class Dish : PickupableItem
     /// <summary>
     /// Restore an ingredient's original properties when removed from dish
     /// </summary>
-    private void RestoreIngredientProperties(CookingIngredient ingredient)
+    private void RestoreIngredientProperties(Ingredient ingredient)
     {
         // Remove from dish hierarchy
         ingredient.transform.SetParent(null);
@@ -544,12 +543,12 @@ public class CompletedMeal
 {
     public string Name { get; private set; }
     public int Score { get; private set; }
-    public List<IngredientType> RequiredIngredients { get; private set; }
+    public List<IngredientCategory> RequiredCategories { get; private set; }
 
-    public CompletedMeal(string name, int score, List<IngredientType> ingredients)
+    public CompletedMeal(string name, int score, List<IngredientCategory> categories)
     {
         Name = name;
         Score = score;
-        RequiredIngredients = ingredients ?? new List<IngredientType>();
+        RequiredCategories = categories ?? new List<IngredientCategory>();
     }
 }
