@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Represents a food item in the game world. Inherits from PickupableItem to maintain 
 /// all the existing pickup/drop functionality while adding food-specific behavior.
+/// Now supports object pooling for better performance.
 /// </summary>
 [RequireComponent(typeof(FoodItemInteractable))]
 public class FoodItem : PickupableItem
@@ -17,15 +18,22 @@ public class FoodItem : PickupableItem
     [SerializeField] private bool updateMaterialOnStart = true;
     [Tooltip("Whether to apply the food data's material to the mesh renderer on start")]
 
+    [Header("Pooling Support")]
+    [SerializeField] private bool isPooledItem = false;
+    [Tooltip("Whether this item is managed by the pooling system (set automatically)")]
+
     // Internal components
     private FoodItemInteractable foodInteractable;
     private MeshRenderer meshRenderer;
-
     private MeshCollider meshCollider;
+
+    // Pooling state
+    private bool hasBeenInitialized = false;
 
     // Public properties
     public FoodItemData FoodData => foodData;
     public bool HasValidFoodData => foodData != null;
+    public bool IsPooledItem => isPooledItem;
 
     protected override void Awake()
     {
@@ -38,21 +46,28 @@ public class FoodItem : PickupableItem
 
     protected override void Start()
     {
-        // Initialize food-specific setup first
-        InitializeFoodItem();
-
-        // Register with FoodManager if available
-        if (FoodManager.Instance != null)
-        {
-            FoodManager.Instance.RegisterFoodItem(this);
-        }
-
-        // Then call the base PickupableItem start
+        // Always call base start for PickupableItem functionality
         base.Start();
+
+        // Initialize if not already done (for non-pooled items or scene-placed items)
+        if (!hasBeenInitialized)
+        {
+            InitializeFoodItem();
+        }
     }
 
+    /// <summary>
+    /// Initialize the food item (called on Start for non-pooled items, or when retrieved from pool)
+    /// </summary>
     private void InitializeFoodItem()
     {
+        if (hasBeenInitialized && isPooledItem)
+        {
+            // For pooled items, only initialize once on first use
+            // Subsequent uses just update the food data
+            return;
+        }
+
         // Get the food interactable component
         foodInteractable = GetComponent<FoodItemInteractable>();
         if (foodInteractable == null)
@@ -70,6 +85,14 @@ public class FoodItem : PickupableItem
         {
             Debug.LogWarning($"[FoodItem] {name} has no food data assigned!");
         }
+
+        // Register with FoodManager if available
+        if (FoodManager.Instance != null)
+        {
+            FoodManager.Instance.RegisterFoodItem(this);
+        }
+
+        hasBeenInitialized = true;
     }
 
     /// <summary>
@@ -96,16 +119,27 @@ public class FoodItem : PickupableItem
     {
         if (!HasValidFoodData) return;
 
-        meshFilter.mesh = foodData.VisualMesh;
+        // Update mesh
+        if (meshFilter != null && foodData.VisualMesh != null)
+        {
+            meshFilter.mesh = foodData.VisualMesh;
+        }
 
-        meshRenderer.material = foodData.ItemMaterial;
-
-        meshCollider.sharedMesh = foodData.ColliderMesh;
-
-        // Apply material if specified and we have a renderer
-        if (updateMaterialOnStart && foodData.ItemMaterial != null && meshRenderer != null)
+        // Update material
+        if (meshRenderer != null && foodData.ItemMaterial != null && updateMaterialOnStart)
         {
             meshRenderer.material = foodData.ItemMaterial;
+        }
+
+        // Update collider mesh
+        if (meshCollider != null && foodData.ColliderMesh != null)
+        {
+            meshCollider.sharedMesh = foodData.ColliderMesh;
+        }
+        else if (meshCollider != null && foodData.VisualMesh != null)
+        {
+            // Fall back to visual mesh if no specific collider mesh
+            meshCollider.sharedMesh = foodData.VisualMesh;
         }
 
         DebugLog($"Updated visual representation for {foodData.DisplayName}");
@@ -113,9 +147,10 @@ public class FoodItem : PickupableItem
 
     /// <summary>
     /// Transform this food item into another food item based on processing
+    /// Returns true if the FoodManager should handle the transformation with pooling
     /// </summary>
     /// <param name="processType">The type of processing applied</param>
-    /// <returns>True if transformation was successful</returns>
+    /// <returns>True if transformation was initiated (handled by FoodManager)</returns>
     public bool TransformFood(FoodProcessType processType)
     {
         if (!HasValidFoodData)
@@ -131,12 +166,28 @@ public class FoodItem : PickupableItem
             return false;
         }
 
-        // Apply the new food data
-        foodData = resultData;
-        ApplyFoodData();
+        // Let the FoodManager handle the transformation for pooling efficiency
+        if (FoodManager.Instance != null)
+        {
+            Vector3 currentPosition = transform.position;
+            FoodItem transformedItem = FoodManager.Instance.TransformFoodItem(this, processType, currentPosition);
 
-        DebugLog($"Transformed food to {foodData.DisplayName} using {processType}");
-        return true;
+            if (transformedItem != null)
+            {
+                DebugLog($"Transformed food to {transformedItem.FoodData.DisplayName} using {processType}");
+                return true;
+            }
+        }
+        else
+        {
+            // Fallback: direct transformation without pooling
+            foodData = resultData;
+            ApplyFoodData();
+            DebugLog($"Transformed food to {foodData.DisplayName} using {processType} (no pooling)");
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -161,7 +212,7 @@ public class FoodItem : PickupableItem
     }
 
     /// <summary>
-    /// Set new food data for this item (useful for creating food items at runtime)
+    /// Set new food data for this item (used by pooling system and runtime creation)
     /// </summary>
     /// <param name="newFoodData">The new food data to apply</param>
     public void SetFoodData(FoodItemData newFoodData)
@@ -175,11 +226,62 @@ public class FoodItem : PickupableItem
         foodData = newFoodData;
         ApplyFoodData();
 
+        // Initialize if this is the first time setting data (for pooled items)
+        if (!hasBeenInitialized)
+        {
+            InitializeFoodItem();
+        }
+
         DebugLog($"Set food data to {foodData.DisplayName}");
     }
 
     /// <summary>
-    /// Create a new food item GameObject with the specified food data
+    /// Mark this item as pooled (called by FoodItemPool)
+    /// </summary>
+    /// <param name="pooled">Whether this item is pooled</param>
+    public void SetPooledStatus(bool pooled)
+    {
+        isPooledItem = pooled;
+
+        if (pooled)
+        {
+            DebugLog($"Item marked as pooled: {name}");
+        }
+    }
+
+    /// <summary>
+    /// Reset this food item to a clean state (used by pooling system)
+    /// </summary>
+    public void ResetForPooling()
+    {
+        // Clear food data reference
+        foodData = null;
+
+        // Reset visual state
+        if (meshFilter != null)
+        {
+            meshFilter.mesh = null;
+        }
+
+        if (meshRenderer != null)
+        {
+            meshRenderer.material = null;
+        }
+
+        if (meshCollider != null)
+        {
+            meshCollider.sharedMesh = null;
+        }
+
+        // Reset item properties
+        itemName = "Food Item";
+        itemType = ItemType.Ingredient;
+
+        DebugLog($"Reset food item for pooling: {name}");
+    }
+
+    /// <summary>
+    /// Create a new food item GameObject with the specified food data using the pooling system
     /// </summary>
     /// <param name="foodItemData">The food data for the new item</param>
     /// <param name="position">World position for the new item</param>
@@ -193,29 +295,25 @@ public class FoodItem : PickupableItem
             return null;
         }
 
-        // Create a new GameObject for the food item
-        GameObject foodItemObj = new GameObject($"FoodItem_{foodItemData.DisplayName}");
-        foodItemObj.transform.position = position;
-        if (parent != null)
-            foodItemObj.transform.SetParent(parent);
+        // Use FoodManager for pooled creation
+        if (FoodManager.Instance != null)
+        {
+            FoodItem pooledItem = FoodManager.Instance.SpawnFoodItem(foodItemData, position);
 
-        // Add required components
-        FoodItem foodItem = foodItemObj.AddComponent<FoodItem>();
-        foodItemObj.AddComponent<FoodItemInteractable>();
+            if (pooledItem != null && parent != null)
+            {
+                // Only reparent if it's not a pooled item (pooled items stay under the pool)
+                if (!pooledItem.IsPooledItem)
+                {
+                    pooledItem.transform.SetParent(parent);
+                }
+            }
 
-        // Add physics components
-        Rigidbody rb = foodItemObj.AddComponent<Rigidbody>();
-        rb.mass = 1f;
-        rb.linearDamping = 2f; // Some drag for realistic feel
+            return pooledItem;
+        }
 
-        // Add a default collider (can be overridden by the mesh prefab)
-        BoxCollider collider = foodItemObj.AddComponent<BoxCollider>();
-        collider.size = Vector3.one * 0.5f; // Reasonable default size
-
-        // Set the food data
-        foodItem.SetFoodData(foodItemData);
-
-        return foodItem;
+        Debug.LogError("[FoodItem] Cannot create food item - no FoodManager available");
+        return null;
     }
 
     #region Debug and Validation
@@ -271,11 +369,19 @@ public class FoodItem : PickupableItem
                 Gizmos.DrawCube(gizmoPos + Vector3.right * 0.3f, Vector3.one * 0.1f);
             }
 
+            // Pooling indicator
+            if (isPooledItem)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(gizmoPos + Vector3.up * 0.5f, 0.15f);
+            }
+
 #if UNITY_EDITOR
             // Show food name and processing options in scene view
             if (HasValidFoodData)
             {
                 string label = foodData.DisplayName;
+                if (isPooledItem) label += " (Pooled)";
                 if (foodData.CanBeProcessed())
                 {
                     label += $"\n({GetProcessingOptions()})";
@@ -294,8 +400,9 @@ public class FoodItem : PickupableItem
     {
         base.OnDestroy();
 
-        // Unregister from FoodManager if available
-        if (FoodManager.Instance != null)
+        // Unregister from FoodManager if available and not pooled
+        // Pooled items are handled by the FoodManager/Pool system
+        if (FoodManager.Instance != null && !isPooledItem)
         {
             FoodManager.Instance.UnregisterFoodItem(this);
         }

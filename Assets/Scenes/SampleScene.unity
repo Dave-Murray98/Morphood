@@ -684,6 +684,7 @@ GameObject:
   m_Component:
   - component: {fileID: 499420442}
   - component: {fileID: 499420443}
+  - component: {fileID: 499420444}
   m_Layer: 0
   m_Name: Food Manager
   m_TagString: Untagged
@@ -719,10 +720,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   combinationDatabase: {fileID: 11400000, guid: c492f2355f06c3e4291071ea52425588, type: 2}
-  foodItemPrefab: {fileID: 5326526739700746578, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+  itemPool: {fileID: 499420444}
   organizeFoodItemsAsChildren: 1
   spawnHeight: 0.1
   enableDebugLogs: 0
+--- !u!114 &499420444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 499420441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50e7711d48265af44ab18b51477e15d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  foodItemPrefab: {fileID: 5326526739700746578, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+  initialPoolSize: 20
+  maxPoolSize: 50
+  allowGrowth: 1
+  poolParent: {fileID: 499420442}
+  enableDebugLogs: 0
+  showPoolStats: 0
 --- !u!1001 &514241808
 PrefabInstance:
   m_ObjectHideFlags: 0

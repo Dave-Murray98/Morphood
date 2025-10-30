@@ -4,8 +4,8 @@ using System.Linq;
 
 /// <summary>
 /// Centralized manager for food system operations including combination processing,
-/// food item spawning, and database management. All food items in the scene are
-/// managed as children of this object for organization.
+/// food item spawning, and database management. Now supports object pooling for better performance.
+/// All food items in the scene are managed as children of this object for organization.
 /// </summary>
 public class FoodManager : MonoBehaviour
 {
@@ -15,9 +15,9 @@ public class FoodManager : MonoBehaviour
     [SerializeField] private FoodCombinationDatabase combinationDatabase;
     [Tooltip("The database containing all possible food combinations")]
 
-    [Header("Food Item Prefab")]
-    [SerializeField] private GameObject foodItemPrefab;
-    [Tooltip("The prefab used to create new food items (should have FoodItem + FoodItemInteractable + required components)")]
+    [Header("Pooling System")]
+    [SerializeField] private FoodItemPool itemPool;
+    [Tooltip("The pool manager for food items")]
 
     [Header("Spawning Settings")]
     [SerializeField] private bool organizeFoodItemsAsChildren = true;
@@ -32,6 +32,9 @@ public class FoodManager : MonoBehaviour
     // Internal tracking
     private List<FoodItem> activeFoodItems = new List<FoodItem>();
     private int nextFoodItemId = 1;
+
+    // Statistics
+    private int pooledItemsCreated = 0;
 
     #region Singleton Setup
 
@@ -60,47 +63,26 @@ public class FoodManager : MonoBehaviour
             Debug.LogError("[FoodManager] No combination database assigned! Food combinations will not work.");
         }
 
-        if (foodItemPrefab == null)
+        // Validate pooling setup
+        if (itemPool == null)
         {
-            Debug.LogError("[FoodManager] No food item prefab assigned! Cannot spawn food items.");
-        }
-        else
-        {
-            // Validate the prefab has required components
-            ValidateFoodItemPrefab();
+            // Try to find a pool component on this GameObject
+            itemPool = GetComponent<FoodItemPool>();
+
+            if (itemPool == null)
+            {
+                Debug.LogError("[FoodManager] No FoodItemPool found! Add a FoodItemPool component for the food system to work.");
+                return;
+            }
         }
 
         // Find any existing food items in the scene and register them
         RegisterExistingFoodItems();
 
-        DebugLog("FoodManager initialized");
+        DebugLog("FoodManager initialized with pooling system");
     }
 
-    private void ValidateFoodItemPrefab()
-    {
-        FoodItem foodItem = foodItemPrefab.GetComponent<FoodItem>();
-        FoodItemInteractable interactable = foodItemPrefab.GetComponent<FoodItemInteractable>();
-        MeshRenderer meshRenderer = foodItemPrefab.GetComponent<MeshRenderer>();
-        MeshCollider meshCollider = foodItemPrefab.GetComponent<MeshCollider>();
-        InteractableOutline outline = foodItemPrefab.GetComponent<InteractableOutline>();
 
-        List<string> missingComponents = new List<string>();
-
-        if (foodItem == null) missingComponents.Add("FoodItem");
-        if (interactable == null) missingComponents.Add("FoodItemInteractable");
-        if (meshRenderer == null) missingComponents.Add("MeshRenderer");
-        if (meshCollider == null) missingComponents.Add("MeshCollider");
-        if (outline == null) missingComponents.Add("InteractableOutline");
-
-        if (missingComponents.Count > 0)
-        {
-            Debug.LogError($"[FoodManager] Food item prefab is missing required components: {string.Join(", ", missingComponents)}");
-        }
-        else
-        {
-            DebugLog("Food item prefab validation passed");
-        }
-    }
 
     #endregion
 
@@ -131,10 +113,14 @@ public class FoodManager : MonoBehaviour
         {
             activeFoodItems.Add(foodItem);
 
-            // Make it a child if organization is enabled
+            // Make it a child if organization is enabled and it's not from the pool
             if (organizeFoodItemsAsChildren && foodItem.transform.parent != transform)
             {
-                foodItem.transform.SetParent(transform);
+                // Don't reparent pooled items - they should stay under the pool
+                if (itemPool == null || !itemPool.IsPooledItem(foodItem))
+                {
+                    foodItem.transform.SetParent(transform);
+                }
             }
 
             DebugLog($"Registered food item: {foodItem.ItemName}");
@@ -252,7 +238,7 @@ public class FoodManager : MonoBehaviour
     #region Food Item Spawning
 
     /// <summary>
-    /// Spawn a new food item with the specified food data
+    /// Spawn a new food item with the specified food data using the pooling system
     /// </summary>
     /// <param name="foodData">The food data for the new item</param>
     /// <param name="position">World position to spawn at</param>
@@ -266,9 +252,34 @@ public class FoodManager : MonoBehaviour
             return null;
         }
 
-        if (foodItemPrefab == null)
+        if (itemPool == null)
         {
-            Debug.LogError("[FoodManager] Cannot spawn food item - no prefab assigned");
+            Debug.LogError("[FoodManager] Cannot spawn food item - no pool available");
+            return null;
+        }
+
+        FoodItem foodItem = SpawnFromPool(foodData, position, rotation);
+
+        if (foodItem != null)
+        {
+            // Register the new food item
+            RegisterFoodItem(foodItem);
+            DebugLog($"Spawned food item: {foodData.DisplayName} at {position}");
+            pooledItemsCreated++;
+        }
+
+        return foodItem;
+    }
+
+    /// <summary>
+    /// Spawn a food item using the pooling system
+    /// </summary>
+    private FoodItem SpawnFromPool(FoodItemData foodData, Vector3 position, Quaternion? rotation)
+    {
+        FoodItem foodItem = itemPool.GetFromPool();
+        if (foodItem == null)
+        {
+            DebugLog("Failed to get item from pool, will try legacy spawning");
             return null;
         }
 
@@ -276,41 +287,21 @@ public class FoodManager : MonoBehaviour
         Vector3 spawnPosition = position + Vector3.up * spawnHeight;
         Quaternion spawnRotation = rotation ?? Quaternion.identity;
 
-        // Instantiate the prefab
-        GameObject newObj = Instantiate(foodItemPrefab, spawnPosition, spawnRotation);
-        newObj.name = $"FoodItem_{foodData.DisplayName}_{nextFoodItemId++}";
+        // Position the item
+        foodItem.transform.position = spawnPosition;
+        foodItem.transform.rotation = spawnRotation;
 
-        // Get the FoodItem component and set its data
-        FoodItem foodItem = newObj.GetComponent<FoodItem>();
-        if (foodItem == null)
-        {
-            Debug.LogError("[FoodManager] Spawned prefab doesn't have FoodItem component!");
-            Destroy(newObj);
-            return null;
-        }
-
-        // Set the food data (this will update all visual components)
+        // Update the food data (this will update all visual components)
         foodItem.SetFoodData(foodData);
 
-        // Update components with food data references
-        UpdateFoodItemComponents(foodItem, foodData);
+        // Update the GameObject name for organization
+        foodItem.gameObject.name = $"PooledFoodItem_{foodData.DisplayName}_{nextFoodItemId++}";
 
-        // Register the new food item
-        RegisterFoodItem(foodItem);
-
-        DebugLog($"Spawned food item: {foodData.DisplayName} at {spawnPosition}");
+        DebugLog($"Spawned pooled food item: {foodData.DisplayName}");
         return foodItem;
     }
 
-    /// <summary>
-    /// Update all components on a food item with data from FoodItemData
-    /// </summary>
-    /// <param name="foodItem">The food item to update</param>
-    /// <param name="foodData">The food data to apply</param>
-    private void UpdateFoodItemComponents(FoodItem foodItem, FoodItemData foodData)
-    {
-        GameObject obj = foodItem.gameObject;
-    }
+
 
     /// <summary>
     /// Spawn a food item at a random position within a radius
@@ -332,12 +323,14 @@ public class FoodManager : MonoBehaviour
     #region Food Item Destruction
 
     /// <summary>
-    /// Safely destroy a food item and clean up references
+    /// Safely destroy a food item and clean up references using the pooling system
     /// </summary>
     /// <param name="foodItem">The food item to destroy</param>
     public void DestroyFoodItem(FoodItem foodItem)
     {
         if (foodItem == null) return;
+
+        string itemName = foodItem.FoodData?.DisplayName ?? "Unknown";
 
         // Unregister from manager
         UnregisterFoodItem(foodItem);
@@ -361,11 +354,17 @@ public class FoodManager : MonoBehaviour
             }
         }
 
-        // Destroy the GameObject
-        string itemName = foodItem.FoodData?.DisplayName ?? "Unknown";
-        Destroy(foodItem.gameObject);
-
-        DebugLog($"Destroyed food item: {itemName}");
+        // Return to pool
+        if (itemPool != null && itemPool.IsPooledItem(foodItem))
+        {
+            itemPool.ReturnToPool(foodItem);
+            DebugLog($"Returned food item to pool: {itemName}");
+        }
+        else
+        {
+            Debug.LogWarning($"[FoodManager] Attempting to destroy non-pooled food item: {itemName}. This shouldn't happen in pool-only mode.");
+            Destroy(foodItem.gameObject);
+        }
     }
 
     #endregion
@@ -423,7 +422,51 @@ public class FoodManager : MonoBehaviour
         activeFoodItems.Clear();
         nextFoodItemId = 1;
 
+        // Clear the pool as well
+        if (itemPool != null)
+        {
+            itemPool.ClearPool();
+        }
+
         DebugLog("Cleared all food items from scene");
+    }
+
+    /// <summary>
+    /// Transform a food item using processing (chopping/cooking)
+    /// Uses pooling for efficient transformation
+    /// </summary>
+    /// <param name="originalItem">The item to transform</param>
+    /// <param name="processType">The type of processing</param>
+    /// <param name="position">Where to place the transformed item</param>
+    /// <returns>The transformed food item, or null if transformation failed</returns>
+    public FoodItem TransformFoodItem(FoodItem originalItem, FoodProcessType processType, Vector3 position)
+    {
+        if (originalItem == null || !originalItem.HasValidFoodData)
+        {
+            DebugLog("Cannot transform - invalid original item");
+            return null;
+        }
+
+        // Get the result data
+        FoodItemData resultData = originalItem.FoodData.GetProcessingResult(processType);
+        if (resultData == null)
+        {
+            DebugLog($"Cannot transform {originalItem.FoodData.DisplayName} using {processType} - no result data");
+            return null;
+        }
+
+        // Create the transformed item
+        FoodItem transformedItem = SpawnFoodItem(resultData, position);
+
+        if (transformedItem != null)
+        {
+            DebugLog($"Successfully transformed {originalItem.FoodData.DisplayName} using {processType} = {resultData.DisplayName}");
+
+            // Remove the original item
+            DestroyFoodItem(originalItem);
+        }
+
+        return transformedItem;
     }
 
     #endregion
@@ -444,8 +487,14 @@ public class FoodManager : MonoBehaviour
     {
         Debug.Log($"[FoodManager] Status Report:");
         Debug.Log($"  - Active Food Items: {GetFoodItemCount()}");
+        Debug.Log($"  - Items Created: {pooledItemsCreated}");
         Debug.Log($"  - Database Available: {combinationDatabase != null}");
-        Debug.Log($"  - Prefab Available: {foodItemPrefab != null}");
+        Debug.Log($"  - Pool Available: {itemPool != null}");
+
+        if (itemPool != null)
+        {
+            Debug.Log($"  - Pool Stats: {itemPool.GetPoolStats()}");
+        }
 
         if (combinationDatabase != null)
         {
@@ -455,9 +504,10 @@ public class FoodManager : MonoBehaviour
 
     private void OnValidate()
     {
-        if (foodItemPrefab != null && Application.isPlaying)
+        // Validate that we have a pool assigned in editor
+        if (itemPool == null && GetComponent<FoodItemPool>() == null)
         {
-            ValidateFoodItemPrefab();
+            Debug.LogWarning("[FoodManager] No FoodItemPool assigned or found. Add a FoodItemPool component.");
         }
     }
 
