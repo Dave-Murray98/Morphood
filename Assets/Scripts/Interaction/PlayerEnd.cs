@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Represents one end of the player character (Player 1 or Player 2).
 /// Handles interaction detection via trigger collisions, input processing, and object management for that specific player.
+/// FIXED: Now properly highlights all station types when carrying items, not just PlainStations.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class PlayerEnd : MonoBehaviour
@@ -204,12 +205,12 @@ public class PlayerEnd : MonoBehaviour
                 DebugLog($"Station left range: {other.name}");
 
                 // If this station's interactable was highlighted, stop highlighting it
-                PlainStationInteractable stationInteractable = station.GetComponent<PlainStationInteractable>();
-                if (ReferenceEquals(currentHighlightedInteractable, stationInteractable) && stationInteractable is BaseInteractable highlightedStation)
+                BaseInteractable stationInteractable = station.GetComponent<BaseInteractable>();
+                if (ReferenceEquals(currentHighlightedInteractable, stationInteractable) && stationInteractable != null)
                 {
-                    if (highlightedStation.gameObject.activeInHierarchy)
+                    if (stationInteractable.gameObject.activeInHierarchy)
                     {
-                        highlightedStation.StopHighlighting();
+                        stationInteractable.StopHighlighting();
                     }
                     currentHighlightedInteractable = null;
                     DebugLog($"Stopped highlighting departing station: {other.name}");
@@ -317,8 +318,7 @@ public class PlayerEnd : MonoBehaviour
 
     /// <summary>
     /// Get the interactable that the player would actually interact with if they pressed the interact button right now
-    /// ENHANCED VERSION with food combination support
-    /// This method should replace the existing GetInteractablePlayerWouldUse method in PlayerEnd.cs
+    /// FIXED VERSION: Now properly highlights all station types when carrying items
     /// </summary>
     public IInteractable GetInteractablePlayerWouldUse()
     {
@@ -342,7 +342,7 @@ public class PlayerEnd : MonoBehaviour
                     if (plainStation.CanAcceptForCombination(carriedFoodItem))
                     {
                         // Player would interact with the station for combination
-                        PlainStationInteractable stationInteractable = bestStation.GetComponent<PlainStationInteractable>();
+                        BaseInteractable stationInteractable = bestStation.GetComponent<BaseInteractable>();
                         if (stationInteractable != null && stationInteractable.CanInteract(this))
                         {
                             return stationInteractable;
@@ -350,15 +350,24 @@ public class PlayerEnd : MonoBehaviour
                     }
                 }
 
-                // Otherwise, check normal placement
+                // Otherwise, check normal placement - FIXED: Look for ANY BaseInteractable, not just PlainStationInteractable
                 if (bestStation.CanAcceptItem(carriedItem, this))
                 {
-                    // Check if the station has a PlainStationInteractable component
-                    PlainStationInteractable stationInteractable = bestStation.GetComponent<PlainStationInteractable>();
+                    // Check if the station has ANY BaseInteractable component (PlainStation, ChoppingStation, CookingStation, etc.)
+                    BaseInteractable stationInteractable = bestStation.GetComponent<BaseInteractable>();
                     if (stationInteractable != null && stationInteractable.CanInteract(this))
                     {
+                        DebugLog($"Station {bestStation.name} with {stationInteractable.GetType().Name} can be highlighted");
                         return stationInteractable;
                     }
+                    else
+                    {
+                        DebugLog($"Station {bestStation.name} has no valid BaseInteractable component");
+                    }
+                }
+                else
+                {
+                    DebugLog($"Station {bestStation.name} cannot accept carried item");
                 }
             }
             // If no suitable station, player would drop on ground (no highlighting)
