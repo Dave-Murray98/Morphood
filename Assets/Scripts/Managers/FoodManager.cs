@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Sirenix.OdinInspector;
 
 /// <summary>
 /// Centralized manager for food system operations including combination processing,
@@ -10,6 +11,9 @@ using System.Linq;
 public class FoodManager : MonoBehaviour
 {
     public static FoodManager Instance { get; private set; }
+
+    [Header("Cooking Settings")]
+    public CookingSettings cookingSettings;
 
     [Header("Database")]
     [SerializeField] private FoodCombinationDatabase combinationDatabase;
@@ -332,6 +336,17 @@ public class FoodManager : MonoBehaviour
         Vector3 spawnPosition = center + new Vector3(randomCircle.x, 0, randomCircle.y);
 
         return SpawnFoodItem(foodData, spawnPosition);
+    }
+
+    [Button]
+    public void SpawnTestItemNearPlayer(FoodItemData foodData)
+    {
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null)
+        {
+            Vector3 spawnPosition = player.transform.position += new Vector3(Random.Range(-1f, 1f), 3, Random.Range(-1f, 1f));
+            SpawnFromPool(foodData, spawnPosition, Quaternion.identity);
+        }
     }
 
     #endregion

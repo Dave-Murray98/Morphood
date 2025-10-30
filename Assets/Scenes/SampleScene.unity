@@ -723,6 +723,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32441ff6c52c7e541adb43ced760354c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cookingSettings: {fileID: 11400000, guid: 8ee26b934488fda4e844488574de5249, type: 2}
   combinationDatabase: {fileID: 11400000, guid: c492f2355f06c3e4291071ea52425588, type: 2}
   itemPool: {fileID: 499420444}
   organizeFoodItemsAsChildren: 1
@@ -3098,7 +3099,7 @@ MonoBehaviour:
   maxItemCapacity: 1
   allowPlayer1Interaction: 1
   allowPlayer2Interaction: 1
-  enableDebugLogs: 0
+  enableDebugLogs: 1
   showStationGizmos: 1
   choppingTime: 3
   requireHoldToChop: 1
