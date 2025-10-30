@@ -41,6 +41,15 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     protected abstract void StopProcessing();
     protected abstract PlayerEnd GetCurrentProcessingPlayer();
 
+    /// <summary>
+    /// Called when processing completes successfully - override to add custom behavior
+    /// </summary>
+    protected virtual void OnProcessingCompleted(PlayerEnd playerEnd)
+    {
+        // Default implementation: notify that interaction context has changed
+        NotifyInteractionContextChanged(playerEnd);
+    }
+
     #region BaseInteractable Implementation
 
     protected override bool CanInteractCustom(PlayerEnd playerEnd)
@@ -138,6 +147,25 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         }
 
         ResetHoldDetectionState();
+
+        // CRITICAL FIX: Ensure interaction state is fully cleared
+        // This prevents stale interaction states that can block future interactions
+        ForceResetInteractionState();
+    }
+
+    /// <summary>
+    /// Force reset all interaction state to ensure clean state for future interactions
+    /// </summary>
+    protected virtual void ForceResetInteractionState()
+    {
+        // Clear any lingering interaction state
+        currentInteractingPlayer = null;
+        isBeingInteractedWith = false;
+
+        // Ensure we're available for new interactions
+        SetAvailable(true);
+
+        ProcessingDebugLog("Forced interaction state reset - ready for new interactions");
     }
 
     #endregion
@@ -301,6 +329,9 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
             return false;
         }
 
+        // Refresh detection after item removal
+        PlayerEndDetectionRefresher.RefreshNearStation(transform, name);
+
         ProcessingDebugLog($"Player {playerEnd.PlayerNumber} retrieved item from {ProcessingVerb} station");
         return true;
     }
@@ -405,9 +436,38 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         return "Cannot interact";
     }
 
-    #endregion
+    /// <summary>
+    /// Notify the PlayerEnd that the interaction context has changed
+    /// This should be called when processing completes and the item transforms
+    /// </summary>
+    protected virtual void NotifyInteractionContextChanged(PlayerEnd playerEnd)
+    {
+        if (playerEnd == null) return;
 
-    #region Debug
+        ProcessingDebugLog($"Notifying Player {playerEnd.PlayerNumber} of interaction context change");
+
+        // Force reset our own interaction state first
+        ForceResetInteractionState();
+
+        // Use a coroutine to refresh after a frame delay to ensure all state changes have propagated
+        StartCoroutine(RefreshPlayerInteractionStateDelayed(playerEnd));
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after a brief delay
+    /// </summary>
+    protected virtual System.Collections.IEnumerator RefreshPlayerInteractionStateDelayed(PlayerEnd playerEnd)
+    {
+        // Wait a frame to ensure all state changes have propagated
+        yield return null;
+
+        // Refresh the player's interaction state
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            ProcessingDebugLog($"Player {playerEnd.PlayerNumber} interaction state refreshed");
+        }
+    }
 
     protected void ProcessingDebugLog(string message)
     {

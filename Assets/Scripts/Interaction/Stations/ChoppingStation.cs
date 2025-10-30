@@ -4,10 +4,17 @@ using UnityEngine;
 /// A specialized station for chopping food items.
 /// Only Player 2 can use this station. Items placed here can be processed through chopping.
 /// Integrates with the pooling system for efficient item transformation.
+/// FIXED: Now properly refreshes PlayerEnd detection after food transformation.
 /// </summary>
 public class ChoppingStation : BaseStation
 {
     [Header("Chopping Station Settings")]
+    [SerializeField] private float choppingTime = 3f;
+    [Tooltip("Time required to complete chopping process")]
+
+    [SerializeField] private bool requireHoldToChop = true;
+    [Tooltip("Whether player must hold the interact button to chop")]
+
     [SerializeField] private bool autoStartChopping = false;
     [Tooltip("Whether chopping starts automatically when a valid item is placed")]
 
@@ -99,7 +106,7 @@ public class ChoppingStation : BaseStation
 
         // Update progress
         float elapsedTime = Time.time - choppingStartTime;
-        choppingProgress = Mathf.Clamp01(elapsedTime / FoodManager.Instance.cookingSettings.chopHoldTime);
+        choppingProgress = Mathf.Clamp01(elapsedTime / choppingTime);
 
         // Check if chopping is complete
         if (choppingProgress >= 1f)
@@ -180,6 +187,9 @@ public class ChoppingStation : BaseStation
     {
         DebugLog($"Food item {item.name} placed on chopping station by Player {playerEnd.PlayerNumber}");
 
+        // Refresh PlayerEnd detection after placing item
+        PlayerEndDetectionRefresher.RefreshNearStation(transform, stationName);
+
         // Start chopping automatically if enabled
         if (autoStartChopping)
         {
@@ -194,6 +204,9 @@ public class ChoppingStation : BaseStation
         {
             StopChopping();
         }
+
+        // Refresh PlayerEnd detection after removing item
+        PlayerEndDetectionRefresher.RefreshNearStation(transform, stationName);
 
         DebugLog($"Food item {item.name} removed from chopping station");
     }
@@ -274,6 +287,7 @@ public class ChoppingStation : BaseStation
 
     /// <summary>
     /// Complete the chopping process and transform the food item
+    /// FIXED: Now properly refreshes PlayerEnd detection after transformation
     /// </summary>
     private void CompleteChopping()
     {
@@ -331,6 +345,10 @@ public class ChoppingStation : BaseStation
             if (placedSuccessfully)
             {
                 DebugLog($"Successfully chopped and placed {transformedItem.FoodData.DisplayName} on station");
+
+                // CRITICAL FIX: Force refresh PlayerEnd detection after transformation
+                PlayerEndDetectionRefresher.RefreshNearStation(transform, stationName);
+                DebugLog("Refreshed PlayerEnd detection after food transformation");
             }
             else
             {
@@ -364,6 +382,16 @@ public class ChoppingStation : BaseStation
     #endregion
 
     #region Public Configuration
+
+    /// <summary>
+    /// Set the time required for chopping
+    /// </summary>
+    /// <param name="time">Chopping time in seconds</param>
+    public void SetChoppingTime(float time)
+    {
+        choppingTime = Mathf.Max(0.1f, time);
+        DebugLog($"Chopping time set to {choppingTime} seconds");
+    }
 
     /// <summary>
     /// Set whether chopping should start automatically when items are placed
@@ -417,6 +445,7 @@ public class ChoppingStation : BaseStation
         base.OnValidate();
 
         // Ensure reasonable values
+        choppingTime = Mathf.Max(0.1f, choppingTime);
         choppingProgress = Mathf.Clamp01(choppingProgress);
 
         // Ensure this is configured as a chopping station

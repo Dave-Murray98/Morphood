@@ -693,6 +693,124 @@ public class PlayerEnd : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Refresh the interaction state - called when the interaction context has changed
+    /// (e.g., after an item transforms during processing)
+    /// </summary>
+    public void RefreshInteractionState()
+    {
+        if (isInteracting)
+        {
+            DebugLog("Cannot refresh interaction state while actively interacting");
+            return;
+        }
+
+        DebugLog("Refreshing interaction state after context change");
+
+        // Force cleanup of any stale references
+        CleanupInvalidInteractables();
+
+        // Clear current highlighting
+        if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable currentHighlighted)
+        {
+            if (currentHighlighted.gameObject.activeInHierarchy)
+            {
+                currentHighlighted.StopHighlighting();
+            }
+            currentHighlightedInteractable = null;
+            DebugLog("Cleared stale highlighting during refresh");
+        }
+
+        // Re-evaluate what should be highlighted
+        IInteractable newTarget = GetInteractablePlayerWouldUse();
+        if (newTarget != null && newTarget is BaseInteractable newHighlighted)
+        {
+            newHighlighted.StartHighlighting();
+            DebugLog($"Started highlighting after refresh: {newHighlighted.name}");
+        }
+
+        currentHighlightedInteractable = newTarget;
+        DebugLog("Interaction state refresh complete");
+    }
+
+    #endregion
+
+    #region Detection Refresh
+
+    /// <summary>
+    /// Force refresh the interactable detection lists - used when items are transformed or replaced
+    /// This fixes issues where players can't interact with newly created items
+    /// </summary>
+    public void RefreshInteractableDetection()
+    {
+        DebugLog("Forcing refresh of interactable detection");
+
+        // Clear and rebuild the interactables in range
+        interactablesInRange.Clear();
+
+        // Re-scan for interactables within our trigger bounds
+        Collider[] overlappingColliders = Physics.OverlapBox(
+            triggerCollider.bounds.center,
+            triggerCollider.bounds.extents,
+            transform.rotation
+        );
+
+        foreach (Collider col in overlappingColliders)
+        {
+            // Skip our own collider
+            if (col == triggerCollider) continue;
+
+            // Check for interactable objects
+            IInteractable interactable = col.GetComponent<IInteractable>();
+            if (interactable != null && interactable.IsAvailable && interactable.CanInteract(this))
+            {
+                interactablesInRange.Add(interactable);
+                DebugLog($"Re-detected interactable: {col.name}");
+            }
+
+            // Check for stations
+            BaseStation station = col.GetComponent<BaseStation>();
+            if (station != null && station.CanPlayerInteract(this))
+            {
+                if (!stationsInRange.Contains(station))
+                {
+                    stationsInRange.Add(station);
+                    DebugLog($"Re-detected station: {col.name}");
+                }
+            }
+        }
+
+        // Sort the lists
+        SortInteractablesByPriority();
+        SortStationsByDistance();
+
+        // Update highlighting if not currently interacting
+        if (!isInteracting)
+        {
+            IInteractable newTarget = GetInteractablePlayerWouldUse();
+
+            // Stop old highlighting
+            if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable prevHighlighted)
+            {
+                if (prevHighlighted.gameObject.activeInHierarchy)
+                {
+                    prevHighlighted.StopHighlighting();
+                }
+            }
+
+            // Start new highlighting
+            if (newTarget != null && newTarget is BaseInteractable newHighlighted)
+            {
+                newHighlighted.StartHighlighting();
+                DebugLog($"Refreshed highlighting: {newHighlighted.name}");
+            }
+
+            currentHighlightedInteractable = newTarget;
+        }
+
+        DebugLog($"Detection refresh complete - Found {interactablesInRange.Count} interactables, {stationsInRange.Count} stations");
+    }
+
     #endregion
 
     #region Debug and Gizmos
@@ -774,4 +892,95 @@ public enum InteractionType
     Universal, // Both players can do this
     Cooking,   // Only Player 1
     Chopping   // Only Player 2
+}
+
+
+/// <summary>
+/// Utility class to handle PlayerEnd detection refresh when items are transformed or replaced on stations.
+/// This fixes the issue where players can't interact with newly created items.
+/// </summary>
+public static class PlayerEndDetectionRefresher
+{
+    /// <summary>
+    /// Refresh PlayerEnd detection for all players near a specific station
+    /// Call this after placing, removing, or transforming items on stations
+    /// </summary>
+    /// <param name="station">The station that had items changed</param>
+    /// <param name="debugName">Name for debug logging</param>
+    public static void RefreshNearStation(Transform station, string debugName = "Station")
+    {
+        if (station == null) return;
+
+        // Find all PlayerEnd components in the scene
+        PlayerEnd[] allPlayerEnds = Object.FindObjectsByType<PlayerEnd>(FindObjectsSortMode.None);
+
+        foreach (PlayerEnd playerEnd in allPlayerEnds)
+        {
+            if (IsPlayerNearStation(playerEnd, station))
+            {
+                Debug.Log($"[PlayerEndDetectionRefresher] Refreshing detection for {playerEnd.name} near {debugName}");
+                playerEnd.RefreshInteractableDetection();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if a PlayerEnd is close enough to a station to need detection refresh
+    /// </summary>
+    /// <param name="playerEnd">The PlayerEnd to check</param>
+    /// <param name="station">The station transform</param>
+    /// <returns>True if the player is close enough to need refresh</returns>
+    private static bool IsPlayerNearStation(PlayerEnd playerEnd, Transform station)
+    {
+        if (playerEnd == null || station == null) return false;
+
+        // Check if PlayerEnd's trigger collider overlaps with the station area
+        Collider playerCollider = playerEnd.GetComponent<Collider>();
+        Collider stationCollider = station.GetComponent<Collider>();
+
+        if (playerCollider != null && stationCollider != null)
+        {
+            // Use bounds intersection for quick check
+            return stationCollider.bounds.Intersects(playerCollider.bounds);
+        }
+
+        // Fallback: distance-based check
+        float distance = Vector3.Distance(playerEnd.transform.position, station.position);
+        return distance <= 5f; // Reasonable interaction range
+    }
+
+    /// <summary>
+    /// Refresh detection for a specific PlayerEnd if they're near a station
+    /// </summary>
+    /// <param name="playerEnd">The specific PlayerEnd to refresh</param>
+    /// <param name="station">The station that had changes</param>
+    /// <param name="debugName">Name for debug logging</param>
+    public static void RefreshSpecificPlayer(PlayerEnd playerEnd, Transform station, string debugName = "Station")
+    {
+        if (playerEnd == null || station == null) return;
+
+        if (IsPlayerNearStation(playerEnd, station))
+        {
+            Debug.Log($"[PlayerEndDetectionRefresher] Refreshing detection for {playerEnd.name} near {debugName}");
+            playerEnd.RefreshInteractableDetection();
+        }
+    }
+
+    /// <summary>
+    /// Force refresh all PlayerEnds in the scene - use sparingly as this can be expensive
+    /// </summary>
+    public static void RefreshAllPlayers(string reason = "Unknown")
+    {
+        PlayerEnd[] allPlayerEnds = Object.FindObjectsByType<PlayerEnd>(FindObjectsSortMode.None);
+
+        Debug.Log($"[PlayerEndDetectionRefresher] Force refreshing all {allPlayerEnds.Length} PlayerEnds - Reason: {reason}");
+
+        foreach (PlayerEnd playerEnd in allPlayerEnds)
+        {
+            if (playerEnd != null)
+            {
+                playerEnd.RefreshInteractableDetection();
+            }
+        }
+    }
 }
