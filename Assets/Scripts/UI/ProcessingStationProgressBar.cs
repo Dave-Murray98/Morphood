@@ -56,8 +56,8 @@ public class ProcessingStationProgressBar : MonoBehaviour
     private void Awake()
     {
         // Detect which type of station this is
-        choppingStation = GetComponent<ChoppingStation>();
-        cookingStation = GetComponent<CookingStation>();
+        choppingStation = GetComponentInParent<ChoppingStation>();
+        cookingStation = GetComponentInParent<CookingStation>();
 
         isChoppingStation = choppingStation != null;
 
