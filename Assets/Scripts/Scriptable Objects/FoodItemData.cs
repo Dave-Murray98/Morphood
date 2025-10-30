@@ -21,13 +21,6 @@ public class FoodItemData : ScriptableObject
     [SerializeField] private string displayName = "Food Item";
     [Tooltip("The name shown to players when they interact with this food item")]
 
-    [Header("Processing Capabilities")]
-    [SerializeField] private bool canBeChopped = false;
-    [Tooltip("Whether this food item can be chopped by Player 2")]
-
-    [SerializeField] private bool canBeCooked = false;
-    [Tooltip("Whether this food item can be cooked by Player 1")]
-
     [Header("Processing Results")]
     [SerializeField] private FoodItemData choppedResult;
     [Tooltip("What this food item becomes when chopped (only used if canBeChopped is true)")]
@@ -43,8 +36,7 @@ public class FoodItemData : ScriptableObject
     public Material ItemMaterial => itemMaterial;
     public Mesh ColliderMesh => colliderMesh;
     public string DisplayName => displayName;
-    public bool CanBeChopped => canBeChopped;
-    public bool CanBeCooked => canBeCooked;
+
     public FoodItemData ChoppedResult => choppedResult;
     public FoodItemData CookedResult => cookedResult;
 
@@ -59,27 +51,7 @@ public class FoodItemData : ScriptableObject
             displayName = name; // Use the asset name as fallback
         }
 
-        // Validate chopping setup
-        if (canBeChopped && choppedResult == null)
-        {
-            Debug.LogWarning($"[{name}] Food item can be chopped but no chopped result is assigned!");
-        }
 
-        if (!canBeChopped && choppedResult != null)
-        {
-            Debug.LogWarning($"[{name}] Food item cannot be chopped but has a chopped result assigned. Consider setting canBeChopped to true or removing the chopped result.");
-        }
-
-        // Validate cooking setup
-        if (canBeCooked && cookedResult == null)
-        {
-            Debug.LogWarning($"[{name}] Food item can be cooked but no cooked result is assigned!");
-        }
-
-        if (!canBeCooked && cookedResult != null)
-        {
-            Debug.LogWarning($"[{name}] Food item cannot be cooked but has a cooked result assigned. Consider setting canBeCooked to true or removing the cooked result.");
-        }
 
         // Check for circular references
         if (choppedResult == this)
@@ -100,7 +72,7 @@ public class FoodItemData : ScriptableObject
     /// </summary>
     public bool CanBeProcessed()
     {
-        return canBeChopped || canBeCooked;
+        return choppedResult != null || cookedResult != null;
     }
 
     /// <summary>
@@ -112,10 +84,10 @@ public class FoodItemData : ScriptableObject
             return "Cannot be processed";
 
         string options = "";
-        if (canBeChopped)
+        if (choppedResult != null)
             options += "Can be chopped";
 
-        if (canBeCooked)
+        if (cookedResult != null)
         {
             if (!string.IsNullOrEmpty(options))
                 options += " and ";
@@ -123,23 +95,6 @@ public class FoodItemData : ScriptableObject
         }
 
         return options;
-    }
-
-    /// <summary>
-    /// Debug method to log information about this food item
-    /// </summary>
-    public void LogFoodItemInfo()
-    {
-        if (!enableDebugLogs) return;
-
-        Debug.Log($"[FoodItemData] {displayName}:");
-        Debug.Log($"  - Processing: {GetProcessingOptions()}");
-
-        if (canBeChopped && choppedResult != null)
-            Debug.Log($"  - Chopped Result: {choppedResult.displayName}");
-
-        if (canBeCooked && cookedResult != null)
-            Debug.Log($"  - Cooked Result: {cookedResult.displayName}");
     }
 
     /// <summary>
@@ -152,9 +107,9 @@ public class FoodItemData : ScriptableObject
         switch (processType)
         {
             case FoodProcessType.Chopping:
-                return canBeChopped ? choppedResult : null;
+                return choppedResult;
             case FoodProcessType.Cooking:
-                return canBeCooked ? cookedResult : null;
+                return cookedResult;
             default:
                 return null;
         }
@@ -170,9 +125,9 @@ public class FoodItemData : ScriptableObject
         switch (processType)
         {
             case FoodProcessType.Chopping:
-                return canBeChopped && choppedResult != null;
+                return choppedResult != null;
             case FoodProcessType.Cooking:
-                return canBeCooked && cookedResult != null;
+                return cookedResult != null;
             default:
                 return false;
         }

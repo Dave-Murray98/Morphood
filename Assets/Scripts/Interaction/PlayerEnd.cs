@@ -325,6 +325,7 @@ public class PlayerEnd : MonoBehaviour
             return GetBestInteractable();
         }
     }
+
     /// <summary>
     /// Update highlighting immediately after carrying state changes (pickup/drop)
     /// </summary>

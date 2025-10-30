@@ -258,14 +258,14 @@ public class FoodItem : PickupableItem
             Vector3 gizmoPos = transform.position + Vector3.up * 3f;
 
             // Chopping indicator
-            if (foodData.CanBeChopped)
+            if (foodData.ChoppedResult != null)
             {
                 Gizmos.color = Color.blue;
                 Gizmos.DrawCube(gizmoPos + Vector3.left * 0.3f, Vector3.one * 0.1f);
             }
 
             // Cooking indicator  
-            if (foodData.CanBeCooked)
+            if (foodData.CookedResult != null)
             {
                 Gizmos.color = Color.red;
                 Gizmos.DrawCube(gizmoPos + Vector3.right * 0.3f, Vector3.one * 0.1f);
