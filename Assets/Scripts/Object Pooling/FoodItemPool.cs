@@ -274,7 +274,6 @@ public class FoodItemPool : MonoBehaviour
         obj.transform.SetParent(poolParent);
         obj.transform.localPosition = Vector3.zero;
         obj.transform.localRotation = Quaternion.identity;
-        obj.transform.localScale = Vector3.one;
 
         // Reset physics - handle kinematic state properly
         Rigidbody rb = obj.GetComponent<Rigidbody>();

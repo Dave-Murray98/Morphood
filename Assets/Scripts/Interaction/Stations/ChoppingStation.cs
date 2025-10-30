@@ -8,12 +8,6 @@ using UnityEngine;
 public class ChoppingStation : BaseStation
 {
     [Header("Chopping Station Settings")]
-    [SerializeField] private float choppingTime = 3f;
-    [Tooltip("Time required to complete chopping process")]
-
-    [SerializeField] private bool requireHoldToChop = true;
-    [Tooltip("Whether player must hold the interact button to chop")]
-
     [SerializeField] private bool autoStartChopping = false;
     [Tooltip("Whether chopping starts automatically when a valid item is placed")]
 
@@ -105,7 +99,7 @@ public class ChoppingStation : BaseStation
 
         // Update progress
         float elapsedTime = Time.time - choppingStartTime;
-        choppingProgress = Mathf.Clamp01(elapsedTime / choppingTime);
+        choppingProgress = Mathf.Clamp01(elapsedTime / FoodManager.Instance.cookingSettings.chopHoldTime);
 
         // Check if chopping is complete
         if (choppingProgress >= 1f)
@@ -372,16 +366,6 @@ public class ChoppingStation : BaseStation
     #region Public Configuration
 
     /// <summary>
-    /// Set the time required for chopping
-    /// </summary>
-    /// <param name="time">Chopping time in seconds</param>
-    public void SetChoppingTime(float time)
-    {
-        choppingTime = Mathf.Max(0.1f, time);
-        DebugLog($"Chopping time set to {choppingTime} seconds");
-    }
-
-    /// <summary>
     /// Set whether chopping should start automatically when items are placed
     /// </summary>
     /// <param name="auto">Whether to auto-start chopping</param>
@@ -433,7 +417,6 @@ public class ChoppingStation : BaseStation
         base.OnValidate();
 
         // Ensure reasonable values
-        choppingTime = Mathf.Max(0.1f, choppingTime);
         choppingProgress = Mathf.Clamp01(choppingProgress);
 
         // Ensure this is configured as a chopping station

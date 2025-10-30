@@ -295,11 +295,13 @@ public class FoodManager : MonoBehaviour
         foodItem.transform.position = spawnPosition;
         foodItem.transform.rotation = spawnRotation;
 
+
         // Ensure the item is properly set up for interaction
         Rigidbody rb = foodItem.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.isKinematic = false; // Ensure it can be affected by physics
+            rb.linearVelocity = Vector3.zero;
         }
 
         Collider col = foodItem.GetComponent<Collider>();
@@ -344,7 +346,7 @@ public class FoodManager : MonoBehaviour
         PlayerController player = FindFirstObjectByType<PlayerController>();
         if (player != null)
         {
-            Vector3 spawnPosition = player.transform.position += new Vector3(Random.Range(-1f, 1f), 3, Random.Range(-1f, 1f));
+            Vector3 spawnPosition = player.transform.position + new Vector3(Random.Range(-1f, 1f), 3, Random.Range(-1f, 1f));
             SpawnFromPool(foodData, spawnPosition, Quaternion.identity);
         }
     }
