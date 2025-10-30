@@ -4,4 +4,5 @@ using UnityEngine;
 public class CookingSettings : ScriptableObject
 {
     public int chopHoldTime = 3;
+    public int cookingHoldTime = 3;
 }

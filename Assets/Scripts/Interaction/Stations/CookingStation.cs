@@ -8,7 +8,6 @@ using UnityEngine;
 public class CookingStation : BaseStation
 {
     [Header("Cooking Station Settings")]
-    [SerializeField] private float cookingTime = 4f;
     [Tooltip("Time required to complete cooking process")]
 
     [SerializeField] private bool requireHoldToCook = true;
@@ -105,7 +104,7 @@ public class CookingStation : BaseStation
 
         // Update progress
         float elapsedTime = Time.time - cookingStartTime;
-        cookingProgress = Mathf.Clamp01(elapsedTime / cookingTime);
+        cookingProgress = Mathf.Clamp01(elapsedTime / FoodManager.Instance.cookingSettings.cookingHoldTime);
 
         // Check if cooking is complete
         if (cookingProgress >= 1f)
@@ -382,16 +381,6 @@ public class CookingStation : BaseStation
     #region Public Configuration
 
     /// <summary>
-    /// Set the time required for cooking
-    /// </summary>
-    /// <param name="time">Cooking time in seconds</param>
-    public void SetCookingTime(float time)
-    {
-        cookingTime = Mathf.Max(0.1f, time);
-        DebugLog($"Cooking time set to {cookingTime} seconds");
-    }
-
-    /// <summary>
     /// Set whether cooking should start automatically when items are placed
     /// </summary>
     /// <param name="auto">Whether to auto-start cooking</param>
@@ -443,7 +432,6 @@ public class CookingStation : BaseStation
         base.OnValidate();
 
         // Ensure reasonable values
-        cookingTime = Mathf.Max(0.1f, cookingTime);
         cookingProgress = Mathf.Clamp01(cookingProgress);
 
         // Ensure this is configured as a cooking station
