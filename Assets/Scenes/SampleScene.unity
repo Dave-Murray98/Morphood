@@ -208,7 +208,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.8414092
+      value: -1.2514092
       objectReference: {fileID: 0}
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -216,7 +216,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -5.0396004
+      value: -7.5996003
       objectReference: {fileID: 0}
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -257,6 +257,10 @@ PrefabInstance:
     - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: itemName
       value: Chopped Tomato
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: isPooledItem
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: meshContainer
@@ -723,7 +727,7 @@ MonoBehaviour:
   itemPool: {fileID: 499420444}
   organizeFoodItemsAsChildren: 1
   spawnHeight: 0.1
-  enableDebugLogs: 0
+  enableDebugLogs: 1
 --- !u!114 &499420444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -741,7 +745,7 @@ MonoBehaviour:
   maxPoolSize: 50
   allowGrowth: 1
   poolParent: {fileID: 499420442}
-  enableDebugLogs: 0
+  enableDebugLogs: 1
   showPoolStats: 0
 --- !u!1001 &514241808
 PrefabInstance:
@@ -753,7 +757,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.99
+      value: -0.4
       objectReference: {fileID: 0}
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -761,7 +765,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4.32
+      value: -6.88
       objectReference: {fileID: 0}
     - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -802,6 +806,10 @@ PrefabInstance:
     - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: itemName
       value: Chopped Lettuce
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: isPooledItem
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
       propertyPath: meshContainer
@@ -1280,6 +1288,162 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1120455990}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1277818597
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -4.71
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5326526739700746578, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_Name
+      value: Raw Tomato
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: foodData
+      value: 
+      objectReference: {fileID: 11400000, guid: cab1a3d37b5adc0498653d3bcf03bd1b, type: 2}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: itemName
+      value: Raw Tomato
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: isPooledItem
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: meshContainer
+      value: 
+      objectReference: {fileID: 1277818598}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+--- !u!4 &1277818598 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+  m_PrefabInstance: {fileID: 1277818597}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1487719184
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -4.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5326526739700746578, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: m_Name
+      value: Raw Lettuce
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: foodData
+      value: 
+      objectReference: {fileID: 11400000, guid: 0eed57117d6b58241a50289603908837, type: 2}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: itemName
+      value: Raw Lettuce
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: isPooledItem
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8388597340849524230, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+      propertyPath: meshContainer
+      value: 
+      objectReference: {fileID: 1487719185}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+--- !u!4 &1487719185 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1129782804567770071, guid: 73120f05070608f4e95fd24f7059e30f, type: 3}
+  m_PrefabInstance: {fileID: 1487719184}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1491889091
 GameObject:
   m_ObjectHideFlags: 0
@@ -2842,6 +3006,8 @@ GameObject:
   - component: {fileID: 5926805349202921146}
   - component: {fileID: 4614896348609866231}
   - component: {fileID: 3907730225326817997}
+  - component: {fileID: 7524951331683871053}
+  - component: {fileID: 7524951331683871052}
   m_Layer: 8
   m_Name: Chopping Station
   m_TagString: Untagged
@@ -2866,6 +3032,81 @@ Transform:
   - {fileID: 1719523359}
   m_Father: {fileID: 1504051710}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7524951331683871052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7371521603043559743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 078db01e46b36074caba30b32bbc8ce0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionType: 0
+  interactionPriority: 1
+  interactionPrompt: Interact
+  isCurrentlyAvailable: 1
+  enableOutlineHighlighting: 1
+  minOutlineWidth: 0
+  maxOutlineWidth: 5
+  outlineAnimationDuration: 1
+  outlineAnimationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  enableDebugLogs: 0
+  showProgressInPrompt: 1
+  requireHoldToChop: 1
+--- !u!114 &7524951331683871053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7371521603043559743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae6369ab08a2ea43b2d00b28e5b0b83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stationName: Station
+  stationType: 0
+  itemPlacementPoint: {fileID: 2342117081549441404}
+  placementOffset: {x: 0, y: 0, z: 0}
+  maxItemCapacity: 1
+  allowPlayer1Interaction: 1
+  allowPlayer2Interaction: 1
+  enableDebugLogs: 0
+  showStationGizmos: 1
+  choppingTime: 3
+  requireHoldToChop: 1
+  autoStartChopping: 0
+  isCurrentlyChopping: 0
+  choppingProgress: 0
+  choppingAudioSource: {fileID: 0}
+  choppingEffects: {fileID: 0}
 --- !u!1001 &8237283000528516526
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2945,3 +3186,5 @@ SceneRoots:
   - {fileID: 281036089}
   - {fileID: 514241808}
   - {fileID: 90515091}
+  - {fileID: 1277818597}
+  - {fileID: 1487719184}

@@ -29,13 +29,6 @@ public abstract class BaseStation : MonoBehaviour
     [SerializeField] protected bool allowPlayer2Interaction = true;
     [Tooltip("Which players can interact with this station")]
 
-    [Header("Item Filters")]
-    [SerializeField] protected ItemType[] acceptedItemTypes = { ItemType.Ingredient, ItemType.Dish, ItemType.CookedFood };
-    [Tooltip("What types of items this station can accept")]
-
-    [SerializeField] protected bool acceptAllItemTypes = true;
-    [Tooltip("If true, accepts any item type (ignores the accepted types list)")]
-
     [Header("Debug")]
     [SerializeField] protected bool enableDebugLogs = false;
     [SerializeField] protected bool showStationGizmos = true;
@@ -115,13 +108,6 @@ public abstract class BaseStation : MonoBehaviour
         if (!HasSpace)
         {
             DebugLog($"Station is full, cannot accept more items. isOccupied: {isOccupied}, ItemCount: {ItemCount}, MaxCapacity: {maxItemCapacity}");
-            return false;
-        }
-
-        // Check item type compatibility
-        if (!IsItemTypeAccepted(item))
-        {
-            DebugLog($"Station does not accept items of type: {GetItemType(item)}");
             return false;
         }
 
@@ -254,42 +240,6 @@ public abstract class BaseStation : MonoBehaviour
     public virtual Vector3 GetPlacementPosition()
     {
         return itemPlacementPoint.position + placementOffset;
-    }
-
-    #endregion
-
-    #region Item Type Checking
-
-    /// <summary>
-    /// Check if this station accepts a specific item type
-    /// </summary>
-    protected virtual bool IsItemTypeAccepted(GameObject item)
-    {
-        if (acceptAllItemTypes) return true;
-
-        ItemType itemType = GetItemType(item);
-
-        foreach (ItemType acceptedType in acceptedItemTypes)
-        {
-            if (itemType == acceptedType) return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Get the ItemType of a GameObject
-    /// </summary>
-    protected virtual ItemType GetItemType(GameObject item)
-    {
-        PickupableItem pickupable = item.GetComponent<PickupableItem>();
-        if (pickupable != null)
-        {
-            return pickupable.Type;
-        }
-
-        // Default fallback
-        return ItemType.Ingredient;
     }
 
     #endregion

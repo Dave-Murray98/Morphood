@@ -104,7 +104,6 @@ public class FoodItem : PickupableItem
 
         // Update the item name and type from food data
         itemName = foodData.DisplayName;
-        itemType = ItemType.Ingredient; // Food items are always ingredients in your system
 
         // Update visual representation
         UpdateVisualRepresentation();
@@ -275,7 +274,6 @@ public class FoodItem : PickupableItem
 
         // Reset item properties
         itemName = "Food Item";
-        itemType = ItemType.Ingredient;
 
         // Reset initialization flag so the item can be properly reinitialized
         hasBeenInitialized = false;
@@ -332,12 +330,6 @@ public class FoodItem : PickupableItem
             if (itemName != foodData.DisplayName)
             {
                 itemName = foodData.DisplayName;
-            }
-
-            // Ensure item type is set correctly
-            if (itemType != ItemType.Ingredient)
-            {
-                itemType = ItemType.Ingredient;
             }
         }
 

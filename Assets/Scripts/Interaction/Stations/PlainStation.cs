@@ -27,8 +27,6 @@ public class PlainStation : BaseStation
         stationType = StationType.Plain;
         stationName = string.IsNullOrEmpty(stationName) || stationName == "Station" ? "Worktop" : stationName;
 
-        // Plain stations accept all item types and both players can use them
-        acceptAllItemTypes = true;
         allowPlayer1Interaction = true;
         allowPlayer2Interaction = true;
 

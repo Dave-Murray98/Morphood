@@ -10,10 +10,8 @@ public class PickupableItem : BaseInteractable
     public string itemName = "Item";
     [Tooltip("Display name for this item")]
 
-    public ItemType itemType = ItemType.Ingredient;
-
     public string ItemName => itemName;
-    public ItemType Type => itemType;
+
     public bool IsPickedUp => isPickedUp;
 
 
@@ -214,7 +212,6 @@ public class PickupableItem : BaseInteractable
         base.OnDrawGizmos();
 
         // Draw item type indicator
-        Gizmos.color = GetItemTypeColor();
         Gizmos.DrawCube(transform.position + Vector3.up * 2.5f, Vector3.one * 0.2f);
 
         // Draw name in scene view (only if selected)
@@ -227,28 +224,7 @@ public class PickupableItem : BaseInteractable
         }
     }
 
-    private Color GetItemTypeColor()
-    {
-        switch (itemType)
-        {
-            case ItemType.Ingredient: return Color.green;
-            case ItemType.Dish: return Color.white;
-            case ItemType.CookedFood: return Color.red;
-            default: return Color.gray;
-        }
-    }
 
     #endregion
 }
 
-/// <summary>
-/// Defines the different types of pickupable items
-/// </summary>
-public enum ItemType
-{
-    Ingredient,   // Raw ingredients that can be chopped or cooked
-    Dish,         // Empty dishes that can hold ingredients
-    CookedFood,   // Completed dishes ready for delivery
-    Order,        // Order papers
-    Recipe        // Recipe papers
-}

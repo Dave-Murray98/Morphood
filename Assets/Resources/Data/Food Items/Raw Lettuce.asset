@@ -13,11 +13,9 @@ MonoBehaviour:
   m_Name: Raw Lettuce
   m_EditorClassIdentifier: 
   visualMesh: {fileID: 4300000, guid: 08a6ac40c7d222142aa07f8d6333c1f6, type: 3}
-  itemMaterial: {fileID: 2100000, guid: fdf18c58b725a2f469593ece1786d307, type: 2}
+  itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
   colliderMesh: {fileID: 43494869527036466, guid: f50119dffddb39c4c8a675fb67720342, type: 2}
   displayName: Raw Lettuce
-  canBeChopped: 1
-  canBeCooked: 0
   choppedResult: {fileID: 11400000, guid: 457d1bd3f7deaef4fa2907d7c787b651, type: 2}
   cookedResult: {fileID: 0}
   enableDebugLogs: 0
