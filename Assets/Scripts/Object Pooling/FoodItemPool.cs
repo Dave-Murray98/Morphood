@@ -144,6 +144,26 @@ public class FoodItemPool : MonoBehaviour
             // Activate the item
             item.gameObject.SetActive(true);
 
+            // Ensure the item is properly set up for use
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+            }
+
+            Collider col = item.GetComponent<Collider>();
+            if (col != null)
+            {
+                col.enabled = true;
+            }
+
+            // Ensure it's marked as available for interaction
+            BaseInteractable interactable = item.GetComponent<BaseInteractable>();
+            if (interactable != null)
+            {
+                interactable.SetAvailable(true);
+            }
+
             // Update statistics
             int currentActive = ActiveItems;
             if (currentActive > peakActiveItems)
@@ -224,6 +244,9 @@ public class FoodItemPool : MonoBehaviour
             return null;
         }
 
+        // Mark as pooled item
+        foodItem.SetPooledStatus(true);
+
         // Add to our tracking
         allPooledItems.Add(foodItem);
         totalCreated++;
@@ -253,12 +276,18 @@ public class FoodItemPool : MonoBehaviour
         obj.transform.localRotation = Quaternion.identity;
         obj.transform.localScale = Vector3.one;
 
-        // Reset physics
+        // Reset physics - handle kinematic state properly
         Rigidbody rb = obj.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            // Only reset velocities if the rigidbody is not kinematic
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            // Ensure rigidbody is not kinematic for normal physics
             rb.isKinematic = false;
         }
 
@@ -286,6 +315,9 @@ public class FoodItemPool : MonoBehaviour
 
         // Reset availability
         interactable?.SetAvailable(true);
+
+        // Reset the FoodItem's pooling state
+        item.ResetForPooling();
 
         DebugLog($"Reset pooled item: {item.name}");
     }

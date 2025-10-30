@@ -151,7 +151,10 @@ public class PlayerEnd : MonoBehaviour
                 // Update highlighting immediately rather than waiting for Update()
                 if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable prevHighlighted)
                 {
-                    prevHighlighted.StopHighlighting();
+                    if (prevHighlighted.gameObject.activeInHierarchy)
+                    {
+                        prevHighlighted.StopHighlighting();
+                    }
                 }
 
                 if (newTarget != null && newTarget is BaseInteractable newHighlighted)
@@ -181,7 +184,10 @@ public class PlayerEnd : MonoBehaviour
                 // If this was the highlighted interactable, stop highlighting it immediately
                 if (currentHighlightedInteractable == interactable && interactable is BaseInteractable highlightedInteractable)
                 {
-                    highlightedInteractable.StopHighlighting();
+                    if (highlightedInteractable.gameObject.activeInHierarchy)
+                    {
+                        highlightedInteractable.StopHighlighting();
+                    }
                     currentHighlightedInteractable = null;
                     DebugLog($"Stopped highlighting departing interactable: {other.name}");
                 }
@@ -201,7 +207,10 @@ public class PlayerEnd : MonoBehaviour
                 PlainStationInteractable stationInteractable = station.GetComponent<PlainStationInteractable>();
                 if (ReferenceEquals(currentHighlightedInteractable, stationInteractable) && stationInteractable is BaseInteractable highlightedStation)
                 {
-                    highlightedStation.StopHighlighting();
+                    if (highlightedStation.gameObject.activeInHierarchy)
+                    {
+                        highlightedStation.StopHighlighting();
+                    }
                     currentHighlightedInteractable = null;
                     DebugLog($"Stopped highlighting departing station: {other.name}");
                 }
@@ -222,6 +231,39 @@ public class PlayerEnd : MonoBehaviour
                 }
 
                 currentHighlightedInteractable = newTarget;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Clean up any invalid or inactive interactables from our detection lists
+    /// </summary>
+    private void CleanupInvalidInteractables()
+    {
+        // Remove any null or inactive interactables
+        interactablesInRange.RemoveAll(i => i == null || !i.Transform.gameObject.activeInHierarchy || !i.IsAvailable);
+
+        // Remove any null or inactive stations
+        stationsInRange.RemoveAll(s => s == null || !s.gameObject.activeInHierarchy);
+
+        // Clear highlighted interactable if it's invalid
+        if (currentHighlightedInteractable != null)
+        {
+            if (currentHighlightedInteractable.Transform == null ||
+                !currentHighlightedInteractable.Transform.gameObject.activeInHierarchy ||
+                !currentHighlightedInteractable.IsAvailable)
+            {
+                // Stop highlighting the invalid object
+                if (currentHighlightedInteractable is BaseInteractable invalidHighlighted)
+                {
+                    // Only try to stop highlighting if the object is still active
+                    if (invalidHighlighted.gameObject.activeInHierarchy)
+                    {
+                        invalidHighlighted.StopHighlighting();
+                    }
+                }
+                currentHighlightedInteractable = null;
+                DebugLog("Cleared invalid highlighted interactable");
             }
         }
     }
@@ -256,8 +298,8 @@ public class PlayerEnd : MonoBehaviour
     /// </summary>
     public IInteractable GetBestInteractable()
     {
-        // Clean up any null or unavailable interactables
-        interactablesInRange.RemoveAll(i => i == null || !i.IsAvailable || !i.CanInteract(this));
+        // Clean up any invalid interactables first
+        CleanupInvalidInteractables();
 
         return interactablesInRange.Count > 0 ? interactablesInRange[0] : null;
     }
@@ -280,6 +322,9 @@ public class PlayerEnd : MonoBehaviour
     /// </summary>
     public IInteractable GetInteractablePlayerWouldUse()
     {
+        // Clean up invalid interactables first
+        CleanupInvalidInteractables();
+
         if (IsCarryingItems)
         {
             // Player is carrying something - they would interact with the best station for placement or combination
@@ -333,13 +378,19 @@ public class PlayerEnd : MonoBehaviour
     {
         if (isInteracting) return;
 
+        // Clean up invalid interactables first
+        CleanupInvalidInteractables();
+
         IInteractable newTarget = GetInteractablePlayerWouldUse();
 
         // Stop current highlighting
         if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable prevHighlighted)
         {
-            prevHighlighted.StopHighlighting();
-            DebugLog($"Stopped highlighting after carry state change: {prevHighlighted.name}");
+            if (prevHighlighted.gameObject.activeInHierarchy)
+            {
+                prevHighlighted.StopHighlighting();
+                DebugLog($"Stopped highlighting after carry state change: {prevHighlighted.name}");
+            }
         }
 
         // Start new highlighting
@@ -363,10 +414,16 @@ public class PlayerEnd : MonoBehaviour
     {
         if (isInteracting) return;
 
+        // Clean up invalid interactables first
+        CleanupInvalidInteractables();
+
         // Stop any current highlighting since we're about to interact
         if (currentHighlightedInteractable != null && currentHighlightedInteractable is BaseInteractable highlighted)
         {
-            highlighted.StopHighlighting();
+            if (highlighted.gameObject.activeInHierarchy)
+            {
+                highlighted.StopHighlighting();
+            }
             currentHighlightedInteractable = null;
         }
 
@@ -465,6 +522,9 @@ public class PlayerEnd : MonoBehaviour
                         heldObjects.Remove(itemToDrop);
                         OnItemDropped?.Invoke(itemToDrop);
                         DebugLog($"Successfully combined {itemToDrop.name} with station item");
+
+                        // Update highlighting since carrying state changed
+                        UpdateHighlightingAfterCarryStateChange();
                         return;
                     }
                     else
@@ -487,6 +547,9 @@ public class PlayerEnd : MonoBehaviour
                     OnItemDropped?.Invoke(itemToDrop);
 
                     DebugLog($"Player {playerNumber} placed {itemToDrop.name} on station: {bestStation.name}");
+
+                    // Update highlighting since carrying state changed
+                    UpdateHighlightingAfterCarryStateChange();
                     return;
                 }
             }

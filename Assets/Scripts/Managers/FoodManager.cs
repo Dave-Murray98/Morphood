@@ -279,7 +279,7 @@ public class FoodManager : MonoBehaviour
         FoodItem foodItem = itemPool.GetFromPool();
         if (foodItem == null)
         {
-            DebugLog("Failed to get item from pool, will try legacy spawning");
+            DebugLog("Failed to get item from pool");
             return null;
         }
 
@@ -291,11 +291,27 @@ public class FoodManager : MonoBehaviour
         foodItem.transform.position = spawnPosition;
         foodItem.transform.rotation = spawnRotation;
 
-        // Update the food data (this will update all visual components)
+        // Ensure the item is properly set up for interaction
+        Rigidbody rb = foodItem.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false; // Ensure it can be affected by physics
+        }
+
+        Collider col = foodItem.GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = true; // Ensure collider is enabled for interaction
+        }
+
+        // Update the food data (this will update all visual components and initialize the item)
         foodItem.SetFoodData(foodData);
 
         // Update the GameObject name for organization
         foodItem.gameObject.name = $"PooledFoodItem_{foodData.DisplayName}_{nextFoodItemId++}";
+
+        // Ensure the item is marked as pooled
+        foodItem.SetPooledStatus(true);
 
         DebugLog($"Spawned pooled food item: {foodData.DisplayName}");
         return foodItem;

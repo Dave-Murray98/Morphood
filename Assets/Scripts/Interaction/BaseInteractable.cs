@@ -176,6 +176,13 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
     /// </summary>
     public virtual void StartHighlighting()
     {
+        // Safety check - don't try to highlight inactive objects
+        if (!gameObject.activeInHierarchy)
+        {
+            DebugLog("Cannot start highlighting - object is inactive");
+            return;
+        }
+
         if (!enableOutlineHighlighting || outlineComponent == null || isHighlighted) return;
 
         isHighlighted = true;
@@ -224,12 +231,12 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
     {
         if (outlineComponent == null) yield break;
 
-        while (isHighlighted)
+        while (isHighlighted && gameObject.activeInHierarchy)
         {
             float elapsedTime = 0f;
 
             // Animate from min to max and back to min in one cycle
-            while (elapsedTime < outlineAnimationDuration && isHighlighted)
+            while (elapsedTime < outlineAnimationDuration && isHighlighted && gameObject.activeInHierarchy)
             {
                 float normalizedTime = elapsedTime / outlineAnimationDuration;
                 float curveValue = outlineAnimationCurve.Evaluate(normalizedTime);
@@ -241,8 +248,18 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
                 yield return null;
             }
 
+            // Exit if object became inactive
+            if (!gameObject.activeInHierarchy)
+            {
+                break;
+            }
+
             // Seamlessly restart the cycle - no reset needed since we're using a curve
         }
+
+        // Clean up when highlighting stops or object becomes inactive
+        isHighlighted = false;
+        outlineAnimationCoroutine = null;
     }
 
     /// <summary>

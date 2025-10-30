@@ -277,6 +277,9 @@ public class FoodItem : PickupableItem
         itemName = "Food Item";
         itemType = ItemType.Ingredient;
 
+        // Reset initialization flag so the item can be properly reinitialized
+        hasBeenInitialized = false;
+
         DebugLog($"Reset food item for pooling: {name}");
     }
 
