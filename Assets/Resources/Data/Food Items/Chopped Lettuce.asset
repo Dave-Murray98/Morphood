@@ -16,8 +16,7 @@ MonoBehaviour:
   itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
   colliderMesh: {fileID: 43299592419383214, guid: 584c9e5e2a93f9947bf931daebf4ce3a, type: 2}
   displayName: Chopped Lettuce
-  canBeChopped: 0
-  canBeCooked: 0
+  icon: {fileID: 21300000, guid: 624547e1122c68f4a9e11ae62ffaee93, type: 3}
   choppedResult: {fileID: 0}
   cookedResult: {fileID: 0}
   enableDebugLogs: 0

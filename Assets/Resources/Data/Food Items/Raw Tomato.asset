@@ -16,8 +16,7 @@ MonoBehaviour:
   itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
   colliderMesh: {fileID: 43684258322462498, guid: 867de50bb7fd5c94b87ec27900cc2a82, type: 2}
   displayName: Raw Tomato
-  canBeChopped: 1
-  canBeCooked: 0
+  icon: {fileID: 21300000, guid: 19b8038b1bc629049935c1b328690d68, type: 3}
   choppedResult: {fileID: 11400000, guid: 62d566bcb4342104bb172046f232533d, type: 2}
   cookedResult: {fileID: 0}
   enableDebugLogs: 0

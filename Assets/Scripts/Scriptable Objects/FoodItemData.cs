@@ -20,6 +20,8 @@ public class FoodItemData : ScriptableObject
     [Header("Basic Properties")]
     [SerializeField] private string displayName = "Food Item";
     [Tooltip("The name shown to players when they interact with this food item")]
+    [SerializeField] private Sprite icon;
+    [Tooltip("The icon shown to players when they interact with this food item")]
 
     [Header("Processing Results")]
     [SerializeField] private FoodItemData choppedResult;
@@ -36,6 +38,7 @@ public class FoodItemData : ScriptableObject
     public Material ItemMaterial => itemMaterial;
     public Mesh ColliderMesh => colliderMesh;
     public string DisplayName => displayName;
+    public Sprite Icon => icon;
 
     public FoodItemData ChoppedResult => choppedResult;
     public FoodItemData CookedResult => cookedResult;

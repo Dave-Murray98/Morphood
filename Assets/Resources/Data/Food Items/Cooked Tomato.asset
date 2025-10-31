@@ -16,6 +16,7 @@ MonoBehaviour:
   itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
   colliderMesh: {fileID: 43945140647347306, guid: 0578f56b0531cd843b6f7a3da8f9c080, type: 2}
   displayName: Cooked Tomato
+  icon: {fileID: 21300000, guid: 5a8d0ea119272c1458ed0fa04025a79d, type: 3}
   choppedResult: {fileID: 0}
   cookedResult: {fileID: 0}
   enableDebugLogs: 0

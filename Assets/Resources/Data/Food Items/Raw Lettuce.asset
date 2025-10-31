@@ -16,6 +16,7 @@ MonoBehaviour:
   itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
   colliderMesh: {fileID: 43494869527036466, guid: f50119dffddb39c4c8a675fb67720342, type: 2}
   displayName: Raw Lettuce
+  icon: {fileID: 21300000, guid: bffb72d144568bf438914e12b763cd41, type: 3}
   choppedResult: {fileID: 11400000, guid: 457d1bd3f7deaef4fa2907d7c787b651, type: 2}
   cookedResult: {fileID: 0}
   enableDebugLogs: 0

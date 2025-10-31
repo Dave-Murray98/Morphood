@@ -186,11 +186,11 @@ MonoBehaviour:
     m_RotationOrder: 4
   enableDebugLogs: 0
   itemName: Item
-  itemType: 0
   canBeDroppedAnywhere: 1
   foodData: {fileID: 0}
   meshFilter: {fileID: 439966463546637218}
   updateMaterialOnStart: 1
+  isPooledItem: 0
 --- !u!114 &4258397186196967533
 MonoBehaviour:
   m_ObjectHideFlags: 0
