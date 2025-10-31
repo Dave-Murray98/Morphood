@@ -235,6 +235,41 @@ public abstract class BaseStation : MonoBehaviour
     }
 
     /// <summary>
+    /// Clear the current item from the station without player interaction (for system cleanup)
+    /// Used when customers finish eating, items are destroyed externally, etc.
+    /// </summary>
+    public virtual void ClearItem()
+    {
+        if (!isOccupied || currentItem == null)
+        {
+            DebugLog("No item to clear from station");
+            return;
+        }
+
+        GameObject itemBeingCleared = currentItem;
+
+        // Re-enable direct interaction for PickupableItems
+        if (currentPickupableItem != null)
+        {
+            currentPickupableItem.SetDirectInteractionEnabled(true);
+            DebugLog($"Re-enabled direct interaction for {itemBeingCleared.name}");
+            currentPickupableItem = null;
+        }
+
+        // Call derived class logic before removal (pass null for playerEnd)
+        OnItemRemovedInternal(itemBeingCleared, null);
+
+        // Reset station state
+        currentItem = null;
+        isOccupied = false;
+
+        // Fire events (pass null for playerEnd)
+        OnItemRemoved?.Invoke(itemBeingCleared, null);
+
+        DebugLog($"Cleared {itemBeingCleared.name} from station. Station is now available: {HasSpace}");
+    }
+
+    /// <summary>
     /// Get the position where items should be placed
     /// </summary>
     public virtual Vector3 GetPlacementPosition()

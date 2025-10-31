@@ -140,9 +140,17 @@ public class Customer : MonoBehaviour
             return;
         }
 
-        // Despawn the food
+        // Clean up the food and notify the station
         if (servedFood != null)
         {
+            // FIXED: Clear item from station first to reset its state (currentItem, isOccupied)
+            if (assignedStation != null && assignedStation.CurrentItem == servedFood)
+            {
+                assignedStation.ClearItem(); // Use ClearItem for system cleanup without player
+                DebugLog("Cleared food from station");
+            }
+
+            // Then destroy the food item
             FoodItem foodItem = servedFood.GetComponent<FoodItem>();
             if (foodItem != null && FoodManager.Instance != null)
             {
