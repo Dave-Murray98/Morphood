@@ -440,6 +440,8 @@ public class PlayerEnd : MonoBehaviour
         // This ensures station interactables are properly called instead of bypassing them
         IInteractable targetInteractable = GetInteractablePlayerWouldUse();
 
+        bool interactionSuccessful = false;
+
         // If player is carrying something
         if (IsCarryingItems)
         {
@@ -448,7 +450,7 @@ public class PlayerEnd : MonoBehaviour
             if (targetInteractable != null)
             {
                 DebugLog($"Player {playerNumber} interacting with station: {targetInteractable.GetType().Name}");
-                bool interactionSuccessful = targetInteractable.Interact(this);
+                interactionSuccessful = targetInteractable.Interact(this);
 
                 if (interactionSuccessful)
                 {
@@ -475,7 +477,7 @@ public class PlayerEnd : MonoBehaviour
         DebugLog($"Player {playerNumber} attempting to interact with: {targetInteractable.GetType().Name}");
 
         // Attempt the interaction
-        bool interactionSuccessful = targetInteractable.Interact(this);
+        interactionSuccessful = targetInteractable.Interact(this);
 
         if (interactionSuccessful)
         {
