@@ -135,7 +135,7 @@ MonoBehaviour:
   maxItemCapacity: 1
   allowPlayer1Interaction: 1
   allowPlayer2Interaction: 1
-  enableDebugLogs: 1
+  enableDebugLogs: 0
   showStationGizmos: 1
   ingredientToDispense: {fileID: 11400000, guid: 0eed57117d6b58241a50289603908837, type: 2}
   spawnOffset: {x: 0, y: 0, z: 0}
@@ -183,7 +183,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  enableDebugLogs: 1
+  enableDebugLogs: 0
   ingredientStation: {fileID: 4003188881430668603}
 --- !u!114 &7289496709148049665
 MonoBehaviour:

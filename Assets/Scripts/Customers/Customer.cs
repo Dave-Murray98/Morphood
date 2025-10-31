@@ -126,12 +126,9 @@ public class Customer : MonoBehaviour
             FoodItem foodItem = servedFood.GetComponent<FoodItem>();
             if (foodItem != null && FoodManager.Instance != null)
             {
-                FoodManager.Instance.DespawnFoodItem(foodItem);
+                FoodManager.Instance.DestroyFoodItem(foodItem);
             }
-            else
-            {
-                Destroy(servedFood);
-            }
+
             servedFood = null;
         }
 
