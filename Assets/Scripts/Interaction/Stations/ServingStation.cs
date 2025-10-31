@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Events;
+using System;
 
 /// <summary>
 /// Station where customers sit and get served food.
@@ -11,8 +11,8 @@ public class ServingStation : BaseStation
     [SerializeField] private Transform customerPosition;
     [Tooltip("Where the customer will stand/sit at this table")]
 
-    // Events
-    public UnityEvent OnCustomerServedSuccessfully;
+    // Events - Using C# events instead of UnityEvents for better reliability
+    public event Action OnCustomerServedSuccessfully;
 
     // Internal state
     private Customer assignedCustomer;
