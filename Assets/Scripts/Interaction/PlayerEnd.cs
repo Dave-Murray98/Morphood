@@ -436,15 +436,40 @@ public class PlayerEnd : MonoBehaviour
             currentHighlightedInteractable = null;
         }
 
-        // If player is carrying something, try to drop/place it
+        // FIXED: Get the best interactable regardless of carrying state
+        // This ensures station interactables are properly called instead of bypassing them
+        IInteractable targetInteractable = GetInteractablePlayerWouldUse();
+
+        // If player is carrying something
         if (IsCarryingItems)
         {
+            // If there's a station interactable (ServingStation, ProcessingStation, etc.),
+            // try to interact with it so its PerformInteraction() logic runs
+            if (targetInteractable != null)
+            {
+                DebugLog($"Player {playerNumber} interacting with station: {targetInteractable.GetType().Name}");
+                bool interactionSuccessful = targetInteractable.Interact(this);
+
+                if (interactionSuccessful)
+                {
+                    currentInteractionTarget = targetInteractable;
+                    isInteracting = true;
+                    OnInteractionStarted?.Invoke(targetInteractable);
+                    DebugLog($"Player {playerNumber} started interacting with: {targetInteractable.GetType().Name}");
+                    return;
+                }
+
+                // Interaction returned false - fall back to placement logic
+                // This handles stations like PlainStation that delegate placement to TryDropOrPlaceItem()
+                DebugLog($"Station interaction returned false, falling back to placement logic");
+            }
+
+            // No station interactable available, or interaction returned false - use placement logic
             TryDropOrPlaceItem();
             return;
         }
 
-        // Otherwise, try to pick up or interact with something
-        IInteractable targetInteractable = GetBestInteractable();
+        // Player has free hands - try to pick up or interact with something
         if (targetInteractable == null) return;
 
         DebugLog($"Player {playerNumber} attempting to interact with: {targetInteractable.GetType().Name}");
@@ -627,6 +652,29 @@ public class PlayerEnd : MonoBehaviour
 
         // Update highlighting since carrying state changed
         // Player now might interact with stations instead of items
+        UpdateHighlightingAfterCarryStateChange();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Remove an object from inventory without repositioning (used when station has already taken ownership)
+    /// </summary>
+    public bool RemoveFromInventory(GameObject obj)
+    {
+        if (!heldObjects.Contains(obj))
+        {
+            DebugLog($"Player {playerNumber} is not holding {obj.name}");
+            return false;
+        }
+
+        // Remove from inventory
+        heldObjects.Remove(obj);
+
+        OnItemDropped?.Invoke(obj);
+        DebugLog($"Player {playerNumber} removed from inventory: {obj.name}");
+
+        // Update highlighting since carrying state changed
         UpdateHighlightingAfterCarryStateChange();
 
         return true;

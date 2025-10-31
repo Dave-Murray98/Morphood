@@ -71,16 +71,17 @@ public class ServingStationInteractable : BaseInteractable
         }
 
         // Try to serve the customer
+        // NOTE: TryServeCustomer() will call PlaceItem() internally to place the food on the station
         bool serveSuccessful = servingStation.TryServeCustomer(foodItem, playerEnd);
 
         if (serveSuccessful)
         {
-            // Remove the item from player's inventory
-            playerEnd.DropObject(carriedItem, servingStation.GetPlacementPosition());
+            // FIXED: Remove item from player's inventory without re-positioning
+            // TryServeCustomer() already placed it on the station via PlaceItem()
+            playerEnd.RemoveFromInventory(carriedItem);
             DebugLog($"Successfully served customer with {foodItem.FoodData.DisplayName}");
 
-            // FIXED: Refresh player detection after serving (similar to processing stations)
-            // This ensures the player's interaction state updates properly
+            // Refresh player detection after serving (similar to processing stations)
             PlayerEndDetectionRefresher.RefreshNearStation(transform, name);
         }
         else
