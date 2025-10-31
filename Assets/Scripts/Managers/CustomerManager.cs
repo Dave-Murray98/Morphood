@@ -222,6 +222,9 @@ public class CustomerManager : MonoBehaviour
         customer.transform.position = doorTransform.position;
         customer.transform.rotation = doorTransform.rotation;
 
+        // Set active
+        customer.gameObject.SetActive(true);
+
         // Pick a random item from the menu
         FoodItemData orderRequest = menu[Random.Range(0, menu.Count)];
 
@@ -342,10 +345,10 @@ public class CustomerManager : MonoBehaviour
             customer = CreateNewCustomer();
         }
 
-        if (customer != null)
-        {
-            customer.gameObject.SetActive(true);
-        }
+        // if (customer != null)
+        // {
+        //     customer.gameObject.SetActive(true);
+        // }
 
         return customer;
     }

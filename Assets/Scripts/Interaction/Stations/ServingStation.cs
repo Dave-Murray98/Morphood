@@ -30,14 +30,14 @@ public class ServingStation : BaseStation
         stationType = StationType.Serving;
 
         // Set up customer position if not assigned
-        if (customerPosition == null)
-        {
-            GameObject customerPosObj = new GameObject($"{stationName}_CustomerPosition");
-            customerPosObj.transform.SetParent(transform);
-            customerPosObj.transform.localPosition = Vector3.zero;
-            customerPosition = customerPosObj.transform;
-            DebugLog("Created default customer position");
-        }
+        // if (customerPosition == null)
+        // {
+        //     GameObject customerPosObj = new GameObject($"{stationName}_CustomerPosition");
+        //     customerPosObj.transform.SetParent(transform);
+        //     customerPosObj.transform.localPosition = Vector3.zero;
+        //     customerPosition = customerPosObj.transform;
+        //     DebugLog("Created default customer position");
+        // }
     }
 
     /// <summary>

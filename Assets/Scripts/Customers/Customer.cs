@@ -1,6 +1,7 @@
 using UnityEngine;
 using Pathfinding;
 using System.Collections;
+using Sirenix.OdinInspector;
 
 /// <summary>
 /// Represents a customer in the restaurant.
@@ -16,8 +17,8 @@ public class Customer : MonoBehaviour
 
     // Internal state
     private ServingStation assignedStation;
-    private FoodItemData orderRequest;
-    private CustomerState currentState = CustomerState.Idle;
+    [ShowInInspector] private FoodItemData orderRequest;
+    [ShowInInspector] private CustomerState currentState = CustomerState.Idle;
     private GameObject servedFood;
 
     // State tracking
@@ -39,6 +40,25 @@ public class Customer : MonoBehaviour
         {
             Debug.LogError($"[Customer] {name} requires a FollowerEntity component!");
         }
+    }
+
+    private void OnEnable()
+    {
+        if (followerEntity == null)
+        {
+            followerEntity = GetComponent<FollowerEntity>();
+        }
+
+        followerEntity.enabled = true;
+    }
+
+    private void OnDisable()
+    {
+        if (followerEntity == null)
+            followerEntity = GetComponent<FollowerEntity>();
+
+        followerEntity.enabled = false;
+
     }
 
     private void Update()
