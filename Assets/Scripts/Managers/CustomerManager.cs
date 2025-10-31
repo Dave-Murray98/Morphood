@@ -1,7 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 /// <summary>
 /// Manages customer spawning, assignment to serving stations, and customer lifecycle.
@@ -41,16 +41,19 @@ public class CustomerManager : MonoBehaviour
     [SerializeField] private Transform poolParent;
     [Tooltip("Parent transform for pooled customers")]
 
-    [Header("Events")]
-    public UnityEvent OnCustomerServedSuccessfully;
-
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
+
+    // Events - Using C# events instead of UnityEvents for better reliability
+    public event Action OnCustomerServedSuccessfully;
 
     // Pooling
     private Queue<Customer> availableCustomers = new Queue<Customer>();
     private HashSet<Customer> allCustomers = new HashSet<Customer>();
     private List<Customer> activeCustomers = new List<Customer>();
+
+    // Event handler tracking - needed to properly unsubscribe C# events
+    private Dictionary<Customer, Action> customerEventHandlers = new Dictionary<Customer, Action>();
 
     // Spawn tracking
     private float lastSpawnTime = -999f;
@@ -226,7 +229,7 @@ public class CustomerManager : MonoBehaviour
         customer.gameObject.SetActive(true);
 
         // Pick a random item from the menu
-        FoodItemData orderRequest = menu[Random.Range(0, menu.Count)];
+        FoodItemData orderRequest = menu[UnityEngine.Random.Range(0, menu.Count)];
 
         // Assign to station
         station.AssignCustomer(customer, orderRequest);
@@ -234,8 +237,10 @@ public class CustomerManager : MonoBehaviour
         // Tell customer to move to the station
         customer.AssignToStation(station, orderRequest, doorTransform);
 
-        // Subscribe to serving events
-        station.OnCustomerServedSuccessfully.AddListener(() => OnCustomerServed(customer));
+        // Subscribe to serving events - Store the handler so we can properly unsubscribe later
+        Action eventHandler = () => HandleCustomerServed(customer);
+        customerEventHandlers[customer] = eventHandler;
+        station.OnCustomerServedSuccessfully += eventHandler;
 
         // Track active customer
         activeCustomers.Add(customer);
@@ -244,16 +249,24 @@ public class CustomerManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when a customer is successfully served
+    /// Called when a customer at a specific station is served
+    /// This is a wrapper to handle the event with the specific customer reference
     /// </summary>
-    private void OnCustomerServed(Customer customer)
+    private void HandleCustomerServed(Customer customer)
     {
-        if (customer == null || customer.CurrentState != CustomerState.Eating)
+        if (customer == null)
         {
+            DebugLog("HandleCustomerServed called with null customer");
             return;
         }
 
-        DebugLog($"Customer served, will eat for {customerEatTime} seconds");
+        // if (customer.CurrentState != CustomerState.Eating)
+        // {
+        //     DebugLog($"Customer served but state is {customer.CurrentState}, not Eating");
+        //     return;
+        // }
+
+        DebugLog($"Customer served successfully, will eat for {customerEatTime} seconds");
 
         // Fire global event
         OnCustomerServedSuccessfully?.Invoke();
@@ -287,10 +300,13 @@ public class CustomerManager : MonoBehaviour
         // Remove from active list
         activeCustomers.Remove(customer);
 
-        // Unsubscribe from events
-        if (customer.AssignedStation != null)
+        // Unsubscribe from events - Use the stored handler to properly unsubscribe
+        if (customer.AssignedStation != null && customerEventHandlers.ContainsKey(customer))
         {
-            customer.AssignedStation.OnCustomerServedSuccessfully.RemoveAllListeners();
+            Action eventHandler = customerEventHandlers[customer];
+            customer.AssignedStation.OnCustomerServedSuccessfully -= eventHandler;
+            customerEventHandlers.Remove(customer);
+            DebugLog("Unsubscribed from station events");
         }
 
         // Return to pool

@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Events;
+using System;
 
 /// <summary>
 /// Station where customers sit and get served food.
@@ -11,8 +11,8 @@ public class ServingStation : BaseStation
     [SerializeField] private Transform customerPosition;
     [Tooltip("Where the customer will stand/sit at this table")]
 
-    // Events
-    public UnityEvent OnCustomerServedSuccessfully;
+    // Events - Using C# events instead of UnityEvents for better reliability
+    public event Action OnCustomerServedSuccessfully;
 
     // Internal state
     private Customer assignedCustomer;
@@ -115,7 +115,7 @@ public class ServingStation : BaseStation
     }
 
     /// <summary>
-    /// Override to prevent accepting items when no customer is present
+    /// Override to only accept the correct food for the customer's order
     /// </summary>
     protected override bool CanAcceptItemCustom(GameObject item, PlayerEnd playerEnd)
     {
@@ -128,9 +128,17 @@ public class ServingStation : BaseStation
 
         // Must be a food item
         FoodItem foodItem = item.GetComponent<FoodItem>();
-        if (foodItem == null)
+        if (foodItem == null || !foodItem.HasValidFoodData)
         {
-            DebugLog("Cannot accept item - not a food item");
+            DebugLog("Cannot accept item - not a valid food item");
+            return false;
+        }
+
+        // FIXED: Only accept the food that matches the customer's order
+        // This prevents wrong food from being placed on the station
+        if (foodItem.FoodData != requestedFood)
+        {
+            DebugLog($"Cannot accept item - wrong food (customer wants {requestedFood.DisplayName}, got {foodItem.FoodData.DisplayName})");
             return false;
         }
 

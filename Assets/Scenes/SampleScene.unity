@@ -328,9 +328,6 @@ MonoBehaviour:
   initialPoolSize: 5
   maxPoolSize: 20
   poolParent: {fileID: 261400161}
-  OnCustomerServedSuccessfully:
-    m_PersistentCalls:
-      m_Calls: []
   enableDebugLogs: 1
 --- !u!4 &261400161
 Transform:
@@ -897,6 +894,50 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1926870444}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &795115635
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 795115637}
+  - component: {fileID: 795115636}
+  m_Layer: 0
+  m_Name: Test
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &795115636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795115635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715cd5f4f8539b74a9220897053d9458, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &795115637
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795115635}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.3293967, y: -6.982136, z: 10.438385}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &825436683
 GameObject:
@@ -3489,6 +3530,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 825436684}
     m_Modifications:
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 795115636}
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnEventReceived
+      objectReference: {fileID: 0}
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: EventTest, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1845731408404216031, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
+      propertyPath: OnCustomerServedSuccessfully.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 8325934175593410518, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.4899998
@@ -3555,3 +3624,4 @@ SceneRoots:
   - {fileID: 499420442}
   - {fileID: 261400161}
   - {fileID: 281036089}
+  - {fileID: 795115637}
