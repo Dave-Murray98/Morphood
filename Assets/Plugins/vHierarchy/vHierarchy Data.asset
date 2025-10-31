@@ -15,6 +15,7 @@ MonoBehaviour:
   sceneDatasByGuid:
     keys:
     - 99c9720ab356a0642a771bea13969a05
+    - 
     values:
     - goDatasByGlobalId:
         keys:
@@ -24,6 +25,7 @@ MonoBehaviour:
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1585261524-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-185930626-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-499420441-0
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-261400159-0
         values:
         - iColor: 1
           icon: Settings Icon
@@ -37,8 +39,10 @@ MonoBehaviour:
           icon: Camera Icon
         - iColor: 8
           icon: LightProbes Icon
+        - iColor: 7
+          icon: AvatarMask On Icon
       goDatasByInstanceId:
-        keys: cebb000078bb0000e4bb0000c4bb000048bb00007e62ffff
+        keys: badb00004cdb0000c4db0000a4db00001cdb000040db000056e6ffff
         values:
         - iColor: 1
           icon: Settings Icon
@@ -52,3 +56,11 @@ MonoBehaviour:
           icon: Camera Icon
         - iColor: 8
           icon: LightProbes Icon
+        - iColor: 7
+          icon: AvatarMask On Icon
+    - goDatasByGlobalId:
+        keys: []
+        values: []
+      goDatasByInstanceId:
+        keys: 
+        values: []

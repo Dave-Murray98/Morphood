@@ -1,20 +1,191 @@
 using UnityEngine;
 using Pathfinding;
+using System.Collections;
 
+/// <summary>
+/// Represents a customer in the restaurant.
+/// Moves to a serving station, places an order, waits to be served, eats, and leaves.
+/// </summary>
 public class Customer : MonoBehaviour
 {
-
+    [Header("Components")]
     [SerializeField] private FollowerEntity followerEntity;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
+    [Header("Debug")]
+    [SerializeField] private bool enableDebugLogs = false;
 
+    // Internal state
+    private ServingStation assignedStation;
+    private FoodItemData orderRequest;
+    private CustomerState currentState = CustomerState.Idle;
+    private GameObject servedFood;
+
+    // State tracking
+    private bool hasReachedDestination = false;
+
+    // Public properties
+    public ServingStation AssignedStation => assignedStation;
+    public FoodItemData OrderRequest => orderRequest;
+    public CustomerState CurrentState => currentState;
+
+    private void Awake()
+    {
+        if (followerEntity == null)
+        {
+            followerEntity = GetComponent<FollowerEntity>();
+        }
+
+        if (followerEntity == null)
+        {
+            Debug.LogError($"[Customer] {name} requires a FollowerEntity component!");
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-
+        // Check if we've reached our destination
+        if (currentState == CustomerState.MovingToTable || currentState == CustomerState.Leaving)
+        {
+            if (!hasReachedDestination && followerEntity.reachedDestination)
+            {
+                hasReachedDestination = true;
+                OnDestinationReached();
+            }
+        }
     }
+
+    /// <summary>
+    /// Assign this customer to a serving station and give them an order
+    /// </summary>
+    public void AssignToStation(ServingStation station, FoodItemData order, Transform doorPosition)
+    {
+        assignedStation = station;
+        orderRequest = order;
+        currentState = CustomerState.MovingToTable;
+        hasReachedDestination = false;
+
+        // Move to the station
+        if (followerEntity != null && station != null)
+        {
+            followerEntity.destination = station.CustomerPosition.position;
+            DebugLog($"Assigned to station {station.StationName}, ordering {order.DisplayName}");
+        }
+    }
+
+    /// <summary>
+    /// Called when the customer reaches their destination
+    /// </summary>
+    private void OnDestinationReached()
+    {
+        if (currentState == CustomerState.MovingToTable)
+        {
+            // Arrived at table, now waiting for service
+            currentState = CustomerState.WaitingForFood;
+            DebugLog($"Arrived at table, waiting for {orderRequest.DisplayName}");
+        }
+        else if (currentState == CustomerState.Leaving)
+        {
+            // Reached the door, ready to despawn
+            currentState = CustomerState.ReadyToDespawn;
+            DebugLog("Reached door, ready to despawn");
+        }
+    }
+
+    /// <summary>
+    /// Called when the customer is served their food
+    /// </summary>
+    public void OnServed(GameObject food)
+    {
+        if (currentState != CustomerState.WaitingForFood)
+        {
+            DebugLog("Customer was served but is not waiting for food");
+            return;
+        }
+
+        servedFood = food;
+        currentState = CustomerState.Eating;
+        DebugLog($"Started eating {orderRequest.DisplayName}");
+
+        // The CustomerManager will handle the eating duration and calling FinishEating
+    }
+
+    /// <summary>
+    /// Called when the customer finishes eating
+    /// </summary>
+    public void FinishEating()
+    {
+        if (currentState != CustomerState.Eating)
+        {
+            DebugLog("FinishEating called but customer is not eating");
+            return;
+        }
+
+        // Despawn the food
+        if (servedFood != null)
+        {
+            FoodItem foodItem = servedFood.GetComponent<FoodItem>();
+            if (foodItem != null && FoodManager.Instance != null)
+            {
+                FoodManager.Instance.DestroyFoodItem(foodItem);
+            }
+
+            servedFood = null;
+        }
+
+        DebugLog("Finished eating, leaving restaurant");
+    }
+
+    /// <summary>
+    /// Tell the customer to leave the restaurant
+    /// </summary>
+    public void Leave(Transform doorPosition)
+    {
+        currentState = CustomerState.Leaving;
+        hasReachedDestination = false;
+
+        // Release from serving station
+        if (assignedStation != null)
+        {
+            assignedStation.ReleaseCustomer();
+        }
+
+        // Move to door
+        if (followerEntity != null && doorPosition != null)
+        {
+            followerEntity.destination = doorPosition.position;
+            DebugLog("Leaving restaurant");
+        }
+    }
+
+    /// <summary>
+    /// Reset this customer for reuse (pooling)
+    /// </summary>
+    public void ResetForPooling()
+    {
+        assignedStation = null;
+        orderRequest = null;
+        servedFood = null;
+        currentState = CustomerState.Idle;
+        hasReachedDestination = false;
+        DebugLog("Reset for pooling");
+    }
+
+    private void DebugLog(string message)
+    {
+        if (enableDebugLogs)
+            Debug.Log($"[Customer] {message}");
+    }
+}
+
+/// <summary>
+/// Represents the current state of a customer
+/// </summary>
+public enum CustomerState
+{
+    Idle,
+    MovingToTable,
+    WaitingForFood,
+    Eating,
+    Leaving,
+    ReadyToDespawn
 }
