@@ -2,8 +2,28 @@ using UnityEngine;
 
 /// <summary>
 /// Base class for processing station interactables (ChoppingStation, CookingStation, etc.)
-/// Implements scalable hold-to-process vs press-to-pickup interaction logic.
-/// This allows players to distinguish between wanting to process an item vs picking it up.
+///
+/// INTERACTION DESIGN:
+/// This class implements a "hold-to-process, tap-to-pickup" interaction pattern that allows
+/// players to clearly distinguish between two different actions at a processing station:
+/// 1. QUICK TAP: Pick up the item on the station (to move it elsewhere)
+/// 2. HOLD: Start processing the item (chop, cook, etc.)
+///
+/// WHY THIS DESIGN?
+/// Without hold detection, players would accidentally start processing when they just wanted
+/// to pick up an item. This pattern gives clear, intentional control over both actions.
+///
+/// HOW IT WORKS:
+/// 1. Player presses interact → Start hold detection timer
+/// 2. Player holds for < threshold (0.3s) → Quick tap detected → Pick up item
+/// 3. Player holds for >= threshold → Long hold detected → Start processing
+/// 4. During processing, holding continues the process, releasing stops it
+///
+/// IMPLEMENTATION:
+/// - PerformInteraction: Handles the initial button press and routes to appropriate action
+/// - Update: Monitors hold duration and triggers processing when threshold is reached
+/// - OnInteractionStopped: Handles button release and determines final action
+/// - State flags prevent accidental double-actions and track current interaction phase
 /// </summary>
 public abstract class BaseProcessingStationInteractable : BaseInteractable
 {
@@ -20,11 +40,11 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     [Header("Debug")]
     [SerializeField] protected bool enableProcessingDebug = false;
 
-    // Hold detection state
-    protected float interactionStartTime = 0f;
-    protected bool isWaitingForHoldDecision = false;
-    protected bool hasCommittedToAction = false;
-    protected ProcessingActionType pendingActionType = ProcessingActionType.None;
+    // Hold detection state - tracks the current phase of interaction
+    protected float interactionStartTime = 0f;                              // When the player started holding interact
+    protected bool isWaitingForHoldDecision = false;                        // True while monitoring if this is a tap or hold
+    protected bool hasCommittedToAction = false;                            // True once we've decided on tap/hold (prevents double-action)
+    protected ProcessingActionType pendingActionType = ProcessingActionType.None;  // What action we're committing to
 
     // Abstract properties to be implemented by derived classes
     protected abstract BaseStation ProcessingStation { get; }
@@ -219,8 +239,15 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
 
     #region Update Loop for Hold Detection
 
+    /// <summary>
+    /// Frame-by-frame monitoring of hold duration
+    /// NOTE: This Update loop is necessary because Unity's input system doesn't provide
+    /// a "hold for X seconds" event. We must manually track the duration between
+    /// OnInteractPressed and OnInteractReleased to determine tap vs hold.
+    /// </summary>
     protected virtual void Update()
     {
+        // Only monitor during the decision phase (after press, before threshold reached or release)
         if (isWaitingForHoldDecision && !hasCommittedToAction)
         {
             UpdateHoldDetection();
@@ -228,7 +255,7 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     }
 
     /// <summary>
-    /// Update the hold detection logic
+    /// Check if hold threshold has been reached and start processing if so
     /// </summary>
     protected virtual void UpdateHoldDetection()
     {

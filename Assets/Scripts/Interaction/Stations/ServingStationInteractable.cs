@@ -26,32 +26,38 @@ public class ServingStationInteractable : BaseInteractable
 
     protected override bool CanInteractCustom(PlayerEnd playerEnd)
     {
-        // Can only interact if:
-        // 1. Station has a customer
-        // 2. Player is carrying a food item
+        // Can interact if station has a customer waiting
+        // This allows the station to highlight and alert the player that work needs to be done
         if (!servingStation.HasCustomer)
         {
             return false;
         }
 
+        // FIXED: Allow interaction even if player has empty hands
+        // This makes the station highlight when a customer is waiting, alerting the player
+        // The station will show different prompts based on what the player is carrying
+
+        // If player has empty hands, still return true to show there's a customer waiting
         if (!playerEnd.IsCarryingItems)
         {
-            return false;
+            return true;
         }
 
-        // Check if player is carrying a food item
+        // If player is carrying something, check if it's food
         GameObject carriedItem = playerEnd.HeldObjects[playerEnd.HeldObjects.Count - 1];
         FoodItem foodItem = carriedItem.GetComponent<FoodItem>();
 
+        // Allow interaction with any food item or no item
+        // GetInteractionPrompt will show if it's the correct food
         return foodItem != null && foodItem.HasValidFoodData;
     }
 
     protected override bool PerformInteraction(PlayerEnd playerEnd)
     {
-        // Get the food item the player is carrying
+        // If player has empty hands, they can't actually serve - just highlight to show customer waiting
         if (!playerEnd.IsCarryingItems)
         {
-            DebugLog("Player is not carrying anything");
+            DebugLog("Player has empty hands - station highlighting to show customer is waiting");
             return false;
         }
 
@@ -71,11 +77,15 @@ public class ServingStationInteractable : BaseInteractable
         {
             // Remove the item from player's inventory
             playerEnd.DropObject(carriedItem, servingStation.GetPlacementPosition());
-            DebugLog($"Successfully served customer");
+            DebugLog($"Successfully served customer with {foodItem.FoodData.DisplayName}");
+
+            // FIXED: Refresh player detection after serving (similar to processing stations)
+            // This ensures the player's interaction state updates properly
+            PlayerEndDetectionRefresher.RefreshNearStation(transform, name);
         }
         else
         {
-            DebugLog("Failed to serve customer");
+            DebugLog("Failed to serve customer - wrong food or other issue");
         }
 
         return serveSuccessful;
@@ -88,9 +98,14 @@ public class ServingStationInteractable : BaseInteractable
             return "No customer";
         }
 
+        // IMPROVED: Show what food the customer wants when player has empty hands
         if (!playerEnd.IsCarryingItems)
         {
-            return "Need food";
+            if (servingStation.RequestedFood != null)
+            {
+                return $"Customer wants: {servingStation.RequestedFood.DisplayName}";
+            }
+            return "Customer waiting";
         }
 
         GameObject carriedItem = playerEnd.HeldObjects[playerEnd.HeldObjects.Count - 1];
@@ -104,11 +119,11 @@ public class ServingStationInteractable : BaseInteractable
         // Show if it's the correct food
         if (foodItem.FoodData == servingStation.RequestedFood)
         {
-            return "Serve Food";
+            return $"Serve {foodItem.FoodData.DisplayName}";
         }
         else
         {
-            return "Wrong food";
+            return $"Wrong food (wants {servingStation.RequestedFood.DisplayName})";
         }
     }
 }
