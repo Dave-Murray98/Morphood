@@ -61,6 +61,73 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     protected abstract void StopProcessing();
     protected abstract PlayerEnd GetCurrentProcessingPlayer();
 
+    #region Unity Lifecycle
+
+    protected virtual void Start()
+    {
+        // Subscribe to station events to refresh player interaction state
+        if (ProcessingStation != null)
+        {
+            ProcessingStation.OnItemPlaced += OnStationItemPlaced;
+            ProcessingStation.OnItemRemoved += OnStationItemRemoved;
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
+        // Unsubscribe from station events
+        if (ProcessingStation != null)
+        {
+            ProcessingStation.OnItemPlaced -= OnStationItemPlaced;
+            ProcessingStation.OnItemRemoved -= OnStationItemRemoved;
+        }
+    }
+
+    /// <summary>
+    /// Called when an item is placed on this station
+    /// Refreshes nearby player interaction state so they can immediately pick up the item
+    /// </summary>
+    private void OnStationItemPlaced(GameObject item, PlayerEnd playerEnd)
+    {
+        ProcessingDebugLog($"Item {item.name} placed by Player {playerEnd.PlayerNumber} - refreshing interaction state");
+
+        // Use a coroutine to refresh after a brief delay
+        // This ensures the placement is fully complete before refreshing
+        StartCoroutine(RefreshPlayerInteractionAfterPlacement(playerEnd));
+    }
+
+    /// <summary>
+    /// Called when an item is removed from this station
+    /// </summary>
+    private void OnStationItemRemoved(GameObject item, PlayerEnd playerEnd)
+    {
+        ProcessingDebugLog($"Item {item.name} removed by Player {playerEnd.PlayerNumber}");
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after item placement
+    /// </summary>
+    private System.Collections.IEnumerator RefreshPlayerInteractionAfterPlacement(PlayerEnd playerEnd)
+    {
+        // Wait a frame to ensure placement is fully complete
+        yield return null;
+
+        // Reset our own interaction state
+        ForceResetInteractionState();
+
+        // Wait another frame
+        yield return null;
+
+        // Refresh the player's interaction state if they're still nearby
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            ProcessingDebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement");
+        }
+    }
+
+    #endregion
+
     /// <summary>
     /// Called when processing completes successfully - override to add custom behavior
     /// </summary>
