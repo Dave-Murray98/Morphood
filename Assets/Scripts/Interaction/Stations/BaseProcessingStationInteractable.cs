@@ -122,7 +122,30 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         if (playerEnd != null)
         {
             playerEnd.RefreshInteractionState();
-            ProcessingDebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement");
+            ProcessingDebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement (via event)");
+        }
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after placement completes
+    /// This is called when PerformInteraction returns false for a player carrying items
+    /// </summary>
+    private System.Collections.IEnumerator RefreshAfterPlacement(PlayerEnd playerEnd)
+    {
+        // Wait for the placement to fully complete
+        // The PlayerEnd will call TryDropOrPlaceItem after this method returns
+        yield return null; // Wait for the current frame to complete
+        yield return null; // Wait another frame to ensure placement is done
+        yield return null; // Wait one more frame to be absolutely sure
+
+        // Reset our own interaction state
+        ForceResetInteractionState();
+
+        // Refresh the player's interaction state if they're still nearby
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            ProcessingDebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement (via PerformInteraction)");
         }
     }
 
@@ -208,6 +231,13 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         }
 
         // Priority 4: Placement will be handled by PlayerEnd's drop logic
+        // If player is carrying items, schedule a refresh after placement completes
+        if (playerEnd.IsCarryingItems)
+        {
+            ProcessingDebugLog("Player carrying items - will refresh after placement");
+            StartCoroutine(RefreshAfterPlacement(playerEnd));
+        }
+
         return false;
     }
 
