@@ -61,6 +61,96 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     protected abstract void StopProcessing();
     protected abstract PlayerEnd GetCurrentProcessingPlayer();
 
+    #region Unity Lifecycle
+
+    protected virtual void Start()
+    {
+        // Subscribe to station events to refresh player interaction state
+        if (ProcessingStation != null)
+        {
+            ProcessingStation.OnItemPlaced += OnStationItemPlaced;
+            ProcessingStation.OnItemRemoved += OnStationItemRemoved;
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
+        // Unsubscribe from station events
+        if (ProcessingStation != null)
+        {
+            ProcessingStation.OnItemPlaced -= OnStationItemPlaced;
+            ProcessingStation.OnItemRemoved -= OnStationItemRemoved;
+        }
+    }
+
+    /// <summary>
+    /// Called when an item is placed on this station
+    /// Refreshes nearby player interaction state so they can immediately pick up the item
+    /// </summary>
+    private void OnStationItemPlaced(GameObject item, PlayerEnd playerEnd)
+    {
+        ProcessingDebugLog($"Item {item.name} placed by Player {playerEnd.PlayerNumber} - refreshing interaction state");
+
+        // Use a coroutine to refresh after a brief delay
+        // This ensures the placement is fully complete before refreshing
+        StartCoroutine(RefreshPlayerInteractionAfterPlacement(playerEnd));
+    }
+
+    /// <summary>
+    /// Called when an item is removed from this station
+    /// </summary>
+    private void OnStationItemRemoved(GameObject item, PlayerEnd playerEnd)
+    {
+        ProcessingDebugLog($"Item {item.name} removed by Player {playerEnd.PlayerNumber}");
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after item placement
+    /// </summary>
+    private System.Collections.IEnumerator RefreshPlayerInteractionAfterPlacement(PlayerEnd playerEnd)
+    {
+        // Wait a frame to ensure placement is fully complete
+        yield return null;
+
+        // Reset our own interaction state
+        ForceResetInteractionState();
+
+        // Wait another frame
+        yield return null;
+
+        // Refresh the player's interaction state if they're still nearby
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            ProcessingDebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement (via event)");
+        }
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after placement completes
+    /// This is called when PerformInteraction returns false for a player carrying items
+    /// </summary>
+    private System.Collections.IEnumerator RefreshAfterPlacement(PlayerEnd playerEnd)
+    {
+        // Wait for the placement to fully complete
+        // The PlayerEnd will call TryDropOrPlaceItem after this method returns
+        yield return null; // Wait for the current frame to complete
+        yield return null; // Wait another frame to ensure placement is done
+        yield return null; // Wait one more frame to be absolutely sure
+
+        // Reset our own interaction state
+        ForceResetInteractionState();
+
+        // Refresh the player's interaction state if they're still nearby
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            ProcessingDebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement (via PerformInteraction)");
+        }
+    }
+
+    #endregion
+
     /// <summary>
     /// Called when processing completes successfully - override to add custom behavior
     /// </summary>
@@ -72,27 +162,42 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
 
     #region BaseInteractable Implementation
 
-    protected override bool CanInteractCustom(PlayerEnd playerEnd)
+    /// <summary>
+    /// Override CanInteract to allow both players to place/pick up items,
+    /// while restricting processing actions to the correct player
+    /// </summary>
+    public override bool CanInteract(PlayerEnd playerEnd)
     {
+        // Check if the object is available
+        if (!IsAvailable) return false;
+
         if (ProcessingStation == null) return false;
 
-        // Check if player can perform this type of processing
-        if (!playerEnd.CanPerformInteraction(RequiredInteractionType))
-        {
-            ProcessingDebugLog($"Player {playerEnd.PlayerNumber} cannot perform {RequiredInteractionType}");
-            return false;
-        }
-
-        // Can interact if:
-        // 1. Player has free hands and station has item (to retrieve), OR
-        // 2. Player is carrying processable item and station has space (to place), OR  
-        // 3. Station has processable item and processing can be started/continued
-
+        // Both players can interact for placement and pickup
         bool canRetrieve = playerEnd.HasFreeHands && ProcessingStation.IsOccupied && !IsCurrentlyProcessing();
         bool canPlace = playerEnd.IsCarryingItems && ProcessingStation.HasSpace && CanPlaceProcessableItem(playerEnd);
-        bool canProcess = ProcessingStation.IsOccupied && CanStartOrContinueProcessing(playerEnd);
 
-        return canRetrieve || canPlace || canProcess;
+        // Only the correct player can interact for processing
+        bool canProcess = playerEnd.CanPerformInteraction(RequiredInteractionType) &&
+                         ProcessingStation.IsOccupied &&
+                         CanStartOrContinueProcessing(playerEnd);
+
+        bool result = canRetrieve || canPlace || canProcess;
+
+        if (!result)
+        {
+            ProcessingDebugLog($"Player {playerEnd.PlayerNumber} cannot interact: " +
+                             $"canRetrieve={canRetrieve}, canPlace={canPlace}, canProcess={canProcess}");
+        }
+
+        return result;
+    }
+
+    protected override bool CanInteractCustom(PlayerEnd playerEnd)
+    {
+        // This is now handled in CanInteract override above
+        // Kept for compatibility but always returns true if we get here
+        return true;
     }
 
     protected override bool PerformInteraction(PlayerEnd playerEnd)
@@ -126,6 +231,13 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         }
 
         // Priority 4: Placement will be handled by PlayerEnd's drop logic
+        // If player is carrying items, schedule a refresh after placement completes
+        if (playerEnd.IsCarryingItems)
+        {
+            ProcessingDebugLog("Player carrying items - will refresh after placement");
+            StartCoroutine(RefreshAfterPlacement(playerEnd));
+        }
+
         return false;
     }
 
@@ -319,6 +431,12 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     protected virtual bool CanStartOrContinueProcessing(PlayerEnd playerEnd)
     {
         if (!ProcessingStation.IsOccupied) return false;
+
+        // Check if player has permission to perform this type of processing
+        if (!playerEnd.CanPerformInteraction(RequiredInteractionType))
+        {
+            return false;
+        }
 
         // If already processing, only the same player can continue
         if (IsCurrentlyProcessing())

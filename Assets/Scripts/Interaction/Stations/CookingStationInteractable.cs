@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Interactable wrapper for CookingStation to allow direct player interaction.
 /// Uses the scalable BaseProcessingStationInteractable system for hold-to-cook vs press-to-pickup logic.
-/// Only Player 1 can interact with cooking stations.
+/// Both players can place and pick up items, but only Player 1 can perform cooking.
 /// </summary>
 [RequireComponent(typeof(CookingStation))]
 public class CookingStationInteractable : BaseProcessingStationInteractable
@@ -29,7 +29,8 @@ public class CookingStationInteractable : BaseProcessingStationInteractable
             Debug.LogError($"[CookingStationInteractable] {name} requires a CookingStation component!");
         }
 
-        // Set up interaction type for cooking (only Player 1)
+        // Set up interaction type for cooking
+        // Both players can place/pick up items, but only Player 1 can cook (enforced in BaseProcessingStationInteractable)
         interactionType = InteractionType.Cooking;
         interactionPriority = 3; // Higher priority than regular items and plain stations
     }

@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Interactable wrapper for ChoppingStation to allow direct player interaction.
 /// Uses the scalable BaseProcessingStationInteractable system for hold-to-chop vs press-to-pickup logic.
-/// Only Player 2 can interact with chopping stations.
+/// Both players can place and pick up items, but only Player 2 can perform chopping.
 /// </summary>
 [RequireComponent(typeof(ChoppingStation))]
 public class ChoppingStationInteractable : BaseProcessingStationInteractable
@@ -29,7 +29,8 @@ public class ChoppingStationInteractable : BaseProcessingStationInteractable
             Debug.LogError($"[ChoppingStationInteractable] {name} requires a ChoppingStation component!");
         }
 
-        // Set up interaction type for chopping (only Player 2)
+        // Set up interaction type for chopping
+        // Both players can place/pick up items, but only Player 2 can chop (enforced in BaseProcessingStationInteractable)
         interactionType = InteractionType.Chopping;
         interactionPriority = 3; // Higher priority than regular items and plain stations
     }
