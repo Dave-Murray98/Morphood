@@ -69,7 +69,8 @@ public class CustomerManager : MonoBehaviour
         ValidateConfiguration();
         SetupPoolParent();
         PreCreateCustomers();
-        StartCustomerSpawning();
+        // Note: Don't auto-start spawning - let RoundManager control this
+        // StartCustomerSpawning();
 
         DebugLog("CustomerManager initialized");
     }
@@ -435,6 +436,47 @@ public class CustomerManager : MonoBehaviour
             }
         }
         return count;
+    }
+
+    /// <summary>
+    /// Despawn all active customers (makes them leave immediately)
+    /// Used when a round ends
+    /// </summary>
+    public void DespawnAllCustomers()
+    {
+        // Create a copy of the list to avoid modification during iteration
+        List<Customer> customersToRemove = new List<Customer>(activeCustomers);
+
+        foreach (Customer customer in customersToRemove)
+        {
+            if (customer != null)
+            {
+                // Make the customer leave if they're not already leaving
+                if (customer.CurrentState != CustomerState.Leaving &&
+                    customer.CurrentState != CustomerState.ReadyToDespawn)
+                {
+                    customer.Leave(doorTransform);
+                }
+            }
+        }
+
+        DebugLog($"Despawning all {customersToRemove.Count} active customers");
+    }
+
+    /// <summary>
+    /// Wrapper for StartCustomerSpawning for consistency
+    /// </summary>
+    public void StartSpawning()
+    {
+        StartCustomerSpawning();
+    }
+
+    /// <summary>
+    /// Wrapper for StopCustomerSpawning for consistency
+    /// </summary>
+    public void StopSpawning()
+    {
+        StopCustomerSpawning();
     }
 
     #endregion
