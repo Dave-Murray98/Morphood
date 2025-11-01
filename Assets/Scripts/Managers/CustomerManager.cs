@@ -251,7 +251,7 @@ public class CustomerManager : MonoBehaviour
         customer.gameObject.SetActive(true);
 
         // Pick a random item from the menu
-        FoodItemData orderRequest = menu[Random.Range(0, menu.Count)];
+        FoodItemData orderRequest = menu[UnityEngine.Random.Range(0, menu.Count)];
 
         // Assign to station
         station.AssignCustomer(customer, orderRequest);
@@ -282,11 +282,11 @@ public class CustomerManager : MonoBehaviour
             return;
         }
 
-        if (customer.CurrentState != CustomerState.Eating)
-        {
-            DebugLog($"Customer served but state is {customer.CurrentState}, not Eating");
-            return;
-        }
+        // if (customer.CurrentState != CustomerState.Eating)
+        // {
+        //     DebugLog($"Customer served but state is {customer.CurrentState}, not Eating");
+        //     return;
+        // }
 
         DebugLog($"Customer served successfully, will eat for {customerEatTime} seconds");
 
