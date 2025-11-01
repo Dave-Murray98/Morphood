@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 1845731408404216031}
   - component: {fileID: 1798484973060609088}
   - component: {fileID: 1305657593738150453}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Serving Station
   m_TagString: Untagged
   m_Icon: {fileID: 0}

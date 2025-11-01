@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4003188881430668603}
   - component: {fileID: 4682604407338646373}
   - component: {fileID: 7289496709148049665}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Lettuce Crate
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1622,6 +1622,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -100
       objectReference: {fileID: 0}
+    - target: {fileID: 3493858538508424255, guid: 4de1eca0be8127b4c91aac63d295ac64, type: 3}
+      propertyPath: m_ControlPath
+      value: <Gamepad>/buttonEast
+      objectReference: {fileID: 0}
     - target: {fileID: 3770590230783287950, guid: 4de1eca0be8127b4c91aac63d295ac64, type: 3}
       propertyPath: m_Name
       value: Player 2
