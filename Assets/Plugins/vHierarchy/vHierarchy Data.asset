@@ -26,6 +26,7 @@ MonoBehaviour:
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-185930626-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-499420441-0
         - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-261400159-0
+        - GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-223124185-0
         values:
         - iColor: 1
           icon: Settings Icon
@@ -41,8 +42,10 @@ MonoBehaviour:
           icon: LightProbes Icon
         - iColor: 7
           icon: AvatarMask On Icon
+        - iColor: 3
+          icon: WheelCollider Icon
       goDatasByInstanceId:
-        keys: badb00004cdb0000c4db0000a4db00001cdb000040db000056e6ffff
+        keys: eadb00006edb0000f4db0000d4db000034db000062db00003edb0000d8f3000066f30000e2f30000c2f300002cf300005af3000036f30000daff00005eff0000e4ff0000c4ff000018ff000046ff000022ff0000f42cffff
         values:
         - iColor: 1
           icon: Settings Icon
@@ -58,6 +61,36 @@ MonoBehaviour:
           icon: LightProbes Icon
         - iColor: 7
           icon: AvatarMask On Icon
+        - iColor: 1
+          icon: Settings Icon
+        - iColor: 5
+          icon: StandaloneInputModule Icon
+        - iColor: 0
+          icon: Camera Icon
+        - iColor: 2
+          icon: Terrain Icon
+        - iColor: 9
+          icon: Camera Icon
+        - iColor: 8
+          icon: LightProbes Icon
+        - iColor: 7
+          icon: AvatarMask On Icon
+        - iColor: 1
+          icon: Settings Icon
+        - iColor: 5
+          icon: StandaloneInputModule Icon
+        - iColor: 0
+          icon: Camera Icon
+        - iColor: 2
+          icon: Terrain Icon
+        - iColor: 9
+          icon: Camera Icon
+        - iColor: 8
+          icon: LightProbes Icon
+        - iColor: 7
+          icon: AvatarMask On Icon
+        - iColor: 3
+          icon: WheelCollider Icon
     - goDatasByGlobalId:
         keys: []
         values: []

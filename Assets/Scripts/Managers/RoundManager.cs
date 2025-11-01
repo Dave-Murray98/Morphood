@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI quotaText;
     [SerializeField] private TextMeshProUGUI resultText;
+    [SerializeField] private Button startRoundButton;
 
     // Round state
     private bool isRoundActive = false;
@@ -89,6 +91,9 @@ public class RoundManager : MonoBehaviour
             StopCoroutine(roundCoroutine);
         }
         roundCoroutine = StartCoroutine(RoundCoroutine());
+
+        // Hide start round button
+        DisplayStartRoundButton(false);
     }
 
     private IEnumerator RoundCoroutine()
@@ -144,6 +149,10 @@ public class RoundManager : MonoBehaviour
         }
 
         Debug.Log($"Round ended! Customers served: {customersServedThisRound}/{customerServeQuota} - {(passed ? "PASSED" : "FAILED")}");
+
+        // Show start round button again
+        DisplayStartRoundButton(true);
+
     }
 
     private void OnCustomerServed()
@@ -183,5 +192,13 @@ public class RoundManager : MonoBehaviour
         if (quotaText == null) return;
 
         quotaText.text = $"Served: {customersServedThisRound}/{customerServeQuota}";
+    }
+
+    private void DisplayStartRoundButton(bool show)
+    {
+        if (startRoundButton != null)
+        {
+            startRoundButton.gameObject.SetActive(show);
+        }
     }
 }

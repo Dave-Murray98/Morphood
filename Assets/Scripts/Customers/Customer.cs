@@ -206,6 +206,12 @@ public class Customer : MonoBehaviour
             followerEntity.destination = doorPosition.position;
             DebugLog("Leaving restaurant");
         }
+
+        // Hide speech bubble (as customers will leave when the round ends, if they haven't been served yet, we'll need to hide the bubble)
+        if (speechBubble != null)
+        {
+            speechBubble.Hide();
+        }
     }
 
     /// <summary>
