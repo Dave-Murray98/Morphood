@@ -72,27 +72,42 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
 
     #region BaseInteractable Implementation
 
-    protected override bool CanInteractCustom(PlayerEnd playerEnd)
+    /// <summary>
+    /// Override CanInteract to allow both players to place/pick up items,
+    /// while restricting processing actions to the correct player
+    /// </summary>
+    public override bool CanInteract(PlayerEnd playerEnd)
     {
+        // Check if the object is available
+        if (!IsAvailable) return false;
+
         if (ProcessingStation == null) return false;
 
-        // Check if player can perform this type of processing
-        if (!playerEnd.CanPerformInteraction(RequiredInteractionType))
-        {
-            ProcessingDebugLog($"Player {playerEnd.PlayerNumber} cannot perform {RequiredInteractionType}");
-            return false;
-        }
-
-        // Can interact if:
-        // 1. Player has free hands and station has item (to retrieve), OR
-        // 2. Player is carrying processable item and station has space (to place), OR  
-        // 3. Station has processable item and processing can be started/continued
-
+        // Both players can interact for placement and pickup
         bool canRetrieve = playerEnd.HasFreeHands && ProcessingStation.IsOccupied && !IsCurrentlyProcessing();
         bool canPlace = playerEnd.IsCarryingItems && ProcessingStation.HasSpace && CanPlaceProcessableItem(playerEnd);
-        bool canProcess = ProcessingStation.IsOccupied && CanStartOrContinueProcessing(playerEnd);
 
-        return canRetrieve || canPlace || canProcess;
+        // Only the correct player can interact for processing
+        bool canProcess = playerEnd.CanPerformInteraction(RequiredInteractionType) &&
+                         ProcessingStation.IsOccupied &&
+                         CanStartOrContinueProcessing(playerEnd);
+
+        bool result = canRetrieve || canPlace || canProcess;
+
+        if (!result)
+        {
+            ProcessingDebugLog($"Player {playerEnd.PlayerNumber} cannot interact: " +
+                             $"canRetrieve={canRetrieve}, canPlace={canPlace}, canProcess={canProcess}");
+        }
+
+        return result;
+    }
+
+    protected override bool CanInteractCustom(PlayerEnd playerEnd)
+    {
+        // This is now handled in CanInteract override above
+        // Kept for compatibility but always returns true if we get here
+        return true;
     }
 
     protected override bool PerformInteraction(PlayerEnd playerEnd)
@@ -319,6 +334,12 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     protected virtual bool CanStartOrContinueProcessing(PlayerEnd playerEnd)
     {
         if (!ProcessingStation.IsOccupied) return false;
+
+        // Check if player has permission to perform this type of processing
+        if (!playerEnd.CanPerformInteraction(RequiredInteractionType))
+        {
+            return false;
+        }
 
         // If already processing, only the same player can continue
         if (IsCurrentlyProcessing())
