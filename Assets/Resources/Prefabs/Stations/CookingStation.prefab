@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 1047340275480775040}
   - component: {fileID: 344341077473212077}
   - component: {fileID: 9020584567111088690}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: CookingStation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -61,7 +61,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3163957497790813534}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.70710576, z: -0, w: 0.70710784}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -5.56, y: 0, z: 2.06}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -167,7 +167,6 @@ MonoBehaviour:
   allowPlayer2Interaction: 1
   enableDebugLogs: 0
   showStationGizmos: 1
-  requireHoldToCook: 1
   autoStartCooking: 0
   isCurrentlyCooking: 0
   cookingProgress: 0
@@ -684,7 +683,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6761663789732513801}
   m_LocalRotation: {x: 0.40558037, y: -0.57922715, z: 0.40557918, w: 0.5792289}
-  m_LocalPosition: {x: 0, y: 0, z: 0.17}
+  m_LocalPosition: {x: 0, y: 0, z: 0.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -693,7 +692,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 70, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -0.85, y: 1.724}
+  m_AnchoredPosition: {x: -0.32, y: 2}
   m_SizeDelta: {x: 2, y: 0.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &7041059305889837725
