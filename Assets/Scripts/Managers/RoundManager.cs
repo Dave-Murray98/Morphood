@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Unity.Entities.UniversalDelegates;
 
 public class RoundManager : MonoBehaviour
 {
@@ -153,11 +154,19 @@ public class RoundManager : MonoBehaviour
             resultText.color = passed ? Color.green : Color.red;
         }
 
+        UpdateUI();
+
         Debug.Log($"Round ended! Customers served: {customersServedThisRound}/{customerServeQuota} - {(passed ? "PASSED" : "FAILED")}");
 
         // Show start round button again
         DisplayStartRoundButton(true);
 
+    }
+
+    private void UpdateUI()
+    {
+        UpdateTimerUI();
+        UpdateQuotaUI();
     }
 
     // Called as a listener to the CustomerManager.OnCustomerServedSuccessfully event
