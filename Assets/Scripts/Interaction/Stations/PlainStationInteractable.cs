@@ -144,6 +144,8 @@ public class PlainStationInteractable : BaseInteractable
     /// </summary>
     private void OnStationItemRemoved(GameObject item, PlayerEnd playerEnd)
     {
+        if (playerEnd == null) return;
+
         DebugLog($"Item {item.name} removed by Player {playerEnd.PlayerNumber} - refreshing interaction state");
 
         // Use a coroutine to refresh after the removal and pickup are fully complete

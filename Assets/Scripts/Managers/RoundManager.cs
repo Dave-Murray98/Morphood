@@ -3,6 +3,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using Unity.Entities.UniversalDelegates;
+using System;
 
 public class RoundManager : MonoBehaviour
 {
@@ -92,8 +93,12 @@ public class RoundManager : MonoBehaviour
         }
         roundCoroutine = StartCoroutine(RoundCoroutine());
 
+        // Clear all stations
+        StationManager.Instance.ClearAllStations();
+
         // Reset the food
         FoodManager.Instance.ResetAllFood();
+
 
         // Hide start round button
         DisplayStartRoundButton(false);
@@ -139,6 +144,9 @@ public class RoundManager : MonoBehaviour
 
         // Despawn all active customers
         CustomerManager.Instance.DespawnAllCustomers();
+
+        // Clear all stations
+        StationManager.Instance.ClearAllStations();
 
         // Reset the food
         FoodManager.Instance.ResetAllFood();
