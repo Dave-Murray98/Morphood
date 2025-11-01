@@ -175,8 +175,9 @@ public class CookingStation : BaseStation
     {
         DebugLog($"Food item {item.name} placed on cooking station by Player {playerEnd.PlayerNumber}");
 
-        // Refresh PlayerEnd detection after placing item
-        PlayerEndDetectionRefresher.RefreshNearStation(transform, stationName);
+        // NOTE: Do NOT call PlayerEndDetectionRefresher here during placement!
+        // The BaseProcessingStationInteractable handles refresh via OnItemPlaced event
+        // after placement is fully complete and player's inventory is updated.
 
         // Start cooking automatically if enabled
         if (autoStartCooking)

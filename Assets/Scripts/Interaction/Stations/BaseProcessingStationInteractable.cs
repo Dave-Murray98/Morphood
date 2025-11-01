@@ -109,11 +109,12 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     /// </summary>
     private System.Collections.IEnumerator RefreshPlayerInteractionAfterPlacement(PlayerEnd playerEnd)
     {
+        // Reset our own interaction state immediately (synchronously)
+        // This ensures IsAvailable returns true for subsequent checks
+        ForceResetInteractionState();
+
         // Wait a frame to ensure placement is fully complete
         yield return null;
-
-        // Reset our own interaction state
-        ForceResetInteractionState();
 
         // Wait another frame
         yield return null;
@@ -132,14 +133,15 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     /// </summary>
     private System.Collections.IEnumerator RefreshAfterPlacement(PlayerEnd playerEnd)
     {
+        // Reset our own interaction state immediately (synchronously)
+        // This ensures IsAvailable returns true for subsequent checks
+        ForceResetInteractionState();
+
         // Wait for the placement to fully complete
         // The PlayerEnd will call TryDropOrPlaceItem after this method returns
         yield return null; // Wait for the current frame to complete
         yield return null; // Wait another frame to ensure placement is done
         yield return null; // Wait one more frame to be absolutely sure
-
-        // Reset our own interaction state
-        ForceResetInteractionState();
 
         // Refresh the player's interaction state if they're still nearby
         if (playerEnd != null)
@@ -245,6 +247,10 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     {
         ProcessingDebugLog($"Interaction stopped by Player {playerEnd.PlayerNumber}");
 
+        // CRITICAL: Reset interaction state FIRST, before any code that might trigger detection refresh
+        // This ensures IsAvailable returns true when PlayerEndDetectionRefresher runs
+        ForceResetInteractionState();
+
         // If we were in hold detection phase
         if (isWaitingForHoldDecision && !hasCommittedToAction)
         {
@@ -279,10 +285,6 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         }
 
         ResetHoldDetectionState();
-
-        // CRITICAL FIX: Ensure interaction state is fully cleared
-        // This prevents stale interaction states that can block future interactions
-        ForceResetInteractionState();
     }
 
     /// <summary>
