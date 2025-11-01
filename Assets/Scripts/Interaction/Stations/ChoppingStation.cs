@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// A specialized station for chopping food items.
-/// Only Player 2 can use this station. Items placed here can be processed through chopping.
+/// Both players can place items here, but only Player 2 can perform chopping.
 /// Integrates with the pooling system for efficient item transformation.
 /// FIXED: Now properly refreshes PlayerEnd detection after food transformation.
 /// </summary>
@@ -45,8 +45,8 @@ public class ChoppingStation : BaseStation
         stationType = StationType.Chopping;
         stationName = string.IsNullOrEmpty(stationName) || stationName == "Station" ? "Chopping Station" : stationName;
 
-        // Only Player 2 can use chopping stations
-        allowPlayer1Interaction = false;
+        // Both players can place items, but only Player 2 can perform chopping
+        allowPlayer1Interaction = true;
         allowPlayer2Interaction = true;
 
         base.Initialize();
@@ -149,13 +149,6 @@ public class ChoppingStation : BaseStation
 
     protected override bool CanAcceptItemCustom(GameObject item, PlayerEnd playerEnd)
     {
-        // Check if player can perform chopping
-        if (!playerEnd.CanPerformInteraction(InteractionType.Chopping))
-        {
-            DebugLog($"Player {playerEnd.PlayerNumber} cannot perform chopping");
-            return false;
-        }
-
         // Check if it's a food item that can be chopped
         FoodItem foodItem = item.GetComponent<FoodItem>();
         if (foodItem == null || !foodItem.HasValidFoodData)
@@ -449,7 +442,7 @@ public class ChoppingStation : BaseStation
         if (Application.isPlaying)
         {
             stationType = StationType.Chopping;
-            allowPlayer1Interaction = false;
+            allowPlayer1Interaction = true;
             allowPlayer2Interaction = true;
         }
     }

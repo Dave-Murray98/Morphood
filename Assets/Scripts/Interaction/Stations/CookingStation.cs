@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// A specialized station for cooking food items.
-/// Only Player 1 can use this station. Items placed here can be processed through cooking.
+/// Both players can place items here, but only Player 1 can perform cooking.
 /// Integrates with the pooling system for efficient item transformation.
 /// </summary>
 public class CookingStation : BaseStation
@@ -43,9 +43,9 @@ public class CookingStation : BaseStation
         stationType = StationType.Cooking;
         stationName = string.IsNullOrEmpty(stationName) || stationName == "Station" ? "Cooking Station" : stationName;
 
-        // Only Player 1 can use cooking stations
+        // Both players can place items, but only Player 1 can perform cooking
         allowPlayer1Interaction = true;
-        allowPlayer2Interaction = false;
+        allowPlayer2Interaction = true;
 
         base.Initialize();
 
@@ -147,13 +147,6 @@ public class CookingStation : BaseStation
 
     protected override bool CanAcceptItemCustom(GameObject item, PlayerEnd playerEnd)
     {
-        // Check if player can perform cooking
-        if (!playerEnd.CanPerformInteraction(InteractionType.Cooking))
-        {
-            DebugLog($"Player {playerEnd.PlayerNumber} cannot perform cooking");
-            return false;
-        }
-
         // Check if it's a food item that can be cooked
         FoodItem foodItem = item.GetComponent<FoodItem>();
         if (foodItem == null || !foodItem.HasValidFoodData)
@@ -436,7 +429,7 @@ public class CookingStation : BaseStation
         {
             stationType = StationType.Cooking;
             allowPlayer1Interaction = true;
-            allowPlayer2Interaction = false;
+            allowPlayer2Interaction = true;
         }
     }
 
