@@ -188,16 +188,38 @@ public class CustomerManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Get a free serving station that doesn't have a customer
+    /// Get a free serving station that doesn't have a customer or a leaving customer
     /// </summary>
     private ServingStation GetFreeServingStation()
     {
         foreach (ServingStation station in servingStations)
         {
-            if (station != null && !station.HasCustomer)
+            if (station == null)
+                continue;
+
+            // Check if station has a customer assigned
+            if (station.HasCustomer)
+                continue;
+
+            // FIXED: Also check if any active customers are still leaving from this station
+            // We don't want to spawn a new customer until the previous one has fully despawned
+            bool hasLeavingCustomer = false;
+            foreach (Customer customer in activeCustomers)
             {
-                return station;
+                if (customer != null &&
+                    customer.AssignedStation == station &&
+                    (customer.CurrentState == CustomerState.Leaving || customer.CurrentState == CustomerState.ReadyToDespawn))
+                {
+                    hasLeavingCustomer = true;
+                    break;
+                }
             }
+
+            if (hasLeavingCustomer)
+                continue;
+
+            // Station is truly free - no current customer and no one leaving
+            return station;
         }
         return null;
     }
