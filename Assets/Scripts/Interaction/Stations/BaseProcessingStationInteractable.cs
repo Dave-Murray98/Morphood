@@ -247,6 +247,10 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
     {
         ProcessingDebugLog($"Interaction stopped by Player {playerEnd.PlayerNumber}");
 
+        // CRITICAL: Reset interaction state FIRST, before any code that might trigger detection refresh
+        // This ensures IsAvailable returns true when PlayerEndDetectionRefresher runs
+        ForceResetInteractionState();
+
         // If we were in hold detection phase
         if (isWaitingForHoldDecision && !hasCommittedToAction)
         {
@@ -281,10 +285,6 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         }
 
         ResetHoldDetectionState();
-
-        // CRITICAL FIX: Ensure interaction state is fully cleared
-        // This prevents stale interaction states that can block future interactions
-        ForceResetInteractionState();
     }
 
     /// <summary>
