@@ -12,8 +12,14 @@ public class RecipeStationInteractable : BaseInteractable
     [SerializeField] private Image recipeImage;
     [Tooltip("The Image component that displays the recipe (should be in a world space canvas)")]
 
+    [SerializeField] private float hideDistance = 3f;
+    [Tooltip("Distance at which the recipe automatically hides when player moves away")]
+
     [SerializeField] private bool recipeIsVisible = false;
     [Tooltip("Current visibility state of the recipe")]
+
+    // Track which player is currently viewing the recipe
+    private PlayerEnd viewingPlayer;
 
     protected override void Awake()
     {
@@ -43,6 +49,21 @@ public class RecipeStationInteractable : BaseInteractable
         }
     }
 
+    private void Update()
+    {
+        // Check if the viewing player has moved too far away
+        if (recipeIsVisible && viewingPlayer != null)
+        {
+            float distance = Vector3.Distance(transform.position, viewingPlayer.transform.position);
+            if (distance > hideDistance)
+            {
+                SetRecipeVisibility(false);
+                viewingPlayer = null;
+                DebugLog($"Player moved too far away (distance: {distance:F2}) - hiding recipe");
+            }
+        }
+    }
+
     protected override bool CanInteractCustom(PlayerEnd playerEnd)
     {
         // Anyone can interact at any time
@@ -58,23 +79,24 @@ public class RecipeStationInteractable : BaseInteractable
         }
 
         // Toggle recipe visibility
-        ToggleRecipeVisibility();
-
-        DebugLog($"Player {playerEnd.PlayerNumber} toggled recipe visibility to {recipeIsVisible}");
-
-        // Return true to indicate successful interaction
-        // This allows the player to walk away and trigger StopInteracting
-        return true;
-    }
-
-    protected override void OnInteractionStopped(PlayerEnd playerEnd)
-    {
-        // When player walks away (leaves range), hide the recipe
         if (recipeIsVisible)
         {
+            // Hide the recipe
             SetRecipeVisibility(false);
-            DebugLog($"Player {playerEnd.PlayerNumber} walked away - hiding recipe");
+            viewingPlayer = null;
+            DebugLog($"Player {playerEnd.PlayerNumber} hid the recipe");
         }
+        else
+        {
+            // Show the recipe and track this player
+            SetRecipeVisibility(true);
+            viewingPlayer = playerEnd;
+            DebugLog($"Player {playerEnd.PlayerNumber} is now viewing the recipe");
+        }
+
+        // Return false so this doesn't register as an ongoing interaction
+        // This prevents OnInteractionStopped from being called when button is released
+        return false;
     }
 
     public override string GetInteractionPrompt(PlayerEnd playerEnd)
@@ -92,14 +114,6 @@ public class RecipeStationInteractable : BaseInteractable
             return "No recipe configured";
 
         return base.GetUnavailablePrompt(playerEnd);
-    }
-
-    /// <summary>
-    /// Toggle the visibility of the recipe image
-    /// </summary>
-    private void ToggleRecipeVisibility()
-    {
-        SetRecipeVisibility(!recipeIsVisible);
     }
 
     /// <summary>
@@ -127,6 +141,17 @@ public class RecipeStationInteractable : BaseInteractable
             Gizmos.color = recipeIsVisible ? Color.cyan : Color.gray;
             Vector3 canvasPosition = recipeImage.transform.position;
             Gizmos.DrawWireCube(canvasPosition, Vector3.one * 0.5f);
+        }
+
+        // Draw the hide distance range
+        Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
+        Gizmos.DrawWireSphere(transform.position, hideDistance);
+
+        // Draw line to viewing player if active
+        if (recipeIsVisible && viewingPlayer != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(transform.position, viewingPlayer.transform.position);
         }
     }
 
