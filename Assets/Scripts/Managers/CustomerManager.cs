@@ -282,12 +282,6 @@ public class CustomerManager : MonoBehaviour
             return;
         }
 
-        // if (customer.CurrentState != CustomerState.Eating)
-        // {
-        //     DebugLog($"Customer served but state is {customer.CurrentState}, not Eating");
-        //     return;
-        // }
-
         DebugLog($"Customer served successfully, will eat for {customerEatTime} seconds");
 
         // Fire global event
