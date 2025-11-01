@@ -16,6 +16,7 @@ public class RoundManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI quotaText;
+    [SerializeField] private GameObject resultPanel;
     [SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] private Button startRoundButton;
 
@@ -42,9 +43,9 @@ public class RoundManager : MonoBehaviour
     private void Start()
     {
         // Hide result text at start
-        if (resultText != null)
+        if (resultPanel != null)
         {
-            resultText.gameObject.SetActive(false);
+            resultPanel.SetActive(false);
         }
 
         // Update initial UI
@@ -75,9 +76,9 @@ public class RoundManager : MonoBehaviour
         currentWarmUpTimeRemaining = warmUpTime;
 
         // Hide result text
-        if (resultText != null)
+        if (resultPanel != null)
         {
-            resultText.gameObject.SetActive(false);
+            resultPanel.SetActive(false);
         }
 
         // Update UI
@@ -145,9 +146,9 @@ public class RoundManager : MonoBehaviour
         bool passed = customersServedThisRound >= customerServeQuota;
 
         // Show result
-        if (resultText != null)
+        if (resultPanel != null)
         {
-            resultText.gameObject.SetActive(true);
+            resultPanel.SetActive(true);
             resultText.text = passed ? "ROUND PASSED!" : "ROUND FAILED!";
             resultText.color = passed ? Color.green : Color.red;
         }
