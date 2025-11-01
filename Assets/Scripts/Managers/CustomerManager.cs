@@ -183,7 +183,7 @@ public class CustomerManager : MonoBehaviour
             }
 
             // Wait a bit before checking again
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1f);
         }
     }
 
