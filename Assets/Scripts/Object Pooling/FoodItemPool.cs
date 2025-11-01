@@ -325,6 +325,14 @@ public class FoodItemPool : MonoBehaviour
 
     #region Pool Statistics and Utilities
 
+    public void ReturnAllItemsToPool()
+    {
+        foreach (FoodItem item in allPooledItems)
+        {
+            ReturnToPool(item);
+        }
+    }
+
     /// <summary>
     /// Clear all items from the pool (useful for level resets)
     /// </summary>

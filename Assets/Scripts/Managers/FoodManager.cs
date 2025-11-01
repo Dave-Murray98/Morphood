@@ -404,6 +404,14 @@ public class FoodManager : MonoBehaviour
 
     #region Public Utility Methods
 
+    public void ResetAllFood()
+    {
+        if (itemPool != null)
+        {
+            itemPool.ReturnAllItemsToPool();
+        }
+    }
+
     /// <summary>
     /// Get all currently active food items in the scene
     /// </summary>

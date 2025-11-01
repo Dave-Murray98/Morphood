@@ -92,6 +92,9 @@ public class RoundManager : MonoBehaviour
         }
         roundCoroutine = StartCoroutine(RoundCoroutine());
 
+        // Reset the food
+        FoodManager.Instance.ResetAllFood();
+
         // Hide start round button
         DisplayStartRoundButton(false);
     }
@@ -136,6 +139,9 @@ public class RoundManager : MonoBehaviour
 
         // Despawn all active customers
         customerManager.DespawnAllCustomers();
+
+        // Reset the food
+        FoodManager.Instance.ResetAllFood();
 
         // Determine pass or fail
         bool passed = customersServedThisRound >= customerServeQuota;
