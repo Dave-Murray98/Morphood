@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class RecipeStationInteractable : BaseInteractable
 {
     [Header("Recipe Display")]
-    [SerializeField] private Image recipeImage;
+    [SerializeField] private GameObject recipeImage;
     [Tooltip("The Image component that displays the recipe (should be in a world space canvas)")]
 
     [SerializeField] private float hideDistance = 3f;
@@ -33,13 +33,7 @@ public class RecipeStationInteractable : BaseInteractable
         // Find the recipe image if not assigned
         if (recipeImage == null)
         {
-            // Try to find the Image component in children
-            recipeImage = GetComponentInChildren<Image>(true);
-
-            if (recipeImage == null)
-            {
-                Debug.LogError($"[{name}] No Image component found! Please assign a recipe image in the inspector.");
-            }
+            Debug.LogError($"[{name}] No Image component found! Please assign a recipe image in the inspector.");
         }
 
         // Initialize recipe as hidden
@@ -124,7 +118,7 @@ public class RecipeStationInteractable : BaseInteractable
         if (recipeImage == null) return;
 
         recipeIsVisible = visible;
-        recipeImage.enabled = visible;
+        recipeImage.SetActive(visible);
 
         DebugLog($"Recipe visibility set to {visible}");
     }

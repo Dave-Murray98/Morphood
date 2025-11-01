@@ -109,7 +109,7 @@ public class PlainStationInteractable : BaseInteractable
                 {
                     // Remove the item from player's hands after successful combination
                     playerEnd.DropObject(combinableFoodItem.gameObject);
-                    DebugLog($"Successfully combined {combinableFoodItem.FoodData.DisplayName} with station item");
+                    //DebugLog($"Successfully combined {combinableFoodItem.FoodData.DisplayName} with station item");
                     return true;
                 }
                 else
