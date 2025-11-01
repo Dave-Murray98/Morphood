@@ -13,16 +13,144 @@ public class PlainStationInteractable : BaseInteractable
     [SerializeField] private bool showCombinationPrompts = true;
     [Tooltip("Whether to show special prompts when food items can be combined")]
 
+    [Header("Debug")]
+
+    [SerializeField] private bool enablePlainStationDebug = false;
+
     protected override void Awake()
     {
         base.Awake();
+
         if (plainStation == null)
             plainStation = GetComponent<PlainStation>();
 
         // Set up as universal interaction
         interactionType = InteractionType.Universal;
+
         interactionPriority = 2; // Slightly higher than regular items
     }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        // Subscribe to station events to refresh player interaction state
+        if (plainStation != null)
+        {
+            plainStation.OnItemPlaced += OnStationItemPlaced;
+            plainStation.OnItemRemoved += OnStationItemRemoved;
+        }
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        // Unsubscribe from station events
+        if (plainStation != null)
+        {
+            plainStation.OnItemPlaced -= OnStationItemPlaced;
+            plainStation.OnItemRemoved -= OnStationItemRemoved;
+        }
+    }
+
+    /// <summary>
+    /// Called when an item is placed on this station
+    /// Refreshes nearby player interaction state so they can immediately pick up the item
+    /// </summary>
+    private void OnStationItemPlaced(GameObject item, PlayerEnd playerEnd)
+    {
+        DebugLog($"Item {item.name} placed by Player {playerEnd.PlayerNumber} - refreshing interaction state");
+
+        // Use a coroutine to refresh after a brief delay
+        // This ensures the placement is fully complete before refreshing
+        StartCoroutine(RefreshPlayerInteractionAfterPlacement(playerEnd));
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after item placement
+    /// </summary>
+    private System.Collections.IEnumerator RefreshPlayerInteractionAfterPlacement(PlayerEnd playerEnd)
+    {
+        // Reset our own interaction state immediately (synchronously)
+        // This ensures IsAvailable returns true for subsequent checks
+        ForceResetInteractionState();
+
+        // Wait a frame to ensure placement is fully complete
+        yield return null;
+
+        // Wait another frame
+        yield return null;
+
+        // Refresh the player's interaction state if they're still nearby
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            DebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after placement (via event)");
+        }
+
+    }
+
+    /// <summary>
+    /// Coroutine to refresh player interaction state after item removal
+    /// CRITICAL FIX: This ensures highlighting is properly updated after the player picks up an item
+    /// The delay is necessary because the removal happens during interaction cleanup,
+    /// while isInteracting is still true, which prevents highlighting updates.
+    /// </summary>
+    private System.Collections.IEnumerator RefreshPlayerInteractionAfterRemoval(PlayerEnd playerEnd)
+    {
+        // Reset our own interaction state immediately (synchronously)
+        // This ensures IsAvailable returns true for subsequent checks
+        ForceResetInteractionState();
+
+        // Wait for the current frame to complete (removal and pickup in progress)
+        yield return null;
+
+        // Wait another frame to ensure PlayerEnd.OnInteractReleased() has set isInteracting = false
+        yield return null;
+
+        // Wait one more frame to be absolutely sure all state has settled
+        yield return null;
+
+        // Now refresh the player's interaction state
+        // At this point, isInteracting should be false, so highlighting can update properly
+        if (playerEnd != null)
+        {
+            playerEnd.RefreshInteractionState();
+            DebugLog($"Refreshed Player {playerEnd.PlayerNumber} interaction state after removal (via event)");
+        }
+    }
+
+    /// <summary>
+    /// Force reset all interaction state to ensure clean state for future interactions
+    /// </summary>
+    protected virtual void ForceResetInteractionState()
+    {
+        // Clear any lingering interaction state
+        currentInteractingPlayer = null;
+        isBeingInteractedWith = false;
+
+        // Ensure we're available for new interactions
+        SetAvailable(true);
+
+        DebugLog("Forced interaction state reset - ready for new interactions");
+    }
+
+
+    /// <summary>
+    /// Called when an item is removed from this station
+    /// Refreshes nearby player interaction state so they can immediately interact with the now-empty station
+    /// or see updated highlighting for placing items back
+    /// </summary>
+    private void OnStationItemRemoved(GameObject item, PlayerEnd playerEnd)
+    {
+        DebugLog($"Item {item.name} removed by Player {playerEnd.PlayerNumber} - refreshing interaction state");
+
+        // Use a coroutine to refresh after the removal and pickup are fully complete
+        // This ensures the player's carrying state and interaction state have been updated
+        StartCoroutine(RefreshPlayerInteractionAfterRemoval(playerEnd));
+    }
+
 
     protected override bool CanInteractCustom(PlayerEnd playerEnd)
     {
