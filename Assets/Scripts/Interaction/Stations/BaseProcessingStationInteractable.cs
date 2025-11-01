@@ -235,6 +235,12 @@ public abstract class BaseProcessingStationInteractable : BaseInteractable
         if (playerEnd.IsCarryingItems)
         {
             ProcessingDebugLog("Player carrying items - will refresh after placement");
+
+            // CRITICAL: Reset interaction state immediately before returning false
+            // This ensures IsAvailable returns true when the player's highlighting refresh logic runs
+            ForceResetInteractionState();
+
+            // Also schedule a delayed refresh to ensure state is clean after placement completes
             StartCoroutine(RefreshAfterPlacement(playerEnd));
         }
 
