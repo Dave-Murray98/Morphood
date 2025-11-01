@@ -39,22 +39,6 @@ public class RoundManager : MonoBehaviour
             Instance = this;
     }
 
-    // private void OnEnable()
-    // {
-    //     if (CustomerManager.Instance != null)
-    //     {
-    //         CustomerManager.Instance.OnCustomerServedSuccessfully += OnCustomerServed;
-    //     }
-    // }
-
-    // private void OnDisable()
-    // {
-    //     if (CustomerManager.Instance != null)
-    //     {
-    //         CustomerManager.Instance.OnCustomerServedSuccessfully -= OnCustomerServed;
-    //     }
-    // }
-
     private void Start()
     {
         // Hide result text at start
@@ -175,6 +159,7 @@ public class RoundManager : MonoBehaviour
 
     }
 
+    // Called as a listener to the CustomerManager.OnCustomerServedSuccessfully event
     public void OnCustomerServed()
     {
         if (isRoundActive)
