@@ -195,7 +195,7 @@ public class FoodItemPool : MonoBehaviour
 
         if (availableItems.Contains(item))
         {
-            Debug.LogWarning($"[FoodItemPool] Item is already in the available pool: {item.name}");
+            DebugLog($"[FoodItemPool] Item is already in the available pool: {item.name}");
             return;
         }
 

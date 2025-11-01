@@ -12,9 +12,6 @@ public class ChoppingStation : BaseStation
     [SerializeField] private float choppingTime = 3f;
     [Tooltip("Time required to complete chopping process")]
 
-    [SerializeField] private bool requireHoldToChop = true;
-    [Tooltip("Whether player must hold the interact button to chop")]
-
     [SerializeField] private bool autoStartChopping = false;
     [Tooltip("Whether chopping starts automatically when a valid item is placed")]
 

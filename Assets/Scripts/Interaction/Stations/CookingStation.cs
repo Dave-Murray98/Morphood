@@ -10,9 +10,6 @@ public class CookingStation : BaseStation
     [Header("Cooking Station Settings")]
     [Tooltip("Time required to complete cooking process")]
 
-    [SerializeField] private bool requireHoldToCook = true;
-    [Tooltip("Whether player must hold the interact button to cook")]
-
     [SerializeField] private bool autoStartCooking = false;
     [Tooltip("Whether cooking starts automatically when a valid item is placed")]
 

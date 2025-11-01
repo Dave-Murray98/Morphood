@@ -41,7 +41,6 @@ public class PlayerEnd : MonoBehaviour
     private IInteractable currentInteractionTarget;
     private IInteractable currentHighlightedInteractable; // Track what we're currently highlighting
     private bool isInteracting = false;
-    private bool isHoldingInteraction = false;
 
     // Collision detection
     private Collider triggerCollider;
@@ -503,7 +502,6 @@ public class PlayerEnd : MonoBehaviour
 
         currentInteractionTarget = null;
         isInteracting = false;
-        isHoldingInteraction = false;
 
         // Resume highlighting after interaction ends
         // The next Update() call will handle finding the new best interactable
@@ -516,7 +514,6 @@ public class PlayerEnd : MonoBehaviour
     {
         if (isInteracting && currentInteractionTarget != null)
         {
-            isHoldingInteraction = true;
             // The interaction target handles the hold logic internally
         }
     }

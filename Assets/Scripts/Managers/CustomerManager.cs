@@ -9,6 +9,9 @@ using UnityEngine;
 /// </summary>
 public class CustomerManager : MonoBehaviour
 {
+
+    public static CustomerManager Instance { get; private set; }
+
     [Header("Restaurant Configuration")]
     [SerializeField] private List<ServingStation> servingStations = new List<ServingStation>();
     [Tooltip("All serving stations in the restaurant")]
@@ -59,6 +62,19 @@ public class CustomerManager : MonoBehaviour
     private float lastSpawnTime = -999f;
     private bool isSpawningCustomers = false;
 
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
+
     private void Start()
     {
         Initialize();
@@ -71,6 +87,8 @@ public class CustomerManager : MonoBehaviour
         PreCreateCustomers();
         // Note: Don't auto-start spawning - let RoundManager control this
         // StartCustomerSpawning();
+
+        OnCustomerServedSuccessfully += RoundManager.Instance.OnCustomerServed;
 
         DebugLog("CustomerManager initialized");
     }
@@ -284,6 +302,9 @@ public class CustomerManager : MonoBehaviour
         }
 
         DebugLog($"Customer served successfully, will eat for {customerEatTime} seconds");
+
+        if (OnCustomerServedSuccessfully == null)
+            Debug.LogWarning("[CustomerManager] OnCustomerServedSuccessfully == null!");
 
         // Fire global event
         OnCustomerServedSuccessfully?.Invoke();

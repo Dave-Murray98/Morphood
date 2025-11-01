@@ -30,8 +30,6 @@ public class FoodItemData : ScriptableObject
     [SerializeField] private FoodItemData cookedResult;
     [Tooltip("What this food item becomes when cooked (only used if canBeCooked is true)")]
 
-    [Header("Debug")]
-    [SerializeField] private bool enableDebugLogs = false;
 
     // Public properties for easy access
     public Mesh VisualMesh => visualMesh;

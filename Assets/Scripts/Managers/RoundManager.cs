@@ -5,13 +5,15 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+
+    public static RoundManager Instance { get; private set; }
+
     [Header("Round Settings")]
     [SerializeField] private float roundTimer = 120f; // 2 minutes
     [SerializeField] private float warmUpTime = 5f; // 5 seconds
     [SerializeField] private int customerServeQuota = 2; // Minimum customers to serve
 
     [Header("References")]
-    [SerializeField] private CustomerManager customerManager;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI quotaText;
     [SerializeField] private TextMeshProUGUI resultText;
@@ -25,21 +27,33 @@ public class RoundManager : MonoBehaviour
     private float currentWarmUpTimeRemaining = 0f;
     private Coroutine roundCoroutine;
 
-    private void OnEnable()
+    private void Awake()
     {
-        if (customerManager != null)
+        if (Instance != null)
         {
-            customerManager.OnCustomerServedSuccessfully += OnCustomerServed;
+            Debug.LogWarning("[RoundManager] Multiple RoundManager instances detected. Destroying duplicate.");
+            Destroy(gameObject);
+            return;
         }
+        else
+            Instance = this;
     }
 
-    private void OnDisable()
-    {
-        if (customerManager != null)
-        {
-            customerManager.OnCustomerServedSuccessfully -= OnCustomerServed;
-        }
-    }
+    // private void OnEnable()
+    // {
+    //     if (CustomerManager.Instance != null)
+    //     {
+    //         CustomerManager.Instance.OnCustomerServedSuccessfully += OnCustomerServed;
+    //     }
+    // }
+
+    // private void OnDisable()
+    // {
+    //     if (CustomerManager.Instance != null)
+    //     {
+    //         CustomerManager.Instance.OnCustomerServedSuccessfully -= OnCustomerServed;
+    //     }
+    // }
 
     private void Start()
     {
@@ -65,9 +79,9 @@ public class RoundManager : MonoBehaviour
             return;
         }
 
-        if (customerManager == null)
+        if (CustomerManager.Instance == null)
         {
-            Debug.LogError("CustomerManager reference is missing!");
+            Debug.LogError("CustomerManager.Instance reference is missing!");
             return;
         }
 
@@ -117,7 +131,7 @@ public class RoundManager : MonoBehaviour
         isRoundActive = true;
 
         // Start customer spawning
-        customerManager.StartSpawning();
+        CustomerManager.Instance.StartSpawning();
 
         while (currentRoundTimeRemaining > 0f)
         {
@@ -135,10 +149,10 @@ public class RoundManager : MonoBehaviour
         isRoundActive = false;
 
         // Stop customer spawning
-        customerManager.StopSpawning();
+        CustomerManager.Instance.StopSpawning();
 
         // Despawn all active customers
-        customerManager.DespawnAllCustomers();
+        CustomerManager.Instance.DespawnAllCustomers();
 
         // Reset the food
         FoodManager.Instance.ResetAllFood();
@@ -161,7 +175,7 @@ public class RoundManager : MonoBehaviour
 
     }
 
-    private void OnCustomerServed()
+    public void OnCustomerServed()
     {
         if (isRoundActive)
         {

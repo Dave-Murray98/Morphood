@@ -15,10 +15,6 @@ public class FoodItemInteractable : BaseInteractable
     [SerializeField] private float directProcessingTime = 2f;
     [Tooltip("Time required to process this food item when interacting directly")]
 
-    [Header("Processing Feedback")]
-    [SerializeField] private bool showProcessingPrompts = true;
-    [Tooltip("Whether to show specific prompts for chopping/cooking when near processing stations")]
-
     // Internal references
     private FoodItem foodItem;
     private float processingStartTime = 0f;
