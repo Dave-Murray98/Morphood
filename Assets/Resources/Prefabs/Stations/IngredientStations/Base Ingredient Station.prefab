@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 289785681898583314}
   - component: {fileID: 3888253157439255411}
   - component: {fileID: 9037843267968058251}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Base Ingredient Station
   m_TagString: Untagged
   m_Icon: {fileID: 0}
