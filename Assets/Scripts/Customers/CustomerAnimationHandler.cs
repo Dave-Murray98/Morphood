@@ -109,7 +109,7 @@ public class CustomerAnimationHandler : MonoBehaviour
     //this is called by a animation event at the end of the random waiting animations
     public void OnRandomWaitingAnimationFinished()
     {
-        Debug.Log("Random waiting animation finished");
+        Debug.Log($"Random waiting animation finished, last animation name was {animator.GetCurrentAnimatorStateInfo(0).fullPathHash}");
         isRandomWaitingAnimationPlaying = false;
     }
 
