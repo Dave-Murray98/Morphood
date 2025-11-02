@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -22,6 +23,9 @@ public class FoodItem : PickupableItem
     [SerializeField] private bool isPooledItem = false;
     [Tooltip("Whether this item is managed by the pooling system (set automatically)")]
 
+    [Header("Feedback")]
+    [SerializeField] private FoodItemFeedbackManager feedbackManager;
+
     // Internal components
     private FoodItemInteractable foodInteractable;
     private MeshRenderer meshRenderer;
@@ -42,6 +46,9 @@ public class FoodItem : PickupableItem
         meshCollider = GetComponent<MeshCollider>();
         meshRenderer = GetComponentInChildren<MeshRenderer>();
         meshFilter = GetComponentInChildren<MeshFilter>();
+
+        if (feedbackManager == null)
+            feedbackManager = GetComponent<FoodItemFeedbackManager>();
     }
 
     protected override void Start()
@@ -315,6 +322,11 @@ public class FoodItem : PickupableItem
 
         Debug.LogError("[FoodItem] Cannot create food item - no FoodManager available");
         return null;
+    }
+
+    public void OnFoodItemPlaced()
+    {
+        feedbackManager.PlayPlacementFeedback();
     }
 
     #region Debug and Validation

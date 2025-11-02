@@ -55,6 +55,8 @@ public class PlainStation : BaseStation
 
     protected override void OnItemPlacedInternal(GameObject item, PlayerEnd playerEnd)
     {
+        base.OnItemPlacedInternal(item, playerEnd);
+
         // When an item is placed, check for food combinations if enabled
         FoodItem placedFoodItem = item.GetComponent<FoodItem>();
 

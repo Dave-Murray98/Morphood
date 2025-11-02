@@ -1,4 +1,5 @@
 using Sirenix.OdinInspector;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -287,7 +288,11 @@ public abstract class BaseStation : MonoBehaviour
     /// </summary>
     protected virtual void OnItemPlacedInternal(GameObject item, PlayerEnd playerEnd)
     {
-        // Default: do nothing
+        FoodItem foodItem = item.GetComponent<FoodItem>();
+        if (foodItem != null)
+        {
+            foodItem.OnFoodItemPlaced();
+        }
     }
 
     /// <summary>

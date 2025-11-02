@@ -173,6 +173,8 @@ public class CookingStation : BaseStation
 
     protected override void OnItemPlacedInternal(GameObject item, PlayerEnd playerEnd)
     {
+        base.OnItemPlacedInternal(item, playerEnd);
+
         DebugLog($"Food item {item.name} placed on cooking station by Player {playerEnd.PlayerNumber}");
 
         // NOTE: Do NOT call PlayerEndDetectionRefresher here during placement!
