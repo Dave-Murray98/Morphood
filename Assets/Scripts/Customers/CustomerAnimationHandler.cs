@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class CustomerAnimationHandler : MonoBehaviour
@@ -12,7 +13,7 @@ public class CustomerAnimationHandler : MonoBehaviour
     [SerializeField] private string waitingAnimationName3;
 
     [SerializeField] private float waitingAnimationInterlude = 2f;
-    private float waitAnimTimer = 0f;
+    [ShowInInspector] private float waitAnimTimer = 0f;
 
     //anim hashs
     private int walkHash;
@@ -24,7 +25,7 @@ public class CustomerAnimationHandler : MonoBehaviour
 
     public CustomerState currentState;
 
-    private bool isRandomWaitingAnimationPlaying = false;
+    [ShowInInspector] private bool isRandomWaitingAnimationPlaying = false;
 
     private void Awake()
     {
@@ -104,6 +105,7 @@ public class CustomerAnimationHandler : MonoBehaviour
     //this is called by a animation event at the end of the random waiting animations
     public void OnRandomWaitingAnimationFinished()
     {
+        Debug.Log("Random waiting animation finished");
         isRandomWaitingAnimationPlaying = false;
     }
 
