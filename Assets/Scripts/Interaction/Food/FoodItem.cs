@@ -40,8 +40,8 @@ public class FoodItem : PickupableItem
         base.Awake();
 
         meshCollider = GetComponent<MeshCollider>();
-        meshRenderer = GetComponent<MeshRenderer>();
-        meshFilter = GetComponent<MeshFilter>();
+        meshRenderer = GetComponentInChildren<MeshRenderer>();
+        meshFilter = GetComponentInChildren<MeshFilter>();
     }
 
     protected override void Start()
