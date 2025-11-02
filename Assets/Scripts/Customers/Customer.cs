@@ -11,6 +11,7 @@ public class Customer : MonoBehaviour
     [Header("Components")]
     [SerializeField] private FollowerEntity followerEntity;
     [SerializeField] private CustomerAnimationHandler animationHandler;
+    [SerializeField] private CustomerAppearanceManager appearanceManager;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
@@ -52,6 +53,10 @@ public class Customer : MonoBehaviour
 
         if (animationHandler == null)
             animationHandler = GetComponent<CustomerAnimationHandler>();
+
+        // Auto-find the appearance manager if not assigned
+        if (appearanceManager == null)
+            appearanceManager = GetComponent<CustomerAppearanceManager>();
     }
 
     private void OnEnable()
@@ -65,6 +70,13 @@ public class Customer : MonoBehaviour
 
         if (speechBubble != null)
             speechBubble.Hide();
+
+        // Randomize appearance when customer becomes active
+        if (appearanceManager != null)
+        {
+            appearanceManager.RandomizeAppearance();
+            DebugLog($"Randomized customer appearance to index {appearanceManager.GetCurrentAppearanceIndex()}");
+        }
     }
 
     private void OnDisable()
@@ -236,7 +248,42 @@ public class Customer : MonoBehaviour
         servedFood = null;
         currentState = CustomerState.Idle;
         hasReachedDestination = false;
+
+        // Reset appearance tracking
+        if (appearanceManager != null)
+        {
+            appearanceManager.ResetForPooling();
+        }
+
         DebugLog("Reset for pooling");
+    }
+
+    /// <summary>
+    /// Manually change the customer's appearance (useful for testing or special cases)
+    /// </summary>
+    public void ChangeAppearance(int appearanceIndex)
+    {
+        if (appearanceManager != null)
+        {
+            appearanceManager.ApplyAppearance(appearanceIndex);
+            DebugLog($"Manually changed appearance to index {appearanceIndex}");
+        }
+        else
+        {
+            DebugLog("Cannot change appearance - no CustomerAppearanceManager found");
+        }
+    }
+
+    /// <summary>
+    /// Get the current appearance index for debugging or save purposes
+    /// </summary>
+    public int GetCurrentAppearanceIndex()
+    {
+        if (appearanceManager != null)
+        {
+            return appearanceManager.GetCurrentAppearanceIndex();
+        }
+        return -1;
     }
 
     private void DebugLog(string message)

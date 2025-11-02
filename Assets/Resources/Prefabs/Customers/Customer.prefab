@@ -1339,7 +1339,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5223423111452244051
 Transform:
   m_ObjectHideFlags: 0
@@ -2237,7 +2237,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5223423111452243539
 Transform:
   m_ObjectHideFlags: 0
@@ -4581,6 +4581,7 @@ GameObject:
   - component: {fileID: 3932175924456907394}
   - component: {fileID: 7098252059646511555}
   - component: {fileID: 6895832800386598093}
+  - component: {fileID: 5880648058309877922}
   - component: {fileID: 5610814751779929434}
   m_Layer: 9
   m_Name: Customer
@@ -4670,8 +4671,44 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   followerEntity: {fileID: 5610814751779929434}
   animationHandler: {fileID: 146022347534396203}
+  appearanceManager: {fileID: 5880648058309877922}
   enableDebugLogs: 1
   speechBubble: {fileID: 5662934074023593896}
+--- !u!114 &5880648058309877922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8770045754059386278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdab768c0e1bdb142aa405cb333e2642, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  availableAppearances:
+  - {fileID: 5223423111448908427}
+  - {fileID: 5223423111448921803}
+  - {fileID: 5223423111448923509}
+  - {fileID: 5223423111448930935}
+  - {fileID: 5223423111448927689}
+  - {fileID: 5223423111448947583}
+  - {fileID: 5223423111448941039}
+  - {fileID: 5223423111448845287}
+  - {fileID: 5223423111448872373}
+  - {fileID: 5223423111448919493}
+  - {fileID: 5223423111448877551}
+  - {fileID: 5223423111448910133}
+  - {fileID: 5223423111448914887}
+  - {fileID: 5223423111448898801}
+  - {fileID: 5223423111448874339}
+  - {fileID: 5223423111448928097}
+  - {fileID: 5223423111448883441}
+  - {fileID: 5223423111448900157}
+  - {fileID: 5223423111448897791}
+  randomizeOnEnable: 1
+  avoidConsecutiveDuplicates: 1
+  enableDebugLogs: 0
 --- !u!114 &5610814751779929434
 MonoBehaviour:
   m_ObjectHideFlags: 0
