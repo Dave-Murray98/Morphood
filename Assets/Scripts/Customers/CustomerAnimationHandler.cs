@@ -85,6 +85,7 @@ public class CustomerAnimationHandler : MonoBehaviour
         else
         {
             waitAnimTimer = 0f;
+            isRandomWaitingAnimationPlaying = false;
         }
     }
 
