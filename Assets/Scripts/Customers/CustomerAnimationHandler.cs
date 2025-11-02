@@ -101,6 +101,7 @@ public class CustomerAnimationHandler : MonoBehaviour
         }
     }
 
+    //this is called by a animation event at the end of the random waiting animations
     public void OnRandomWaitingAnimationFinished()
     {
         isRandomWaitingAnimationPlaying = false;
