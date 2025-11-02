@@ -336,7 +336,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb60d28ffa47eb45bd046dba31710aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roundTimer: 120
+  roundTimer: 30
   warmUpTime: 5
   customerServeQuota: 2
   timerText: {fileID: 7169440202349861764}
@@ -3388,7 +3388,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8112744785462472798, guid: 0ccdea0f7204b94468168e2aa8bb8f28, type: 3}
       propertyPath: enableDebugLogs
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
