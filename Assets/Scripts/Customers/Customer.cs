@@ -99,7 +99,7 @@ public class Customer : MonoBehaviour
         currentState = CustomerState.MovingToTable;
         hasReachedDestination = false;
 
-        animationHandler.UpdateAnimation(currentState);
+        animationHandler.UpdateAnimationState(currentState);
 
         // Move to the station
         if (followerEntity != null && station != null)
@@ -124,7 +124,7 @@ public class Customer : MonoBehaviour
                 speechBubble.Show(orderRequest.Icon);
             }
 
-            animationHandler.UpdateAnimation(currentState);
+            animationHandler.UpdateAnimationState(currentState);
 
             DebugLog($"Arrived at table, waiting for {orderRequest.DisplayName}");
         }
@@ -150,7 +150,7 @@ public class Customer : MonoBehaviour
         servedFood = food;
         currentState = CustomerState.Eating;
 
-        animationHandler.UpdateAnimation(currentState);
+        animationHandler.UpdateAnimationState(currentState);
 
         if (speechBubble != null)
         {
@@ -217,7 +217,7 @@ public class Customer : MonoBehaviour
             DebugLog("Leaving restaurant");
         }
 
-        animationHandler.UpdateAnimation(currentState);
+        animationHandler.UpdateAnimationState(currentState);
 
         // Hide speech bubble (as customers will leave when the round ends, if they haven't been served yet, we'll need to hide the bubble)
         if (speechBubble != null)

@@ -336,7 +336,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb60d28ffa47eb45bd046dba31710aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roundTimer: 30
+  roundTimer: 60
   warmUpTime: 5
   customerServeQuota: 2
   timerText: {fileID: 7169440202349861764}
@@ -426,8 +426,7 @@ MonoBehaviour:
   - {fileID: 961017921}
   doorTransform: {fileID: 774820908}
   menu:
-  - {fileID: 11400000, guid: b0d955b470e078d49a3d7eb8e2fc2ac2, type: 2}
-  - {fileID: 11400000, guid: ea8127d2389b703428daeccd38b46350, type: 2}
+  - {fileID: 11400000, guid: cab1a3d37b5adc0498653d3bcf03bd1b, type: 2}
   customerPrefab: {fileID: 8770045754059386278, guid: eb748091e1e2c7247a452050d3068324, type: 3}
   spawnInterval: 5
   customerEatTime: 5
