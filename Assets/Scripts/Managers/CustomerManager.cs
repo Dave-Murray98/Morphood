@@ -82,6 +82,7 @@ public class CustomerManager : MonoBehaviour
 
     private void Initialize()
     {
+        FindAllServingStations();
         ValidateConfiguration();
         SetupPoolParent();
         PreCreateCustomers();
@@ -91,6 +92,14 @@ public class CustomerManager : MonoBehaviour
         OnCustomerServedSuccessfully += RoundManager.Instance.OnCustomerServed;
 
         DebugLog("CustomerManager initialized");
+    }
+
+    private void FindAllServingStations()
+    {
+        foreach (ServingStation station in FindObjectsByType<ServingStation>(FindObjectsSortMode.None))
+        {
+            servingStations.Add(station);
+        }
     }
 
     private void ValidateConfiguration()
