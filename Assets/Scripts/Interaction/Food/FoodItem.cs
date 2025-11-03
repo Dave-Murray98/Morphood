@@ -14,10 +14,8 @@ public class FoodItem : PickupableItem
     [Tooltip("The ScriptableObject that defines this food item's properties and behavior")]
 
     [Header("Visual Components")]
-    [SerializeField] private MeshFilter meshFilter;
-
-    [SerializeField] private bool updateMaterialOnStart = true;
-    [Tooltip("Whether to apply the food data's material to the mesh renderer on start")]
+    [Tooltip("Reference to the spawned visual child (auto-populated at runtime)")]
+    private GameObject visualChild;
 
     [Header("Pooling Support")]
     [SerializeField] private bool isPooledItem = false;
@@ -28,7 +26,6 @@ public class FoodItem : PickupableItem
 
     // Internal components
     private FoodItemInteractable foodInteractable;
-    private MeshRenderer meshRenderer;
     private MeshCollider meshCollider;
 
     // Pooling state
@@ -44,8 +41,6 @@ public class FoodItem : PickupableItem
         base.Awake();
 
         meshCollider = GetComponent<MeshCollider>();
-        meshRenderer = GetComponentInChildren<MeshRenderer>();
-        meshFilter = GetComponentInChildren<MeshFilter>();
 
         if (feedbackManager == null)
             feedbackManager = GetComponent<FoodItemFeedbackManager>();
@@ -125,30 +120,70 @@ public class FoodItem : PickupableItem
     {
         if (!HasValidFoodData) return;
 
-        // Update mesh
-        if (meshFilter != null && foodData.VisualMesh != null)
+        // Destroy any existing visual child
+        if (visualChild != null)
         {
-            meshFilter.mesh = foodData.VisualMesh;
+            if (Application.isPlaying)
+            {
+                Destroy(visualChild);
+            }
+            else
+            {
+                DestroyImmediate(visualChild);
+            }
+            visualChild = null;
         }
 
-        // Update material
-        if (meshRenderer != null && foodData.ItemMaterial != null && updateMaterialOnStart)
+        // Spawn the visual prefab as a child
+        if (foodData.VisualPrefab != null)
         {
-            meshRenderer.material = foodData.ItemMaterial;
-        }
+            if (Application.isPlaying)
+            {
+                visualChild = Instantiate(foodData.VisualPrefab, transform);
+            }
+            else
+            {
+                visualChild = Instantiate(foodData.VisualPrefab);
+                visualChild.transform.SetParent(transform);
+            }
 
-        // Update collider mesh
-        if (meshCollider != null && foodData.ColliderMesh != null)
-        {
-            meshCollider.sharedMesh = foodData.ColliderMesh;
-        }
-        else if (meshCollider != null && foodData.VisualMesh != null)
-        {
-            // Fall back to visual mesh if no specific collider mesh
-            meshCollider.sharedMesh = foodData.VisualMesh;
-        }
+            // Reset local transform
+            visualChild.transform.localPosition = Vector3.zero;
+            visualChild.transform.localRotation = Quaternion.identity;
+            visualChild.transform.localScale = Vector3.one;
 
-        DebugLog($"Updated visual representation for {foodData.DisplayName}");
+            // Set up the mesh collider on the parent using the child's mesh
+            SetupMeshCollider();
+
+            DebugLog($"Updated visual representation for {foodData.DisplayName}");
+        }
+        else
+        {
+            Debug.LogWarning($"[FoodItem] {name} has no visual prefab assigned in food data!");
+        }
+    }
+
+    /// <summary>
+    /// Set up the mesh collider on the parent FoodItem using the visual child's mesh
+    /// </summary>
+    private void SetupMeshCollider()
+    {
+        if (meshCollider == null || visualChild == null) return;
+
+        // Get the MeshFilter from the visual child
+        MeshFilter childMeshFilter = visualChild.GetComponent<MeshFilter>();
+        if (childMeshFilter != null && childMeshFilter.sharedMesh != null)
+        {
+            // Create a convex mesh collider using the visual mesh
+            meshCollider.sharedMesh = childMeshFilter.sharedMesh;
+            meshCollider.convex = true;
+
+            DebugLog($"Set up convex mesh collider from visual child");
+        }
+        else
+        {
+            Debug.LogWarning($"[FoodItem] {name}'s visual child has no MeshFilter or mesh!");
+        }
     }
 
     /// <summary>
@@ -263,20 +298,25 @@ public class FoodItem : PickupableItem
         // Clear food data reference
         foodData = null;
 
-        // Reset visual state
-        if (meshFilter != null)
+        // Destroy visual child
+        if (visualChild != null)
         {
-            meshFilter.mesh = null;
+            if (Application.isPlaying)
+            {
+                Destroy(visualChild);
+            }
+            else
+            {
+                DestroyImmediate(visualChild);
+            }
+            visualChild = null;
         }
 
-        if (meshRenderer != null)
-        {
-            meshRenderer.material = null;
-        }
-
+        // Reset collider
         if (meshCollider != null)
         {
             meshCollider.sharedMesh = null;
+            meshCollider.convex = false;
         }
 
         // Reset item properties
