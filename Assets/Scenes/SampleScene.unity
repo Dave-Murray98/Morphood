@@ -375,8 +375,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lowIntensitySource: {fileID: 853863645}
   highIntensitySource: {fileID: 32422424}
-  lowIntensityClip: {fileID: 8300000, guid: 18e2f329763d63a499cedad5b58b7899, type: 3}
-  highIntensityClip: {fileID: 8300000, guid: 3063abff2b60b014994987f2159956e2, type: 3}
+  lowIntensityClip: {fileID: 8300000, guid: e0e07220967152740bd57993e6695a2d, type: 3}
+  highIntensityClip: {fileID: 8300000, guid: 90db6501e8238ba439b985d8dde945b8, type: 3}
   baseVolume: 0.4
   fadeDuration: 1
   enablePitchEscalation: 1
@@ -526,7 +526,7 @@ MonoBehaviour:
   revenueNeeded: 20
   enableTimerExtension: 1
   extensionTriggerTime: 10
-  timeSlowMultiplier: 0.6
+  timeSlowMultiplier: 0.7
   timerText: {fileID: 7169440202349861764}
   quotaText: {fileID: 7169440202349861763}
   resultPanel: {fileID: 1815519492}
