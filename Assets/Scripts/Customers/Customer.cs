@@ -23,7 +23,7 @@ public class Customer : MonoBehaviour
     private GameObject servedFood;
 
     [Header("SpeechBubble")]
-    [SerializeField] private CustomerOrderSpeechBubble speechBubble;
+    [SerializeField] private CustomerUI customerUI;
 
     // State tracking
     private bool hasReachedDestination = false;
@@ -45,11 +45,14 @@ public class Customer : MonoBehaviour
             Debug.LogError($"[Customer] {name} requires a FollowerEntity component!");
         }
 
-        if (speechBubble == null)
-            speechBubble = GetComponentInChildren<CustomerOrderSpeechBubble>();
+        if (customerUI == null)
+            customerUI = GetComponentInChildren<CustomerUI>();
 
-        if (speechBubble != null)
-            speechBubble.Hide();
+        if (customerUI != null)
+        {
+            customerUI.HideSpeechBubble();
+            customerUI.HideMoneyUI();
+        }
 
         if (animationHandler == null)
             animationHandler = GetComponent<CustomerAnimationHandler>();
@@ -68,8 +71,11 @@ public class Customer : MonoBehaviour
 
         followerEntity.enabled = true;
 
-        if (speechBubble != null)
-            speechBubble.Hide();
+        if (customerUI != null)
+        {
+            customerUI.HideSpeechBubble();
+            customerUI.HideMoneyUI();
+        }
 
         // Randomize appearance when customer becomes active
         if (appearanceManager != null)
@@ -131,9 +137,9 @@ public class Customer : MonoBehaviour
             // Arrived at table, now waiting for service
             currentState = CustomerState.WaitingForFood;
 
-            if (speechBubble != null)
+            if (customerUI != null)
             {
-                speechBubble.Show(orderRequest.Icon);
+                customerUI.ShowSpeechBubble(orderRequest.Icon);
             }
 
             animationHandler.UpdateAnimationState(currentState);
@@ -164,9 +170,10 @@ public class Customer : MonoBehaviour
 
         animationHandler.UpdateAnimationState(currentState);
 
-        if (speechBubble != null)
+        if (customerUI != null)
         {
-            speechBubble.Hide();
+            customerUI.HideSpeechBubble();
+            customerUI.StartCoroutine(customerUI.ShowMoneyUICoroutine(orderRequest.foodValue));
         }
 
         DebugLog($"Started eating {orderRequest.DisplayName}");
@@ -232,9 +239,10 @@ public class Customer : MonoBehaviour
         animationHandler.UpdateAnimationState(currentState);
 
         // Hide speech bubble (as customers will leave when the round ends, if they haven't been served yet, we'll need to hide the bubble)
-        if (speechBubble != null)
+        if (customerUI != null)
         {
-            speechBubble.Hide();
+            customerUI.HideSpeechBubble();
+            customerUI.HideMoneyUI();
         }
     }
 
