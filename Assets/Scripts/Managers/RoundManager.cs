@@ -15,6 +15,15 @@ public class RoundManager : MonoBehaviour
     [Tooltip("Minimum cash player needs to have earned to pass")]
     [SerializeField] private float revenueNeeded = 20;
 
+    [Header("Timer Extension Settings (makes last few seconds of a round slower)")]
+    [Tooltip("Enable the timer extension feature")]
+    [SerializeField] private bool enableTimerExtension = true;
+    [Tooltip("When timer reaches this many seconds, start slowing down time")]
+    [SerializeField] private float extensionTriggerTime = 10f;
+    [Tooltip("How much to slow down time (0.5 = half speed, 0.3 = very slow)")]
+    [Range(0.1f, 1f)]
+    [SerializeField] private float timeSlowMultiplier = 0.5f;
+
     [Header("References")]
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI quotaText;
@@ -29,6 +38,9 @@ public class RoundManager : MonoBehaviour
     private float currentRoundTimeRemaining = 0f;
     private float currentWarmUpTimeRemaining = 0f;
     private Coroutine roundCoroutine;
+
+    // Timer extension state
+    private bool isTimerExtensionActive = false;
 
     private void Awake()
     {
@@ -76,6 +88,7 @@ public class RoundManager : MonoBehaviour
         currentRevenue = 0;
         currentRoundTimeRemaining = roundTimer;
         currentWarmUpTimeRemaining = warmUpTime;
+        isTimerExtensionActive = false;
 
         // Hide result text
         if (resultPanel != null)
@@ -98,7 +111,6 @@ public class RoundManager : MonoBehaviour
 
         // Reset the food
         FoodManager.Instance.ResetAllFood();
-
 
         // Hide start round button
         DisplayStartRoundButton(false);
@@ -126,7 +138,25 @@ public class RoundManager : MonoBehaviour
 
         while (currentRoundTimeRemaining > 0f)
         {
-            currentRoundTimeRemaining -= Time.deltaTime;
+            // Calculate how much time to subtract this frame
+            float timeToSubtract = Time.deltaTime;
+
+            // Check if we should activate timer extension
+            if (enableTimerExtension &&
+                currentRoundTimeRemaining <= extensionTriggerTime &&
+                !isTimerExtensionActive)
+            {
+                isTimerExtensionActive = true;
+                Debug.Log("[RoundManager] Timer extension activated!");
+            }
+
+            // Apply time slow multiplier if extension is active
+            if (isTimerExtensionActive)
+            {
+                timeToSubtract *= timeSlowMultiplier;
+            }
+
+            currentRoundTimeRemaining -= timeToSubtract;
             UpdateTimerUI();
             yield return null;
         }
@@ -138,6 +168,7 @@ public class RoundManager : MonoBehaviour
     private void EndRound()
     {
         isRoundActive = false;
+        isTimerExtensionActive = false;
 
         // Stop customer spawning
         CustomerManager.Instance.StopSpawning();
@@ -168,7 +199,6 @@ public class RoundManager : MonoBehaviour
 
         // Show start round button again
         DisplayStartRoundButton(true);
-
     }
 
     private void UpdateUI()
@@ -202,7 +232,11 @@ public class RoundManager : MonoBehaviour
             // Show round timer
             int minutes = Mathf.FloorToInt(currentRoundTimeRemaining / 60f);
             int seconds = Mathf.FloorToInt(currentRoundTimeRemaining % 60f);
-            timerText.text = $"Time: {minutes:00}:{seconds:00}";
+
+            // Add visual indicator when timer extension is active
+            string timerDisplay = $"Time: {minutes:00}:{seconds:00}";
+
+            timerText.text = timerDisplay;
         }
         else
         {

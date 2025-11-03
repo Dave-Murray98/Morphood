@@ -336,9 +336,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb60d28ffa47eb45bd046dba31710aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roundTimer: 60
+  roundTimer: 30
   warmUpTime: 5
-  customerServeQuota: 2
+  revenueNeeded: 20
+  enableTimerExtension: 1
+  extensionTriggerTime: 10
+  timeSlowMultiplier: 0.6
   timerText: {fileID: 7169440202349861764}
   quotaText: {fileID: 7169440202349861763}
   resultPanel: {fileID: 1815519492}
