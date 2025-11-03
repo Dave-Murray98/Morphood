@@ -8,21 +8,25 @@ using UnityEngine;
 public class FoodItemData : ScriptableObject
 {
     [Header("Visual Representation")]
-    [SerializeField] private GameObject visualPrefab;
     [Tooltip("The prefab that contains the visual representation (mesh, materials, etc.) - will be spawned as a child of the food item")]
+    [SerializeField] private GameObject visualPrefab;
 
     [Header("Basic Properties")]
-    [SerializeField] private string displayName = "Food Item";
     [Tooltip("The name shown to players when they interact with this food item")]
-    [SerializeField] private Sprite icon;
+    [SerializeField] private string displayName = "Food Item";
     [Tooltip("The icon shown to players when they interact with this food item")]
+    [SerializeField] private Sprite icon;
+
+    [Header("Food Properties")]
+    [Tooltip("How much money this food item is worth?")]
+    public float foodValue = 10f;
 
     [Header("Processing Results")]
-    [SerializeField] private FoodItemData choppedResult;
     [Tooltip("What this food item becomes when chopped (only used if canBeChopped is true)")]
+    [SerializeField] private FoodItemData choppedResult;
 
-    [SerializeField] private FoodItemData cookedResult;
     [Tooltip("What this food item becomes when cooked (only used if canBeCooked is true)")]
+    [SerializeField] private FoodItemData cookedResult;
 
 
     // Public properties for easy access

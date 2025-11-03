@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using Unity.Entities.UniversalDelegates;
 using System;
 
 public class RoundManager : MonoBehaviour
@@ -13,7 +12,8 @@ public class RoundManager : MonoBehaviour
     [Header("Round Settings")]
     [SerializeField] private float roundTimer = 120f; // 2 minutes
     [SerializeField] private float warmUpTime = 5f; // 5 seconds
-    [SerializeField] private int customerServeQuota = 2; // Minimum customers to serve
+    [Tooltip("Minimum cash player needs to have earned to pass")]
+    [SerializeField] private float revenueNeeded = 20;
 
     [Header("References")]
     [SerializeField] private TextMeshProUGUI timerText;
@@ -25,7 +25,7 @@ public class RoundManager : MonoBehaviour
     // Round state
     private bool isRoundActive = false;
     private bool isWarmUpActive = false;
-    private int customersServedThisRound = 0;
+    private float currentRevenue = 0;
     private float currentRoundTimeRemaining = 0f;
     private float currentWarmUpTimeRemaining = 0f;
     private Coroutine roundCoroutine;
@@ -73,7 +73,7 @@ public class RoundManager : MonoBehaviour
         }
 
         // Reset round state
-        customersServedThisRound = 0;
+        currentRevenue = 0;
         currentRoundTimeRemaining = roundTimer;
         currentWarmUpTimeRemaining = warmUpTime;
 
@@ -152,7 +152,7 @@ public class RoundManager : MonoBehaviour
         FoodManager.Instance.ResetAllFood();
 
         // Determine pass or fail
-        bool passed = customersServedThisRound >= customerServeQuota;
+        bool passed = currentRevenue >= revenueNeeded;
 
         // Show result
         if (resultPanel != null)
@@ -164,7 +164,7 @@ public class RoundManager : MonoBehaviour
 
         UpdateUI();
 
-        Debug.Log($"Round ended! Customers served: {customersServedThisRound}/{customerServeQuota} - {(passed ? "PASSED" : "FAILED")}");
+        Debug.Log($"Round ended! cash earned vs breakeven: {currentRevenue}/{revenueNeeded} - {(passed ? "PASSED" : "FAILED")}");
 
         // Show start round button again
         DisplayStartRoundButton(true);
@@ -178,11 +178,11 @@ public class RoundManager : MonoBehaviour
     }
 
     // Called as a listener to the CustomerManager.OnCustomerServedSuccessfully event
-    public void OnCustomerServed()
+    public void OnCustomerServed(float foodValue)
     {
         if (isRoundActive)
         {
-            customersServedThisRound++;
+            currentRevenue += foodValue;
             UpdateQuotaUI();
         }
     }
@@ -214,7 +214,7 @@ public class RoundManager : MonoBehaviour
     {
         if (quotaText == null) return;
 
-        quotaText.text = $"Served: {customersServedThisRound}/{customerServeQuota}";
+        quotaText.text = $"Cash Earned: ${currentRevenue}/${revenueNeeded}";
     }
 
     private void DisplayStartRoundButton(bool show)

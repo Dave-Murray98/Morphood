@@ -48,7 +48,7 @@ public class CustomerManager : MonoBehaviour
     [SerializeField] private bool enableDebugLogs = false;
 
     // Events - Using C# events instead of UnityEvents for better reliability
-    public event Action OnCustomerServedSuccessfully;
+    public event Action<float> OnCustomerServedSuccessfully;
 
     // Pooling
     private Queue<Customer> availableCustomers = new Queue<Customer>();
@@ -316,7 +316,7 @@ public class CustomerManager : MonoBehaviour
             Debug.LogWarning("[CustomerManager] OnCustomerServedSuccessfully == null!");
 
         // Fire global event
-        OnCustomerServedSuccessfully?.Invoke();
+        OnCustomerServedSuccessfully?.Invoke(customer.OrderRequest.foodValue);
 
         // Start eating coroutine
         StartCoroutine(CustomerEatingCoroutine(customer));
