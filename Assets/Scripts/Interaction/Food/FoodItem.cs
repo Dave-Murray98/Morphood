@@ -417,6 +417,34 @@ public class FoodItem : PickupableItem
         feedbackManager.PlayPlacementFeedback();
     }
 
+    #region Outline Highlighting Override
+
+    /// <summary>
+    /// Override StartHighlighting to ensure outline component is set up from visual child
+    /// </summary>
+    public override void StartHighlighting()
+    {
+        // If outline component is null, try to find it from the Model parent
+        if (outlineComponent == null && modelParent != null)
+        {
+            SetupOutlineComponent();
+        }
+
+        // Now call the base implementation
+        base.StartHighlighting();
+    }
+
+    /// <summary>
+    /// Override StopHighlighting to handle the visual child outline properly
+    /// </summary>
+    public override void StopHighlighting()
+    {
+        // Call base implementation which handles the actual stopping
+        base.StopHighlighting();
+    }
+
+    #endregion
+
     #region Debug and Validation
 
     protected override void OnValidate()
