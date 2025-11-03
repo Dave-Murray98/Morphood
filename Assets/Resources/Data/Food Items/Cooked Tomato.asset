@@ -12,11 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1074996721efcc540adefe6ce5c9cc36, type: 3}
   m_Name: Cooked Tomato
   m_EditorClassIdentifier: 
-  visualMesh: {fileID: 4300000, guid: 95256ff39f56c2b498466f356cc5f791, type: 3}
-  itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
-  colliderMesh: {fileID: 43945140647347306, guid: 0578f56b0531cd843b6f7a3da8f9c080, type: 2}
+  visualPrefab: {fileID: 1144842323900444, guid: 8bc534b1404fc33408630d3f61d3fc87, type: 3}
   displayName: Cooked Tomato
   icon: {fileID: 21300000, guid: 5a8d0ea119272c1458ed0fa04025a79d, type: 3}
   choppedResult: {fileID: 0}
   cookedResult: {fileID: 0}
-  enableDebugLogs: 0
