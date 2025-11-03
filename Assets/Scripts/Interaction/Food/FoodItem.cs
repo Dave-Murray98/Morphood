@@ -44,6 +44,9 @@ public class FoodItem : PickupableItem
 
         if (feedbackManager == null)
             feedbackManager = GetComponent<FoodItemFeedbackManager>();
+
+        // Note: We don't get the outline component here because it will be on the visual child
+        // which hasn't been spawned yet. It will be found in UpdateVisualRepresentation()
     }
 
     protected override void Start()
@@ -151,6 +154,9 @@ public class FoodItem : PickupableItem
             // Set up the mesh collider on the parent using the child's mesh
             SetupMeshCollider();
 
+            // Set up the outline component from the visual child
+            SetupOutlineComponent();
+
             DebugLog($"Updated visual representation for {foodData.DisplayName}");
         }
         else
@@ -160,11 +166,45 @@ public class FoodItem : PickupableItem
     }
 
     /// <summary>
+    /// Set up the outline component reference from the visual child
+    /// </summary>
+    private void SetupOutlineComponent()
+    {
+        if (modelParent == null) return;
+
+        // Find the InteractableOutline component in the Model parent's children
+        outlineComponent = modelParent.GetComponentInChildren<InteractableOutline>();
+
+        if (outlineComponent != null)
+        {
+            // Initially disable the outline (it will be enabled when highlighting)
+            outlineComponent.enabled = false;
+            DebugLog("Found and set up outline component from visual child");
+        }
+        else if (enableOutlineHighlighting)
+        {
+            Debug.LogWarning($"[FoodItem] {name} has outline highlighting enabled, but no InteractableOutline component found on the visual prefab!");
+        }
+    }
+
+    /// <summary>
     /// Clear all children of the Model parent
     /// </summary>
     private void ClearModelChildren()
     {
         if (modelParent == null) return;
+
+        // Clear the outline component reference before destroying children
+        // to avoid referencing a destroyed component
+        if (outlineComponent != null)
+        {
+            // Stop any ongoing highlighting before clearing
+            if (isHighlighted)
+            {
+                StopHighlighting();
+            }
+            outlineComponent = null;
+        }
 
         // Destroy all children of the Model parent
         int childCount = modelParent.childCount;
@@ -403,6 +443,12 @@ public class FoodItem : PickupableItem
         if (GetComponent<FoodItemInteractable>() == null)
         {
             Debug.LogWarning($"[FoodItem] {name} should have a FoodItemInteractable component. Add one for proper food interaction behavior.");
+        }
+
+        // Warn if outline component is on the FoodItem instead of the visual prefab
+        if (GetComponent<InteractableOutline>() != null)
+        {
+            Debug.LogWarning($"[FoodItem] {name} has an InteractableOutline component on the FoodItem itself. The outline should be on the visual prefab instead, not on the FoodItem!");
         }
     }
 
