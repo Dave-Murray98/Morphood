@@ -14,10 +14,8 @@ public class FoodItem : PickupableItem
     [Tooltip("The ScriptableObject that defines this food item's properties and behavior")]
 
     [Header("Visual Components")]
-    [SerializeField] private MeshFilter meshFilter;
-
-    [SerializeField] private bool updateMaterialOnStart = true;
-    [Tooltip("Whether to apply the food data's material to the mesh renderer on start")]
+    [SerializeField] private Transform modelParent;
+    [Tooltip("The parent transform under which the visual prefab will be spawned")]
 
     [Header("Pooling Support")]
     [SerializeField] private bool isPooledItem = false;
@@ -28,7 +26,6 @@ public class FoodItem : PickupableItem
 
     // Internal components
     private FoodItemInteractable foodInteractable;
-    private MeshRenderer meshRenderer;
     private MeshCollider meshCollider;
 
     // Pooling state
@@ -44,11 +41,12 @@ public class FoodItem : PickupableItem
         base.Awake();
 
         meshCollider = GetComponent<MeshCollider>();
-        meshRenderer = GetComponentInChildren<MeshRenderer>();
-        meshFilter = GetComponentInChildren<MeshFilter>();
 
         if (feedbackManager == null)
             feedbackManager = GetComponent<FoodItemFeedbackManager>();
+
+        // Note: We don't get the outline component here because it will be on the visual child
+        // which hasn't been spawned yet. It will be found in UpdateVisualRepresentation()
     }
 
     protected override void Start()
@@ -125,30 +123,126 @@ public class FoodItem : PickupableItem
     {
         if (!HasValidFoodData) return;
 
-        // Update mesh
-        if (meshFilter != null && foodData.VisualMesh != null)
+        if (modelParent == null)
         {
-            meshFilter.mesh = foodData.VisualMesh;
+            Debug.LogError($"[FoodItem] {name} has no Model parent assigned! Please assign the Model parent in the inspector.");
+            return;
         }
 
-        // Update material
-        if (meshRenderer != null && foodData.ItemMaterial != null && updateMaterialOnStart)
+        // Destroy all existing children of the Model parent
+        ClearModelChildren();
+
+        // Spawn the visual prefab as a child of the Model parent
+        if (foodData.VisualPrefab != null)
         {
-            meshRenderer.material = foodData.ItemMaterial;
+            GameObject visualChild;
+            if (Application.isPlaying)
+            {
+                visualChild = Instantiate(foodData.VisualPrefab, modelParent);
+            }
+            else
+            {
+                visualChild = Instantiate(foodData.VisualPrefab);
+                visualChild.transform.SetParent(modelParent);
+            }
+
+            // Reset local transform
+            visualChild.transform.localPosition = Vector3.zero;
+            visualChild.transform.localRotation = Quaternion.identity;
+            visualChild.transform.localScale = Vector3.one;
+
+            // Set up the mesh collider on the parent using the child's mesh
+            SetupMeshCollider();
+
+            // Set up the outline component from the visual child
+            SetupOutlineComponent();
+
+            DebugLog($"Updated visual representation for {foodData.DisplayName}");
+        }
+        else
+        {
+            Debug.LogWarning($"[FoodItem] {name} has no visual prefab assigned in food data!");
+        }
+    }
+
+    /// <summary>
+    /// Set up the outline component reference from the visual child
+    /// </summary>
+    private void SetupOutlineComponent()
+    {
+        if (modelParent == null) return;
+
+        // Find the InteractableOutline component in the Model parent's children
+        outlineComponent = modelParent.GetComponentInChildren<InteractableOutline>();
+
+        if (outlineComponent != null)
+        {
+            // Initially disable the outline (it will be enabled when highlighting)
+            outlineComponent.enabled = false;
+            DebugLog("Found and set up outline component from visual child");
+        }
+        else if (enableOutlineHighlighting)
+        {
+            Debug.LogWarning($"[FoodItem] {name} has outline highlighting enabled, but no InteractableOutline component found on the visual prefab!");
+        }
+    }
+
+    /// <summary>
+    /// Clear all children of the Model parent
+    /// </summary>
+    private void ClearModelChildren()
+    {
+        if (modelParent == null) return;
+
+        // Clear the outline component reference before destroying children
+        // to avoid referencing a destroyed component
+        if (outlineComponent != null)
+        {
+            // Stop any ongoing highlighting before clearing
+            if (isHighlighted)
+            {
+                StopHighlighting();
+            }
+            outlineComponent = null;
         }
 
-        // Update collider mesh
-        if (meshCollider != null && foodData.ColliderMesh != null)
+        // Destroy all children of the Model parent
+        int childCount = modelParent.childCount;
+        for (int i = childCount - 1; i >= 0; i--)
         {
-            meshCollider.sharedMesh = foodData.ColliderMesh;
+            Transform child = modelParent.GetChild(i);
+            if (Application.isPlaying)
+            {
+                Destroy(child.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(child.gameObject);
+            }
         }
-        else if (meshCollider != null && foodData.VisualMesh != null)
-        {
-            // Fall back to visual mesh if no specific collider mesh
-            meshCollider.sharedMesh = foodData.VisualMesh;
-        }
+    }
 
-        DebugLog($"Updated visual representation for {foodData.DisplayName}");
+    /// <summary>
+    /// Set up the mesh collider on the parent FoodItem using the visual child's mesh
+    /// </summary>
+    private void SetupMeshCollider()
+    {
+        if (meshCollider == null || modelParent == null) return;
+
+        // Get the MeshFilter from the Model parent's children
+        MeshFilter childMeshFilter = modelParent.GetComponentInChildren<MeshFilter>();
+        if (childMeshFilter != null && childMeshFilter.sharedMesh != null)
+        {
+            // Create a convex mesh collider using the visual mesh
+            meshCollider.sharedMesh = childMeshFilter.sharedMesh;
+            meshCollider.convex = true;
+
+            DebugLog($"Set up convex mesh collider from visual child");
+        }
+        else
+        {
+            Debug.LogWarning($"[FoodItem] {name}'s visual child has no MeshFilter or mesh!");
+        }
     }
 
     /// <summary>
@@ -263,20 +357,14 @@ public class FoodItem : PickupableItem
         // Clear food data reference
         foodData = null;
 
-        // Reset visual state
-        if (meshFilter != null)
-        {
-            meshFilter.mesh = null;
-        }
+        // Destroy all children of the Model parent
+        ClearModelChildren();
 
-        if (meshRenderer != null)
-        {
-            meshRenderer.material = null;
-        }
-
+        // Reset collider
         if (meshCollider != null)
         {
             meshCollider.sharedMesh = null;
+            meshCollider.convex = false;
         }
 
         // Reset item properties
@@ -329,11 +417,45 @@ public class FoodItem : PickupableItem
         feedbackManager.PlayPlacementFeedback();
     }
 
+    #region Outline Highlighting Override
+
+    /// <summary>
+    /// Override StartHighlighting to ensure outline component is set up from visual child
+    /// </summary>
+    public override void StartHighlighting()
+    {
+        // If outline component is null, try to find it from the Model parent
+        if (outlineComponent == null && modelParent != null)
+        {
+            SetupOutlineComponent();
+        }
+
+        // Now call the base implementation
+        base.StartHighlighting();
+    }
+
+    /// <summary>
+    /// Override StopHighlighting to handle the visual child outline properly
+    /// </summary>
+    public override void StopHighlighting()
+    {
+        // Call base implementation which handles the actual stopping
+        base.StopHighlighting();
+    }
+
+    #endregion
+
     #region Debug and Validation
 
     protected override void OnValidate()
     {
         base.OnValidate();
+
+        // Validate Model parent assignment
+        if (modelParent == null)
+        {
+            Debug.LogWarning($"[FoodItem] {name} has no Model parent assigned! Please create a child GameObject called 'Model' and assign it in the inspector.");
+        }
 
         // Validate food data setup
         if (foodData != null)
@@ -349,6 +471,12 @@ public class FoodItem : PickupableItem
         if (GetComponent<FoodItemInteractable>() == null)
         {
             Debug.LogWarning($"[FoodItem] {name} should have a FoodItemInteractable component. Add one for proper food interaction behavior.");
+        }
+
+        // Warn if outline component is on the FoodItem instead of the visual prefab
+        if (GetComponent<InteractableOutline>() != null)
+        {
+            Debug.LogWarning($"[FoodItem] {name} has an InteractableOutline component on the FoodItem itself. The outline should be on the visual prefab instead, not on the FoodItem!");
         }
     }
 

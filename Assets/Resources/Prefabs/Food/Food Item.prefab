@@ -41,8 +41,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1085201216785566149}
-  - component: {fileID: 7354430270834482037}
-  - component: {fileID: 944145183700917525}
   m_Layer: 8
   m_Name: Model
   m_TagString: Untagged
@@ -65,59 +63,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1129782804567770071}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &7354430270834482037
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1239360800030270127}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: fdf18c58b725a2f469593ece1786d307, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &944145183700917525
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1239360800030270127}
-  m_Mesh: {fileID: 4300000, guid: c5868bb5220e6a74d835f9268dcd5450, type: 3}
 --- !u!1 &2782429156898321342
 GameObject:
   m_ObjectHideFlags: 0
@@ -691,7 +636,6 @@ GameObject:
   - component: {fileID: 8388597340849524230}
   - component: {fileID: 4258397186196967533}
   - component: {fileID: 3929012928786332799}
-  - component: {fileID: 7872816867732996586}
   m_Layer: 8
   m_Name: Food Item
   m_TagString: Untagged
@@ -813,8 +757,7 @@ MonoBehaviour:
   itemName: Item
   canBeDroppedAnywhere: 1
   foodData: {fileID: 0}
-  meshFilter: {fileID: 944145183700917525}
-  updateMaterialOnStart: 1
+  modelParent: {fileID: 1085201216785566149}
   isPooledItem: 0
   feedbackManager: {fileID: 3929012928786332799}
 --- !u!114 &4258397186196967533
@@ -877,21 +820,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   placementFeedback: {fileID: 8413848611111956393}
---- !u!114 &7872816867732996586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5326526739700746578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  outlineMode: 0
-  outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  outlineWidth: 2
-  precomputeOutline: 0
-  bakeKeys: []
-  bakeValues: []

@@ -8,14 +8,8 @@ using UnityEngine;
 public class FoodItemData : ScriptableObject
 {
     [Header("Visual Representation")]
-    [SerializeField] private Mesh visualMesh;
-    [Tooltip("The 3D model/prefab used to represent this food item in the game world")]
-
-    [SerializeField] private Material itemMaterial;
-    [Tooltip("The material applied to the food item (optional - mesh prefab may have its own materials)")]
-
-    [SerializeField] private Mesh colliderMesh;
-    [Tooltip("The mesh used for the collider (optional - will use meshPrefab's mesh if not specified)")]
+    [SerializeField] private GameObject visualPrefab;
+    [Tooltip("The prefab that contains the visual representation (mesh, materials, etc.) - will be spawned as a child of the food item")]
 
     [Header("Basic Properties")]
     [SerializeField] private string displayName = "Food Item";
@@ -32,9 +26,7 @@ public class FoodItemData : ScriptableObject
 
 
     // Public properties for easy access
-    public Mesh VisualMesh => visualMesh;
-    public Material ItemMaterial => itemMaterial;
-    public Mesh ColliderMesh => colliderMesh;
+    public GameObject VisualPrefab => visualPrefab;
     public string DisplayName => displayName;
     public Sprite Icon => icon;
 
@@ -52,7 +44,27 @@ public class FoodItemData : ScriptableObject
             displayName = name; // Use the asset name as fallback
         }
 
+        // Validate visual prefab setup
+        if (visualPrefab != null)
+        {
+            MeshFilter meshFilter = visualPrefab.GetComponent<MeshFilter>();
+            MeshRenderer meshRenderer = visualPrefab.GetComponent<MeshRenderer>();
 
+            if (meshFilter == null)
+            {
+                Debug.LogWarning($"[{name}] Visual prefab should have a MeshFilter component!");
+            }
+
+            if (meshRenderer == null)
+            {
+                Debug.LogWarning($"[{name}] Visual prefab should have a MeshRenderer component!");
+            }
+
+            if (meshFilter != null && meshFilter.sharedMesh == null)
+            {
+                Debug.LogWarning($"[{name}] Visual prefab's MeshFilter has no mesh assigned!");
+            }
+        }
 
         // Check for circular references
         if (choppedResult == this)
