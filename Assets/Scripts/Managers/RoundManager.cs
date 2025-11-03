@@ -134,16 +134,16 @@ public class RoundManager : MonoBehaviour
             yield return null;
         }
 
-        // Switch to high intensity music when the round starts
-        if (MusicManager.Instance != null)
-        {
-            MusicManager.Instance.SetHighIntensity();
-        }
-
         isWarmUpActive = false;
 
         // === ROUND ACTIVE PHASE ===
         isRoundActive = true;
+
+        // Switch to high intensity music when round starts
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.SetHighIntensity();
+        }
 
         // Start customer spawning
         CustomerManager.Instance.StartSpawning();
@@ -160,6 +160,20 @@ public class RoundManager : MonoBehaviour
             {
                 isTimerExtensionActive = true;
                 Debug.Log("[RoundManager] Timer extension activated!");
+
+                // Start pitch escalation when timer extension begins
+                if (MusicManager.Instance != null)
+                {
+                    MusicManager.Instance.StartPitchEscalation();
+                }
+            }
+
+            // Update pitch escalation progress during timer extension
+            if (isTimerExtensionActive && MusicManager.Instance != null)
+            {
+                // Calculate how far through the extension period we are
+                float extensionProgress = 1f - (currentRoundTimeRemaining / extensionTriggerTime);
+                MusicManager.Instance.UpdatePitchEscalation(extensionProgress);
             }
 
             // Apply time slow multiplier if extension is active
@@ -186,6 +200,7 @@ public class RoundManager : MonoBehaviour
         if (MusicManager.Instance != null)
         {
             MusicManager.Instance.SetLowIntensity();
+            MusicManager.Instance.StopPitchEscalation(); // Reset pitch to normal
         }
 
         // Stop customer spawning
@@ -253,6 +268,7 @@ public class RoundManager : MonoBehaviour
 
             // Add visual indicator when timer extension is active
             string timerDisplay = $"Time: {minutes:00}:{seconds:00}";
+
             timerText.text = timerDisplay;
         }
         else

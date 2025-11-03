@@ -24,6 +24,13 @@ public class MusicManager : MonoBehaviour
     [Tooltip("How long it takes to fade between tracks")]
     [SerializeField] private float fadeDuration = 2f;
 
+    [Header("Pitch Escalation Settings")]
+    [Tooltip("Enable pitch/tempo increase during final moments")]
+    [SerializeField] private bool enablePitchEscalation = true;
+    [Tooltip("Maximum pitch multiplier (1.0 = normal, 1.2 = 20% faster)")]
+    [Range(1f, 2f)]
+    [SerializeField] private float maxPitchMultiplier = 1.2f;
+
     [Header("Debug")]
     [Tooltip("Show current intensity state in inspector")]
     [SerializeField] private bool isHighIntensity = false;
@@ -31,6 +38,10 @@ public class MusicManager : MonoBehaviour
     // Fade state
     private Coroutine fadeCoroutine;
     private bool isFading = false;
+
+    // Pitch escalation state
+    private bool isPitchEscalationActive = false;
+    private float basePitch = 1f;
 
     private void Awake()
     {
@@ -89,6 +100,10 @@ public class MusicManager : MonoBehaviour
         highIntensitySource.loop = true;
         lowIntensitySource.playOnAwake = false;
         highIntensitySource.playOnAwake = false;
+
+        // Set initial pitch
+        lowIntensitySource.pitch = basePitch;
+        highIntensitySource.pitch = basePitch;
 
         // Start with low intensity playing, high intensity silent
         lowIntensitySource.volume = baseVolume;
@@ -231,6 +246,53 @@ public class MusicManager : MonoBehaviour
     /// Gets the current intensity state
     /// </summary>
     public bool IsHighIntensity => isHighIntensity;
+
+    /// <summary>
+    /// Starts pitch escalation (call when timer extension begins)
+    /// </summary>
+    public void StartPitchEscalation()
+    {
+        if (enablePitchEscalation && !isPitchEscalationActive)
+        {
+            isPitchEscalationActive = true;
+            Debug.Log("[MusicManager] Pitch escalation started!");
+        }
+    }
+
+    /// <summary>
+    /// Stops pitch escalation and resets to normal pitch
+    /// </summary>
+    public void StopPitchEscalation()
+    {
+        if (isPitchEscalationActive)
+        {
+            isPitchEscalationActive = false;
+            SetPitch(basePitch);
+            Debug.Log("[MusicManager] Pitch escalation stopped!");
+        }
+    }
+
+    /// <summary>
+    /// Updates the pitch escalation based on timer progress
+    /// </summary>
+    /// <param name="escalationProgress">Progress from 0 (start of escalation) to 1 (timer expired)</param>
+    public void UpdatePitchEscalation(float escalationProgress)
+    {
+        if (!enablePitchEscalation || !isPitchEscalationActive) return;
+
+        escalationProgress = Mathf.Clamp01(escalationProgress);
+        float targetPitch = Mathf.Lerp(basePitch, maxPitchMultiplier, escalationProgress);
+        SetPitch(targetPitch);
+    }
+
+    /// <summary>
+    /// Sets the pitch of both audio sources
+    /// </summary>
+    private void SetPitch(float pitch)
+    {
+        if (lowIntensitySource != null) lowIntensitySource.pitch = pitch;
+        if (highIntensitySource != null) highIntensitySource.pitch = pitch;
+    }
 
     private void OnDestroy()
     {
