@@ -667,7 +667,7 @@ public class RecipeCombinationGenerator : ScriptableObject
                     continue;
                 }
 
-                // Add the combination
+                // Add the combination (the database will organize it by result automatically)
                 if (combinationDatabase.AddCombination(ingredients, combo.result))
                 {
                     DebugLog($"Added combination: {combo.CombinationName} = {combo.result.DisplayName}");
@@ -682,6 +682,7 @@ public class RecipeCombinationGenerator : ScriptableObject
         }
 
         Debug.Log($"[RecipeCombinationGenerator] Added {addedCount} combinations, skipped {skippedCount}");
+        Debug.Log($"Database now contains recipes for {combinationDatabase.Recipes.Count} different results");
 
         // Mark the database as dirty
 #if UNITY_EDITOR
