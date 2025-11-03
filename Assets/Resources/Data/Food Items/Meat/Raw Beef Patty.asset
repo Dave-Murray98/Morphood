@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1074996721efcc540adefe6ce5c9cc36, type: 3}
   m_Name: Raw Beef Patty
   m_EditorClassIdentifier: 
-  visualMesh: {fileID: 4300000, guid: d41a74c75b207394dbf2c349b9a74eea, type: 3}
-  itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
-  colliderMesh: {fileID: 43168739278950710, guid: 88c6d89e9f02ab84a9bd52436a102ae6, type: 2}
+  visualPrefab: {fileID: 1643210308324044, guid: 82affad5dc3bb01469dbe10a5bcab12a, type: 3}
   displayName: Raw Beef Patty
   icon: {fileID: 21300000, guid: 423e1aacfb08b2e4a869a3b3ef047730, type: 3}
   choppedResult: {fileID: 0}

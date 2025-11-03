@@ -17,4 +17,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 457d1bd3f7deaef4fa2907d7c787b651, type: 2}
     - {fileID: 11400000, guid: 62d566bcb4342104bb172046f232533d, type: 2}
     result: {fileID: 11400000, guid: b0d955b470e078d49a3d7eb8e2fc2ac2, type: 2}
+  - ingredients:
+    - {fileID: 11400000, guid: dcff0e499ff767848b968e25127f186c, type: 2}
+    - {fileID: 11400000, guid: 20d1e60d5ca366049b747d4731e5362d, type: 2}
+    result: {fileID: 11400000, guid: 585c877585e1bb44ab00f56fa971adea, type: 2}
   enableDebugLogs: 0

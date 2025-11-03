@@ -12,9 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1074996721efcc540adefe6ce5c9cc36, type: 3}
   m_Name: Raw Bun
   m_EditorClassIdentifier: 
-  visualMesh: {fileID: 4300000, guid: 202c970259e2d28409113440fc8c6b9b, type: 3}
-  itemMaterial: {fileID: 2100000, guid: fb5a8f1b9970d0f41a73e9afcbe48579, type: 2}
-  colliderMesh: {fileID: 43211679316114046, guid: 825a2345e294c224da53cd829f88f545, type: 2}
+  visualPrefab: {fileID: 1243878219613648, guid: 0942e46d0b8266549abeef30e37b6f5b, type: 3}
   displayName: Raw Bun
   icon: {fileID: 21300000, guid: 32af216875e755742a995c0828bea573, type: 3}
   choppedResult: {fileID: 11400000, guid: 20d1e60d5ca366049b747d4731e5362d, type: 2}
