@@ -30,6 +30,8 @@ public class MusicManager : MonoBehaviour
     [Tooltip("Maximum pitch multiplier (1.0 = normal, 1.2 = 20% faster)")]
     [Range(1f, 2f)]
     [SerializeField] private float maxPitchMultiplier = 1.2f;
+    [Tooltip("How long it takes to fade pitch back to normal")]
+    [SerializeField] private float pitchFadeDuration = 1.5f;
 
     [Header("Debug")]
     [Tooltip("Show current intensity state in inspector")]
@@ -42,6 +44,7 @@ public class MusicManager : MonoBehaviour
     // Pitch escalation state
     private bool isPitchEscalationActive = false;
     private float basePitch = 1f;
+    private Coroutine pitchFadeCoroutine;
 
     private void Awake()
     {
@@ -260,15 +263,15 @@ public class MusicManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Stops pitch escalation and resets to normal pitch
+    /// Stops pitch escalation and smoothly fades back to normal pitch
     /// </summary>
     public void StopPitchEscalation()
     {
         if (isPitchEscalationActive)
         {
             isPitchEscalationActive = false;
-            SetPitch(basePitch);
-            Debug.Log("[MusicManager] Pitch escalation stopped!");
+            StartPitchFade(basePitch);
+            Debug.Log("[MusicManager] Pitch escalation stopped - fading back to normal!");
         }
     }
 
@@ -294,11 +297,56 @@ public class MusicManager : MonoBehaviour
         if (highIntensitySource != null) highIntensitySource.pitch = pitch;
     }
 
+    /// <summary>
+    /// Starts a smooth fade to the target pitch
+    /// </summary>
+    private void StartPitchFade(float targetPitch)
+    {
+        // Stop any existing pitch fade
+        if (pitchFadeCoroutine != null)
+        {
+            StopCoroutine(pitchFadeCoroutine);
+        }
+
+        pitchFadeCoroutine = StartCoroutine(PitchFadeCoroutine(targetPitch));
+    }
+
+    /// <summary>
+    /// Coroutine that smoothly fades the pitch over time
+    /// </summary>
+    private IEnumerator PitchFadeCoroutine(float targetPitch)
+    {
+        float startPitch = lowIntensitySource != null ? lowIntensitySource.pitch : basePitch;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < pitchFadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / pitchFadeDuration;
+            float currentPitch = Mathf.Lerp(startPitch, targetPitch, progress);
+
+            SetPitch(currentPitch);
+
+            yield return null;
+        }
+
+        // Ensure final pitch is exact
+        SetPitch(targetPitch);
+        pitchFadeCoroutine = null;
+
+        Debug.Log($"[MusicManager] Pitch fade completed - now at {targetPitch}");
+    }
+
     private void OnDestroy()
     {
         if (fadeCoroutine != null)
         {
             StopCoroutine(fadeCoroutine);
+        }
+
+        if (pitchFadeCoroutine != null)
+        {
+            StopCoroutine(pitchFadeCoroutine);
         }
     }
 
