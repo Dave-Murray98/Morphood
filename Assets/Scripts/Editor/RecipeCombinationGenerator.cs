@@ -29,6 +29,9 @@ public class RecipeCombinationGenerator : ScriptableObject
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
+    // Track which combinations create the final dish for proper handling
+    private HashSet<StageCombination> finalDishCombinations = new HashSet<StageCombination>();
+
     /// <summary>
     /// Generate the first stage combinations and initialize the progressive system
     /// </summary>
@@ -50,6 +53,7 @@ public class RecipeCombinationGenerator : ScriptableObject
 
         // Clear previous results
         recipeStages.Clear();
+        finalDishCombinations.Clear();
 
         DebugLog($"Generating Stage 1 combinations for {finalDish.DisplayName} with {baseIngredients.Count} base ingredients");
 
@@ -114,11 +118,6 @@ public class RecipeCombinationGenerator : ScriptableObject
         if (ShouldBeFinalStage(nextStage))
         {
             nextStage.isFinalStage = true;
-            // Pre-assign final dish to all combinations in final stage
-            foreach (var combo in nextStage.combinations)
-            {
-                combo.result = finalDish;
-            }
         }
 
         recipeStages.Add(nextStage);
@@ -141,23 +140,28 @@ public class RecipeCombinationGenerator : ScriptableObject
             .Select(combo => combo.result)
             .ToList();
 
-        // For each Stage 1 result, find what base ingredients are still available to combine with it
+        DebugLog($"Generating Stage 2 with {stage1Results.Count} Stage 1 results");
+
+        // Part 1: Combine each Stage 1 result with remaining base ingredients
         foreach (var combo1 in stage1.combinations.Where(c => c.result != null))
         {
-            // Get the ingredients used in this Stage 1 combination
-            var usedIngredients = new List<FoodItemData> { combo1.ingredient1, combo1.ingredient2 };
+            // Get remaining base ingredients after this Stage 1 result consumes its ingredients
+            var remainingBaseIngredients = GetRemainingBaseIngredientsAfter(combo1.result);
 
-            // Find remaining base ingredients (not used in this specific combination)
-            var remainingBaseIngredients = GetRemainingBaseIngredients(usedIngredients);
+            DebugLog($"Stage 1 result {combo1.result.DisplayName} can combine with {remainingBaseIngredients.Count} remaining base ingredients");
 
             // Combine this Stage 1 result with each remaining base ingredient
             foreach (var baseIngredient in remainingBaseIngredients)
             {
-                AddCombinationIfUnique(stage2, combo1.result, baseIngredient, generatedCombinations);
+                var newCombo = AddCombinationIfUnique(stage2, combo1.result, baseIngredient, generatedCombinations);
+                if (newCombo != null)
+                {
+                    CheckAndMarkAsFinalDish(newCombo);
+                }
             }
         }
 
-        // Also combine Stage 1 results with each other (if they use different base ingredients)
+        // Part 2: Combine Stage 1 results with each other (if they don't exceed ingredient limits)
         for (int i = 0; i < stage1.combinations.Count; i++)
         {
             for (int j = i + 1; j < stage1.combinations.Count; j++)
@@ -167,17 +171,17 @@ public class RecipeCombinationGenerator : ScriptableObject
 
                 if (combo1.result != null && combo2.result != null)
                 {
-                    // Check if these combinations use different sets of base ingredients
-                    var ingredients1 = new List<FoodItemData> { combo1.ingredient1, combo1.ingredient2 };
-                    var ingredients2 = new List<FoodItemData> { combo2.ingredient1, combo2.ingredient2 };
-
-                    if (!IngredientsOverlap(ingredients1, ingredients2))
+                    // The ingredient consumption check is now handled in AddCombinationIfUnique
+                    var newCombo = AddCombinationIfUnique(stage2, combo1.result, combo2.result, generatedCombinations);
+                    if (newCombo != null)
                     {
-                        AddCombinationIfUnique(stage2, combo1.result, combo2.result, generatedCombinations);
+                        CheckAndMarkAsFinalDish(newCombo);
                     }
                 }
             }
         }
+
+        DebugLog($"Generated {stage2.combinations.Count} Stage 2 combinations");
     }
 
     /// <summary>
@@ -186,43 +190,244 @@ public class RecipeCombinationGenerator : ScriptableObject
     private void GenerateLaterStageCombinations(RecipeStage newStage, HashSet<string> generatedCombinations)
     {
         var previousStage = recipeStages[recipeStages.Count - 1];
+
+        // Get all previous stage results that are NOT the final dish
         var previousResults = previousStage.combinations
-            .Where(combo => combo.result != null)
+            .Where(combo => combo.result != null && combo.result != finalDish)
             .Select(combo => combo.result)
             .ToList();
 
-        // Combine all previous stage results with each other
+        DebugLog($"Generating Stage {newStage.stageNumber} with {previousResults.Count} non-final results from previous stage");
+
+        // Part 1: Combine each previous result with remaining base ingredients
+        foreach (var previousResult in previousResults)
+        {
+            var remainingBaseIngredients = GetRemainingBaseIngredientsAfter(previousResult);
+
+            DebugLog($"Result {previousResult.DisplayName} can combine with {remainingBaseIngredients.Count} remaining base ingredients");
+
+            foreach (var baseIngredient in remainingBaseIngredients)
+            {
+                var newCombo = AddCombinationIfUnique(newStage, previousResult, baseIngredient, generatedCombinations);
+                if (newCombo != null)
+                {
+                    CheckAndMarkAsFinalDish(newCombo);
+                }
+            }
+        }
+
+        // Part 2: Combine previous stage results with each other (only if valid)
         for (int i = 0; i < previousResults.Count; i++)
         {
             for (int j = i + 1; j < previousResults.Count; j++)
             {
-                AddCombinationIfUnique(newStage, previousResults[i], previousResults[j], generatedCombinations);
+                // The ingredient consumption check is now handled in AddCombinationIfUnique
+                var newCombo = AddCombinationIfUnique(newStage, previousResults[i], previousResults[j], generatedCombinations);
+                if (newCombo != null)
+                {
+                    CheckAndMarkAsFinalDish(newCombo);
+                }
             }
         }
 
-        // If there are still unused base ingredients, combine them with previous results
-        // This is more complex and might need additional logic based on your specific needs
-        // For now, we'll keep it simple and just combine previous results
+        DebugLog($"Generated {newStage.combinations.Count} valid combinations for Stage {newStage.stageNumber}");
     }
 
     /// <summary>
-    /// Get remaining base ingredients that haven't been used in a specific combination path
+    /// Get all base ingredients that have been used in any combination so far
+    /// This handles duplicate ingredients properly by counting usage
     /// </summary>
-    private List<FoodItemData> GetRemainingBaseIngredients(List<FoodItemData> usedIngredients)
+    private List<FoodItemData> GetAllUsedBaseIngredients()
     {
-        var remainingIngredients = new List<FoodItemData>();
-        var availableBaseIngredients = new List<FoodItemData>(baseIngredients);
+        var usedIngredients = new List<FoodItemData>();
 
-        // Remove used ingredients from the available list
-        foreach (var usedIngredient in usedIngredients)
+        foreach (var stage in recipeStages)
         {
-            if (availableBaseIngredients.Contains(usedIngredient))
+            foreach (var combo in stage.combinations)
             {
-                availableBaseIngredients.Remove(usedIngredient);
+                // Only count base ingredients (not intermediate results)
+                if (baseIngredients.Contains(combo.ingredient1))
+                    usedIngredients.Add(combo.ingredient1);
+                if (baseIngredients.Contains(combo.ingredient2))
+                    usedIngredients.Add(combo.ingredient2);
             }
         }
 
-        return availableBaseIngredients;
+        return usedIngredients;
+    }
+
+    /// <summary>
+    /// Get the count of how many times each base ingredient has been used
+    /// </summary>
+    private Dictionary<FoodItemData, int> GetBaseIngredientUsageCount()
+    {
+        var usageCount = new Dictionary<FoodItemData, int>();
+
+        // Initialize with zero counts
+        foreach (var ingredient in baseIngredients.Distinct())
+        {
+            usageCount[ingredient] = 0;
+        }
+
+        // Count usage across all stages
+        foreach (var stage in recipeStages)
+        {
+            foreach (var combo in stage.combinations)
+            {
+                if (baseIngredients.Contains(combo.ingredient1))
+                    usageCount[combo.ingredient1]++;
+                if (baseIngredients.Contains(combo.ingredient2))
+                    usageCount[combo.ingredient2]++;
+            }
+        }
+
+        return usageCount;
+    }
+
+    /// <summary>
+    /// Get available instances of base ingredients (considering duplicates)
+    /// </summary>
+    private List<FoodItemData> GetAvailableBaseIngredients()
+    {
+        var usageCount = GetBaseIngredientUsageCount();
+        var availableIngredients = new List<FoodItemData>();
+
+        foreach (var ingredient in baseIngredients.Distinct())
+        {
+            int totalAvailable = baseIngredients.Count(x => x == ingredient);
+            int used = usageCount[ingredient];
+            int remaining = totalAvailable - used;
+
+            for (int i = 0; i < remaining; i++)
+            {
+                availableIngredients.Add(ingredient);
+            }
+        }
+
+        return availableIngredients;
+    }
+
+    /// <summary>
+    /// Get the base ingredients consumed by a specific food item (recursively trace back)
+    /// </summary>
+    private Dictionary<FoodItemData, int> GetIngredientsConsumedBy(FoodItemData foodItem)
+    {
+        var consumed = new Dictionary<FoodItemData, int>();
+
+        // If this is a base ingredient, it consumes itself
+        if (baseIngredients.Contains(foodItem))
+        {
+            consumed[foodItem] = 1;
+            return consumed;
+        }
+
+        // If this is an intermediate result, find the combination that created it and trace back
+        foreach (var stage in recipeStages)
+        {
+            foreach (var combo in stage.combinations)
+            {
+                if (combo.result == foodItem)
+                {
+                    // Found the combination that created this result
+                    var ingredients1 = GetIngredientsConsumedBy(combo.ingredient1);
+                    var ingredients2 = GetIngredientsConsumedBy(combo.ingredient2);
+
+                    // Combine the consumption counts
+                    foreach (var kvp in ingredients1)
+                    {
+                        consumed[kvp.Key] = consumed.GetValueOrDefault(kvp.Key, 0) + kvp.Value;
+                    }
+                    foreach (var kvp in ingredients2)
+                    {
+                        consumed[kvp.Key] = consumed.GetValueOrDefault(kvp.Key, 0) + kvp.Value;
+                    }
+
+                    return consumed;
+                }
+            }
+        }
+
+        // If we get here, we couldn't trace back the ingredients (shouldn't happen)
+        DebugLog($"Warning: Could not trace back ingredients for {foodItem?.DisplayName}");
+        return consumed;
+    }
+
+    /// <summary>
+    /// Check if combining two food items would exceed available base ingredients
+    /// </summary>
+    private bool WouldExceedAvailableIngredients(FoodItemData item1, FoodItemData item2)
+    {
+        var consumed1 = GetIngredientsConsumedBy(item1);
+        var consumed2 = GetIngredientsConsumedBy(item2);
+
+        // Combine consumption counts
+        var totalConsumed = new Dictionary<FoodItemData, int>();
+        foreach (var kvp in consumed1)
+        {
+            totalConsumed[kvp.Key] = totalConsumed.GetValueOrDefault(kvp.Key, 0) + kvp.Value;
+        }
+        foreach (var kvp in consumed2)
+        {
+            totalConsumed[kvp.Key] = totalConsumed.GetValueOrDefault(kvp.Key, 0) + kvp.Value;
+        }
+
+        // Check if any ingredient would be exceeded
+        foreach (var kvp in totalConsumed)
+        {
+            int available = baseIngredients.Count(x => x == kvp.Key);
+            if (kvp.Value > available)
+            {
+                DebugLog($"Combination would exceed available {kvp.Key.DisplayName}: needs {kvp.Value}, have {available}");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Get remaining base ingredients after accounting for what's consumed by a specific food item
+    /// </summary>
+    private List<FoodItemData> GetRemainingBaseIngredientsAfter(FoodItemData consumingItem)
+    {
+        var consumed = GetIngredientsConsumedBy(consumingItem);
+        var remaining = new List<FoodItemData>();
+
+        // For each base ingredient type, add the remaining instances
+        foreach (var baseIngredient in baseIngredients.Distinct())
+        {
+            int totalAvailable = baseIngredients.Count(x => x == baseIngredient);
+            int consumedCount = consumed.GetValueOrDefault(baseIngredient, 0);
+            int remainingCount = totalAvailable - consumedCount;
+
+            for (int i = 0; i < remainingCount; i++)
+            {
+                remaining.Add(baseIngredient);
+            }
+        }
+
+        return remaining;
+    }
+
+    /// <summary>
+    /// Check if a combination creates the final dish and mark it accordingly
+    /// </summary>
+    private void CheckAndMarkAsFinalDish(StageCombination combination)
+    {
+        // For now, we'll leave this for the designer to manually assign
+        // But we can add logic here if needed to auto-detect final dishes
+        // based on ingredient counting or other rules
+
+        // The designer will assign the result, and if it matches finalDish,
+        // we'll handle it in the validation phase
+    }
+
+    /// <summary>
+    /// Get remaining base ingredients that haven't been used in a specific combination path (legacy method for compatibility)
+    /// </summary>
+    private List<FoodItemData> GetRemainingBaseIngredients(List<FoodItemData> usedIngredients)
+    {
+        return baseIngredients.Except(usedIngredients).ToList();
     }
 
     /// <summary>
@@ -234,10 +439,17 @@ public class RecipeCombinationGenerator : ScriptableObject
     }
 
     /// <summary>
-    /// Add a combination to the stage if it's unique
+    /// Add a combination to the stage if it's unique and doesn't exceed available ingredients
     /// </summary>
-    private void AddCombinationIfUnique(RecipeStage stage, FoodItemData ingredient1, FoodItemData ingredient2, HashSet<string> generatedCombinations)
+    private StageCombination AddCombinationIfUnique(RecipeStage stage, FoodItemData ingredient1, FoodItemData ingredient2, HashSet<string> generatedCombinations)
     {
+        // First check if this combination would exceed available ingredients
+        if (WouldExceedAvailableIngredients(ingredient1, ingredient2))
+        {
+            DebugLog($"Skipping combination {ingredient1.DisplayName} + {ingredient2.DisplayName} - would exceed available ingredients");
+            return null;
+        }
+
         // Create a unique key for this combination (sorted to avoid duplicates)
         var sortedNames = new[] { ingredient1.name, ingredient2.name }.OrderBy(n => n).ToArray();
         var combinationKey = string.Join("|", sortedNames);
@@ -255,7 +467,12 @@ public class RecipeCombinationGenerator : ScriptableObject
             };
             combination.UpdateDisplay();
             stage.combinations.Add(combination);
+
+            DebugLog($"Added valid combination: {ingredient1.DisplayName} + {ingredient2.DisplayName}");
+            return combination;
         }
+
+        return null;
     }
 
     /// <summary>
@@ -263,9 +480,16 @@ public class RecipeCombinationGenerator : ScriptableObject
     /// </summary>
     private bool ShouldBeFinalStage(RecipeStage stage)
     {
-        // If we have 2 or fewer total ingredients available, this should be the final stage
-        // This is a simplified check - you might want more sophisticated logic
-        return stage.combinations.Count <= 3; // Arbitrary threshold for now
+        // A stage should be final if no more valid combinations are possible
+        // This is now handled by CanGenerateNextStage(), so we'll be more conservative here
+
+        // Only mark as final if we have very few combinations AND those combinations use most ingredients
+        if (stage.combinations.Count <= 1)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -287,6 +511,17 @@ public class RecipeCombinationGenerator : ScriptableObject
                 break;
             }
         }
+
+        DebugLog("Auto-generation complete. Check if recipe has all desired final dish combinations.");
+    }
+
+    /// <summary>
+    /// Check if any combination in any stage creates the final dish
+    /// </summary>
+    private bool HasAnyFinalDishCombinations()
+    {
+        return recipeStages.Any(stage =>
+            stage.combinations.Any(combo => combo.result == finalDish));
     }
 
     /// <summary>
@@ -362,13 +597,36 @@ public class RecipeCombinationGenerator : ScriptableObject
         // For Stage 1 -> Stage 2, we can always generate if Stage 1 is complete
         if (recipeStages.Count == 1) return true;
 
-        // For later stages, check if we have enough results to continue
+        // For later stages, check if we have any non-final results that can still be combined
         var previousResults = lastStage.combinations
-            .Where(combo => combo.result != null)
+            .Where(combo => combo.result != null && combo.result != finalDish)
             .Select(combo => combo.result)
             .ToList();
 
-        return previousResults.Count >= 2;
+        // Check if any previous result can still be combined with remaining base ingredients
+        foreach (var result in previousResults)
+        {
+            var remainingForThisResult = GetRemainingBaseIngredientsAfter(result);
+            if (remainingForThisResult.Count > 0)
+            {
+                return true; // Can combine this result with at least one remaining ingredient
+            }
+        }
+
+        // Check if any two previous results can be combined without exceeding ingredient limits
+        for (int i = 0; i < previousResults.Count; i++)
+        {
+            for (int j = i + 1; j < previousResults.Count; j++)
+            {
+                if (!WouldExceedAvailableIngredients(previousResults[i], previousResults[j]))
+                {
+                    return true; // Can combine these two results
+                }
+            }
+        }
+
+        // No valid combinations possible
+        return false;
     }
 
     /// <summary>
@@ -447,6 +705,7 @@ public class RecipeCombinationGenerator : ScriptableObject
     public void ClearGeneratedCombinations()
     {
         recipeStages.Clear();
+        finalDishCombinations.Clear();
 
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
@@ -456,13 +715,15 @@ public class RecipeCombinationGenerator : ScriptableObject
     }
 
     /// <summary>
-    /// Validate the current setup
+    /// Validate the current setup and check for final dish combinations
     /// </summary>
     [Button("Validate Setup")]
     public void ValidateSetup()
     {
         var issues = new List<string>();
+        var warnings = new List<string>();
 
+        // Basic validation
         if (finalDish == null)
             issues.Add("Final dish is not assigned");
 
@@ -475,22 +736,51 @@ public class RecipeCombinationGenerator : ScriptableObject
         if (combinationDatabase == null)
             issues.Add("Combination database is not assigned");
 
-        // Check stage completion
+        // Check stage completion and final dish detection
+        int finalDishCount = 0;
         for (int i = 0; i < recipeStages.Count; i++)
         {
             var stage = recipeStages[i];
             var unassignedInStage = stage.combinations.Count(combo => combo.result == null);
             if (unassignedInStage > 0)
                 issues.Add($"Stage {stage.stageNumber} has {unassignedInStage} unassigned combinations");
+
+            // Count final dish occurrences
+            var finalDishInStage = stage.combinations.Count(combo => combo.result == finalDish);
+            finalDishCount += finalDishInStage;
+
+            if (finalDishInStage > 0)
+            {
+                warnings.Add($"Stage {stage.stageNumber} has {finalDishInStage} combinations that create the final dish");
+            }
         }
 
-        if (issues.Count == 0)
+        // Check if we have the right number of final dish combinations
+        if (finalDishCount == 0 && recipeStages.Count > 0)
+        {
+            warnings.Add("No combinations create the final dish yet - this is expected if recipe is incomplete");
+        }
+        else if (finalDishCount > 1)
+        {
+            warnings.Add($"Multiple combinations ({finalDishCount}) create the final dish - this may be intentional for complex recipes");
+        }
+
+        // Report results
+        if (issues.Count == 0 && warnings.Count == 0)
         {
             Debug.Log("[RecipeCombinationGenerator] Setup validation passed! ✓");
         }
         else
         {
-            Debug.LogWarning($"[RecipeCombinationGenerator] Setup has {issues.Count} issues:\n- " + string.Join("\n- ", issues));
+            if (issues.Count > 0)
+            {
+                Debug.LogError($"[RecipeCombinationGenerator] Setup has {issues.Count} issues:\n- " + string.Join("\n- ", issues));
+            }
+
+            if (warnings.Count > 0)
+            {
+                Debug.LogWarning($"[RecipeCombinationGenerator] Setup has {warnings.Count} warnings:\n- " + string.Join("\n- ", warnings));
+            }
         }
     }
 
@@ -511,12 +801,16 @@ public class RecipeCombinationGenerator : ScriptableObject
         var completedStages = recipeStages.Count(stage => IsStageComplete(stage));
         var totalCombinations = recipeStages.Sum(stage => stage.combinations.Count);
         var assignedCombinations = recipeStages.Sum(stage => stage.combinations.Count(combo => combo.result != null));
+        var finalDishCombos = recipeStages.Sum(stage => stage.combinations.Count(combo => combo.result == finalDish));
 
         string statusMessage = $"{completedStages}/{recipeStages.Count} stages complete | {assignedCombinations}/{totalCombinations} combinations assigned";
 
+        if (finalDishCombos > 0)
+            statusMessage += $" | {finalDishCombos} final dish combinations found";
+
         if (CanGenerateNextStage())
             statusMessage += " | Ready to generate next stage";
-        else if (recipeStages.Count > 0 && recipeStages[recipeStages.Count - 1].isFinalStage && IsStageComplete(recipeStages[recipeStages.Count - 1]))
+        else if (recipeStages.Count > 0 && (recipeStages[recipeStages.Count - 1].isFinalStage || HasAnyFinalDishCombinations()))
             statusMessage += " | Recipe complete!";
 
         return statusMessage;
