@@ -637,8 +637,14 @@ public class PlayerEnd : MonoBehaviour
         }
 
         // Disable collider to prevent interference
-        Collider col = obj.GetComponent<Collider>();
-        if (col != null)
+        Collider parentCol = obj.GetComponent<Collider>();
+        if (parentCol != null)
+        {
+            parentCol.enabled = false;
+        }
+
+        // Disable child colliders
+        foreach (Collider col in obj.GetComponentsInChildren<Collider>())
         {
             col.enabled = false;
         }
@@ -706,8 +712,14 @@ public class PlayerEnd : MonoBehaviour
         }
 
         // Re-enable collider
-        Collider col = obj.GetComponent<Collider>();
-        if (col != null)
+        Collider parentCol = obj.GetComponent<Collider>();
+        if (parentCol != null)
+        {
+            parentCol.enabled = true;
+        }
+
+        // Re-enable child colliders
+        foreach (Collider col in obj.GetComponentsInChildren<Collider>())
         {
             col.enabled = true;
         }
