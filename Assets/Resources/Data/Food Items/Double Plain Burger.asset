@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1074996721efcc540adefe6ce5c9cc36, type: 3}
   m_Name: Double Plain Burger
   m_EditorClassIdentifier: 
-  visualPrefab: {fileID: 1243878219613648, guid: af3032f180dc2304cbd74eb69674f90c, type: 3}
-  displayName: Plain Burger
-  icon: {fileID: 21300000, guid: 4ac5749a0f001cc44a8134615fc01132, type: 3}
+  visualPrefab: {fileID: 1243878219613648, guid: 15b82b1b669665045ae2545a4ae09767, type: 3}
+  displayName: Double Plain Burger
+  icon: {fileID: 21300000, guid: fc359b635f0d56e418462b9b3c984bbf, type: 3}
+  foodValue: 10
   choppedResult: {fileID: 0}
   cookedResult: {fileID: 0}
