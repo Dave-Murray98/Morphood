@@ -14,8 +14,8 @@ public class FoodItem : PickupableItem
     [Tooltip("The ScriptableObject that defines this food item's properties and behavior")]
 
     [Header("Visual Components")]
-    [Tooltip("Reference to the spawned visual child (auto-populated at runtime)")]
-    private GameObject visualChild;
+    [SerializeField] private Transform modelParent;
+    [Tooltip("The parent transform under which the visual prefab will be spawned")]
 
     [Header("Pooling Support")]
     [SerializeField] private bool isPooledItem = false;
@@ -120,31 +120,27 @@ public class FoodItem : PickupableItem
     {
         if (!HasValidFoodData) return;
 
-        // Destroy any existing visual child
-        if (visualChild != null)
+        if (modelParent == null)
         {
-            if (Application.isPlaying)
-            {
-                Destroy(visualChild);
-            }
-            else
-            {
-                DestroyImmediate(visualChild);
-            }
-            visualChild = null;
+            Debug.LogError($"[FoodItem] {name} has no Model parent assigned! Please assign the Model parent in the inspector.");
+            return;
         }
 
-        // Spawn the visual prefab as a child
+        // Destroy all existing children of the Model parent
+        ClearModelChildren();
+
+        // Spawn the visual prefab as a child of the Model parent
         if (foodData.VisualPrefab != null)
         {
+            GameObject visualChild;
             if (Application.isPlaying)
             {
-                visualChild = Instantiate(foodData.VisualPrefab, transform);
+                visualChild = Instantiate(foodData.VisualPrefab, modelParent);
             }
             else
             {
                 visualChild = Instantiate(foodData.VisualPrefab);
-                visualChild.transform.SetParent(transform);
+                visualChild.transform.SetParent(modelParent);
             }
 
             // Reset local transform
@@ -164,14 +160,37 @@ public class FoodItem : PickupableItem
     }
 
     /// <summary>
+    /// Clear all children of the Model parent
+    /// </summary>
+    private void ClearModelChildren()
+    {
+        if (modelParent == null) return;
+
+        // Destroy all children of the Model parent
+        int childCount = modelParent.childCount;
+        for (int i = childCount - 1; i >= 0; i--)
+        {
+            Transform child = modelParent.GetChild(i);
+            if (Application.isPlaying)
+            {
+                Destroy(child.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(child.gameObject);
+            }
+        }
+    }
+
+    /// <summary>
     /// Set up the mesh collider on the parent FoodItem using the visual child's mesh
     /// </summary>
     private void SetupMeshCollider()
     {
-        if (meshCollider == null || visualChild == null) return;
+        if (meshCollider == null || modelParent == null) return;
 
-        // Get the MeshFilter from the visual child
-        MeshFilter childMeshFilter = visualChild.GetComponent<MeshFilter>();
+        // Get the MeshFilter from the Model parent's children
+        MeshFilter childMeshFilter = modelParent.GetComponentInChildren<MeshFilter>();
         if (childMeshFilter != null && childMeshFilter.sharedMesh != null)
         {
             // Create a convex mesh collider using the visual mesh
@@ -298,19 +317,8 @@ public class FoodItem : PickupableItem
         // Clear food data reference
         foodData = null;
 
-        // Destroy visual child
-        if (visualChild != null)
-        {
-            if (Application.isPlaying)
-            {
-                Destroy(visualChild);
-            }
-            else
-            {
-                DestroyImmediate(visualChild);
-            }
-            visualChild = null;
-        }
+        // Destroy all children of the Model parent
+        ClearModelChildren();
 
         // Reset collider
         if (meshCollider != null)
@@ -374,6 +382,12 @@ public class FoodItem : PickupableItem
     protected override void OnValidate()
     {
         base.OnValidate();
+
+        // Validate Model parent assignment
+        if (modelParent == null)
+        {
+            Debug.LogWarning($"[FoodItem] {name} has no Model parent assigned! Please create a child GameObject called 'Model' and assign it in the inspector.");
+        }
 
         // Validate food data setup
         if (foodData != null)
