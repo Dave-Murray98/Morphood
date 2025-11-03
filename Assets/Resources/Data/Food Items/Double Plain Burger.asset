@@ -10,11 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1074996721efcc540adefe6ce5c9cc36, type: 3}
-  m_Name: Double Cheese Burger
+  m_Name: Double Plain Burger
   m_EditorClassIdentifier: 
-  visualPrefab: {fileID: 1243878219613648, guid: 7681177a451cf7d4baa3a76f2cd6408b, type: 3}
-  displayName: Double Cheese Burger
-  icon: {fileID: 21300000, guid: d49f32916562d71419268f68eeb876d2, type: 3}
-  foodValue: 10
+  visualPrefab: {fileID: 1243878219613648, guid: af3032f180dc2304cbd74eb69674f90c, type: 3}
+  displayName: Plain Burger
+  icon: {fileID: 21300000, guid: 4ac5749a0f001cc44a8134615fc01132, type: 3}
   choppedResult: {fileID: 0}
   cookedResult: {fileID: 0}

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1552348088739204
+--- !u!1 &1243878219613648
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,48 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4279595728970114}
-  - component: {fileID: 33914825163204224}
-  - component: {fileID: 23145245345352502}
-  - component: {fileID: -2677753071792665419}
+  - component: {fileID: 4163519646761180}
+  - component: {fileID: 33224283818009342}
+  - component: {fileID: 23566959673049206}
+  - component: {fileID: -5793595357669853474}
   m_Layer: 0
-  m_Name: Cooked Double Beef Patty Visual
+  m_Name: Bun With Cheese Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4279595728970114
+--- !u!4 &4163519646761180
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552348088739204}
+  m_GameObject: {fileID: 1243878219613648}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3765180100289529574}
+  - {fileID: 7425639879764474063}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &33914825163204224
+--- !u!33 &33224283818009342
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552348088739204}
-  m_Mesh: {fileID: 4300000, guid: 91c94401559ea484aaaff6ecb389c59b, type: 3}
---- !u!23 &23145245345352502
+  m_GameObject: {fileID: 1243878219613648}
+  m_Mesh: {fileID: 4300000, guid: 202c970259e2d28409113440fc8c6b9b, type: 3}
+--- !u!23 &23566959673049206
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552348088739204}
+  m_GameObject: {fileID: 1243878219613648}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -88,13 +88,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &-2677753071792665419
+--- !u!114 &-5793595357669853474
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552348088739204}
+  m_GameObject: {fileID: 1243878219613648}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
@@ -106,7 +106,7 @@ MonoBehaviour:
   precomputeOutline: 0
   bakeKeys: []
   bakeValues: []
---- !u!1 &8697145474651642441
+--- !u!1 &7424108156613644253
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -114,47 +114,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3765180100289529574}
-  - component: {fileID: 5927909049642902092}
-  - component: {fileID: 4387388687227913224}
-  - component: {fileID: 4166922830865404524}
+  - component: {fileID: 7425639879764474063}
+  - component: {fileID: 7455058288254011817}
+  - component: {fileID: 7444867709517874237}
+  - component: {fileID: 7486553589590766895}
   m_Layer: 0
-  m_Name: Cooked Double Beef Patty Visual
+  m_Name: cheese
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3765180100289529574
+--- !u!4 &7425639879764474063
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8697145474651642441}
+  m_GameObject: {fileID: 7424108156613644253}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.0411, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.0404, z: 0}
+  m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4279595728970114}
+  m_Father: {fileID: 4163519646761180}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5927909049642902092
+--- !u!33 &7455058288254011817
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8697145474651642441}
-  m_Mesh: {fileID: 4300000, guid: 91c94401559ea484aaaff6ecb389c59b, type: 3}
---- !u!23 &4387388687227913224
+  m_GameObject: {fileID: 7424108156613644253}
+  m_Mesh: {fileID: 4300000, guid: b9622de3492b0af4ab5f00d57387c083, type: 3}
+--- !u!23 &7444867709517874237
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8697145474651642441}
+  m_GameObject: {fileID: 7424108156613644253}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -193,13 +193,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &4166922830865404524
+--- !u!64 &7486553589590766895
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8697145474651642441}
+  m_GameObject: {fileID: 7424108156613644253}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -214,4 +214,4 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: 4300000, guid: 91c94401559ea484aaaff6ecb389c59b, type: 3}
+  m_Mesh: {fileID: 43421193570510492, guid: fa8c0b97686026e4abe615565879d33d, type: 2}
