@@ -15,7 +15,7 @@ public class RoundManager : MonoBehaviour
     [Tooltip("Minimum cash player needs to have earned to pass")]
     [SerializeField] private float revenueNeeded = 20;
 
-    [Header("Timer Extension Settings (makes last few seconds of a round slower)")]
+    [Header("Timer Extension Settings")]
     [Tooltip("Enable the timer extension feature")]
     [SerializeField] private bool enableTimerExtension = true;
     [Tooltip("When timer reaches this many seconds, start slowing down time")]
@@ -65,6 +65,12 @@ public class RoundManager : MonoBehaviour
         // Update initial UI
         UpdateQuotaUI();
         UpdateTimerUI();
+
+        // Set initial music to low intensity (not in round)
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.SetLowIntensity();
+        }
     }
 
     /// <summary>
@@ -128,6 +134,12 @@ public class RoundManager : MonoBehaviour
             yield return null;
         }
 
+        // Switch to high intensity music when the round starts
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.SetHighIntensity();
+        }
+
         isWarmUpActive = false;
 
         // === ROUND ACTIVE PHASE ===
@@ -169,6 +181,12 @@ public class RoundManager : MonoBehaviour
     {
         isRoundActive = false;
         isTimerExtensionActive = false;
+
+        // Switch back to low intensity music when round ends
+        if (MusicManager.Instance != null)
+        {
+            MusicManager.Instance.SetLowIntensity();
+        }
 
         // Stop customer spawning
         CustomerManager.Instance.StopSpawning();
@@ -235,7 +253,6 @@ public class RoundManager : MonoBehaviour
 
             // Add visual indicator when timer extension is active
             string timerDisplay = $"Time: {minutes:00}:{seconds:00}";
-
             timerText.text = timerDisplay;
         }
         else
