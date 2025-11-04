@@ -12,6 +12,7 @@ public class Customer : MonoBehaviour
     [SerializeField] private FollowerEntity followerEntity;
     [SerializeField] private CustomerAnimationHandler animationHandler;
     [SerializeField] private CustomerAppearanceManager appearanceManager;
+    [SerializeField] private CustomerFeedbackManager feedbackManager;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true; // Enable by default for debugging
@@ -140,7 +141,7 @@ public class Customer : MonoBehaviour
         // Handle automatic transitions for animation states
         if (animationHandler == null) return;
 
-        // Check if greeting animation finished
+        // Check if greeting animation finished (only transition if not already served)
         if (currentState == CustomerState.OrderingFood &&
             !animationHandler.isGreetingAnimationPlaying)
         {
@@ -191,8 +192,19 @@ public class Customer : MonoBehaviour
         if (currentState == CustomerState.MovingToTable)
         {
             // Arrived at table, start ordering (greeting animation)
-            DebugLog($"Arrived at table, starting greeting animation");
+            DebugLog($"Arrived at table, starting greeting animation and showing order");
             ChangeState(CustomerState.OrderingFood);
+
+            // Show speech bubble immediately when they start ordering
+            if (customerUI != null && orderRequest != null)
+            {
+                customerUI.ShowSpeechBubble(orderRequest.Icon);
+                DebugLog("Speech bubble shown immediately upon arrival");
+            }
+            else
+            {
+                DebugLog($"Failed to show speech bubble on arrival - customerUI: {customerUI != null}, orderRequest: {orderRequest != null}");
+            }
         }
         else if (currentState == CustomerState.Leaving)
         {
@@ -223,20 +235,13 @@ public class Customer : MonoBehaviour
     {
         if (currentState != CustomerState.OrderingFood) return;
 
-        DebugLog($"Transitioning to WaitingForFood, showing speech bubble for {orderRequest?.DisplayName ?? "NULL ORDER"}");
+        DebugLog($"Greeting animation finished, transitioning to WaitingForFood (speech bubble already shown)");
 
-        // Transition to waiting for food and show speech bubble
+        // Transition to waiting for food (speech bubble already shown when they arrived)
         ChangeState(CustomerState.WaitingForFood);
 
-        if (customerUI != null && orderRequest != null)
-        {
-            customerUI.ShowSpeechBubble(orderRequest.Icon);
-            DebugLog("Speech bubble shown successfully");
-        }
-        else
-        {
-            DebugLog($"Failed to show speech bubble - customerUI: {customerUI != null}, orderRequest: {orderRequest != null}");
-        }
+        // No need to show speech bubble again - it's already visible from when they arrived
+        DebugLog("Transitioned to WaitingForFood - keeping existing speech bubble");
     }
 
     /// <summary>
@@ -277,10 +282,17 @@ public class Customer : MonoBehaviour
     /// </summary>
     public void OnServed(GameObject food)
     {
-        if (currentState != CustomerState.WaitingForFood)
+        // Allow serving during OrderingFood (greeting animation) or WaitingForFood states
+        if (currentState != CustomerState.WaitingForFood && currentState != CustomerState.OrderingFood)
         {
-            DebugLog($"Customer was served but is not waiting for food (current state: {currentState})");
+            DebugLog($"Customer was served but is not ready (current state: {currentState})");
             return;
+        }
+
+        // If served during greeting animation, interrupt it and go straight to eating
+        if (currentState == CustomerState.OrderingFood)
+        {
+            DebugLog("Customer served during greeting animation - interrupting greeting to start eating");
         }
 
         servedFood = food;
@@ -314,6 +326,8 @@ public class Customer : MonoBehaviour
         // Transition to celebrating state
         DebugLog("Finished eating, starting celebration animation");
         ChangeState(CustomerState.Celebrating);
+
+        feedbackManager.PlayCelebrationFeedback();
     }
 
     /// <summary>
@@ -481,6 +495,7 @@ public class Customer : MonoBehaviour
         if (Application.isPlaying && customerUI != null && orderRequest != null)
         {
             customerUI.ShowSpeechBubble(orderRequest.Icon);
+            DebugLog("Debug: Forced speech bubble to show");
         }
     }
 

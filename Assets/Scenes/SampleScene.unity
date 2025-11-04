@@ -764,7 +764,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cab1a3d37b5adc0498653d3bcf03bd1b, type: 2}
   customerPrefab: {fileID: 8770045754059386278, guid: eb748091e1e2c7247a452050d3068324, type: 3}
   spawnInterval: 5
-  customerEatTime: 5
+  customerEatTime: 2.5
   initialPoolSize: 5
   maxPoolSize: 20
   poolParent: {fileID: 261400161}
