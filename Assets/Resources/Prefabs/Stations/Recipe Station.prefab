@@ -58,7 +58,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.8}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -367,6 +367,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 0b2e63465f09f9d49986ad28d9220092, type: 3}
+    - target: {fileID: 206416677775105512, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 826622209324729571, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -414,6 +418,10 @@ PrefabInstance:
     - target: {fileID: 934897750069135898, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 946948133858418463, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 1144766691705711919, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_Padding.m_Top
@@ -478,6 +486,10 @@ PrefabInstance:
     - target: {fileID: 1668293974618282467, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3630362757482383085, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 3672093346415386366, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_AnchorMax.y
@@ -591,6 +603,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Cooking Process Image
       objectReference: {fileID: 0}
+    - target: {fileID: 5000783323295336358, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5112177185163048404, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 5155998532051014978, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -619,6 +639,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 98e18952696efae4f8e4049eec9649ca, type: 3}
+    - target: {fileID: 5182980221430087911, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 5438466907383497874, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_Name
       value: Recipe Panel
@@ -731,6 +755,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 74f4ca25b73e39d4b90d2b7b4dace85b, type: 3}
+    - target: {fileID: 9116551062065870410, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
+      propertyPath: m_Color.a
+      value: 0.8
+      objectReference: {fileID: 0}
     - target: {fileID: 9116551062065870410, guid: 7fb98481d19323748bb3e22439c53d64, type: 3}
       propertyPath: m_Color.b
       value: 1

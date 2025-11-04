@@ -5436,7 +5436,7 @@ MonoBehaviour:
       leadInRadiusWhenApproachingDestination: 1
       allowRotatingOnSpotBacking: 1
     debugFlags: 64
-    stopDistance: 0.2
+    stopDistance: 0.3
     rotationSmoothing: 0
     positionSmoothing: 0
     groundMask:

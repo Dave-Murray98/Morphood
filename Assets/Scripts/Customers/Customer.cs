@@ -1,6 +1,7 @@
 using UnityEngine;
 using Pathfinding;
 using Sirenix.OdinInspector;
+using Unity.VisualScripting;
 
 /// <summary>
 /// Represents a customer in the restaurant.
@@ -34,6 +35,10 @@ public class Customer : MonoBehaviour
     public ServingStation AssignedStation => assignedStation;
     public FoodItemData OrderRequest => orderRequest;
     public CustomerState CurrentState => currentState;
+
+    //leaving backup timer in case customers get stuck when leaving the restaurant
+    private float leavingTimer = 0f;
+    private float leavingTimerMax = 10f;
 
     private void Awake()
     {
@@ -132,6 +137,16 @@ public class Customer : MonoBehaviour
             {
                 hasReachedDestination = true;
                 OnDestinationReached();
+            }
+
+            if (currentState == CustomerState.Leaving)
+            {
+                leavingTimer += Time.deltaTime;
+                if (leavingTimer > leavingTimerMax)
+                {
+                    OnDestinationReached();
+                    leavingTimer = 0f;
+                }
             }
         }
     }
