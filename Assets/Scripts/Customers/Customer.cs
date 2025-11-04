@@ -14,7 +14,7 @@ public class Customer : MonoBehaviour
     [SerializeField] private CustomerAppearanceManager appearanceManager;
 
     [Header("Debug")]
-    [SerializeField] private bool enableDebugLogs = false;
+    [SerializeField] private bool enableDebugLogs = true; // Enable by default for debugging
 
     // Internal state
     private ServingStation assignedStation;
@@ -27,6 +27,7 @@ public class Customer : MonoBehaviour
 
     // State tracking
     private bool hasReachedDestination = false;
+    private float stateTransitionTime; // Track when we enter states to add delays
 
     // Public properties
     public ServingStation AssignedStation => assignedStation;
@@ -35,6 +36,12 @@ public class Customer : MonoBehaviour
 
     private void Awake()
     {
+        InitializeComponents();
+    }
+
+    private void InitializeComponents()
+    {
+        // Get FollowerEntity
         if (followerEntity == null)
         {
             followerEntity = GetComponent<FollowerEntity>();
@@ -45,6 +52,7 @@ public class Customer : MonoBehaviour
             Debug.LogError($"[Customer] {name} requires a FollowerEntity component!");
         }
 
+        // Get CustomerUI
         if (customerUI == null)
             customerUI = GetComponentInChildren<CustomerUI>();
 
@@ -54,12 +62,20 @@ public class Customer : MonoBehaviour
             customerUI.HideMoneyUI();
         }
 
+        // Get AnimationHandler
         if (animationHandler == null)
             animationHandler = GetComponent<CustomerAnimationHandler>();
 
-        // Auto-find the appearance manager if not assigned
+        if (animationHandler == null)
+        {
+            Debug.LogError($"[Customer] {name} requires a CustomerAnimationHandler component!");
+        }
+
+        // Get AppearanceManager
         if (appearanceManager == null)
             appearanceManager = GetComponent<CustomerAppearanceManager>();
+
+        DebugLog("Components initialized");
     }
 
     private void OnEnable()
@@ -69,7 +85,10 @@ public class Customer : MonoBehaviour
             followerEntity = GetComponent<FollowerEntity>();
         }
 
-        followerEntity.enabled = true;
+        if (followerEntity != null)
+        {
+            followerEntity.enabled = true;
+        }
 
         if (customerUI != null)
         {
@@ -83,26 +102,65 @@ public class Customer : MonoBehaviour
             appearanceManager.RandomizeAppearance();
             DebugLog($"Randomized customer appearance to index {appearanceManager.GetCurrentAppearanceIndex()}");
         }
+
+        DebugLog("Customer enabled");
     }
 
     private void OnDisable()
     {
-        if (followerEntity == null)
-            followerEntity = GetComponent<FollowerEntity>();
+        if (followerEntity != null)
+        {
+            followerEntity.enabled = false;
+        }
 
-        followerEntity.enabled = false;
-
+        DebugLog("Customer disabled");
     }
 
     private void Update()
     {
-        // Check if we've reached our destination
+        HandleMovementStates();
+        HandleAnimationStateTransitions();
+    }
+
+    private void HandleMovementStates()
+    {
+        // Check if we've reached our destination for movement states
         if (currentState == CustomerState.MovingToTable || currentState == CustomerState.Leaving)
         {
-            if (!hasReachedDestination && followerEntity.reachedDestination)
+            if (!hasReachedDestination && followerEntity != null && followerEntity.reachedDestination)
             {
                 hasReachedDestination = true;
                 OnDestinationReached();
+            }
+        }
+    }
+
+    private void HandleAnimationStateTransitions()
+    {
+        // Handle automatic transitions for animation states
+        if (animationHandler == null) return;
+
+        // Check if greeting animation finished
+        if (currentState == CustomerState.OrderingFood &&
+            !animationHandler.isGreetingAnimationPlaying)
+        {
+            // Add a small delay to ensure animation event has been processed
+            if (Time.time > stateTransitionTime + 0.1f)
+            {
+                DebugLog("Greeting animation finished in Update, transitioning to WaitingForFood");
+                TransitionToWaitingForFood();
+            }
+        }
+
+        // Check if celebration animation finished
+        if (currentState == CustomerState.Celebrating &&
+            !animationHandler.isCelebrationAnimationPlaying)
+        {
+            // Add a small delay to ensure animation event has been processed
+            if (Time.time > stateTransitionTime + 0.1f)
+            {
+                DebugLog("Celebration animation finished in Update, transitioning to leaving");
+                StartLeavingProcess();
             }
         }
     }
@@ -114,10 +172,8 @@ public class Customer : MonoBehaviour
     {
         assignedStation = station;
         orderRequest = order;
-        currentState = CustomerState.MovingToTable;
+        ChangeState(CustomerState.MovingToTable);
         hasReachedDestination = false;
-
-        animationHandler.UpdateAnimationState(currentState);
 
         // Move to the station
         if (followerEntity != null && station != null)
@@ -134,24 +190,86 @@ public class Customer : MonoBehaviour
     {
         if (currentState == CustomerState.MovingToTable)
         {
-            // Arrived at table, now waiting for service
-            currentState = CustomerState.WaitingForFood;
-
-            if (customerUI != null)
-            {
-                customerUI.ShowSpeechBubble(orderRequest.Icon);
-            }
-
-            animationHandler.UpdateAnimationState(currentState);
-
-            DebugLog($"Arrived at table, waiting for {orderRequest.DisplayName}");
+            // Arrived at table, start ordering (greeting animation)
+            DebugLog($"Arrived at table, starting greeting animation");
+            ChangeState(CustomerState.OrderingFood);
         }
         else if (currentState == CustomerState.Leaving)
         {
             // Reached the door, ready to despawn
-            currentState = CustomerState.ReadyToDespawn;
             DebugLog("Reached door, ready to despawn");
+            ChangeState(CustomerState.ReadyToDespawn);
         }
+    }
+
+    /// <summary>
+    /// Called by CustomerAnimationHandler when greeting animation finishes (via animation event)
+    /// This is a backup - the main transition happens in Update() by checking animation flags
+    /// </summary>
+    public void OnGreetingComplete()
+    {
+        DebugLog("OnGreetingComplete called from animation event");
+
+        if (currentState == CustomerState.OrderingFood)
+        {
+            TransitionToWaitingForFood();
+        }
+    }
+
+    /// <summary>
+    /// Transition from OrderingFood to WaitingForFood
+    /// </summary>
+    private void TransitionToWaitingForFood()
+    {
+        if (currentState != CustomerState.OrderingFood) return;
+
+        DebugLog($"Transitioning to WaitingForFood, showing speech bubble for {orderRequest?.DisplayName ?? "NULL ORDER"}");
+
+        // Transition to waiting for food and show speech bubble
+        ChangeState(CustomerState.WaitingForFood);
+
+        if (customerUI != null && orderRequest != null)
+        {
+            customerUI.ShowSpeechBubble(orderRequest.Icon);
+            DebugLog("Speech bubble shown successfully");
+        }
+        else
+        {
+            DebugLog($"Failed to show speech bubble - customerUI: {customerUI != null}, orderRequest: {orderRequest != null}");
+        }
+    }
+
+    /// <summary>
+    /// Called by CustomerAnimationHandler when celebration animation finishes (via animation event)
+    /// This is a backup - the main transition happens in Update() by checking animation flags
+    /// </summary>
+    public void OnCelebrationComplete()
+    {
+        DebugLog("OnCelebrationComplete called from animation event");
+
+        if (currentState == CustomerState.Celebrating)
+        {
+            StartLeavingProcess();
+        }
+    }
+
+    /// <summary>
+    /// Start the leaving process after celebration
+    /// </summary>
+    private void StartLeavingProcess()
+    {
+        if (currentState != CustomerState.Celebrating) return;
+
+        DebugLog("Starting leaving process");
+
+        // Get door position from CustomerManager
+        Transform doorPosition = null;
+        if (CustomerManager.Instance != null)
+        {
+            doorPosition = CustomerManager.Instance.DoorTransform;
+        }
+
+        Leave(doorPosition);
     }
 
     /// <summary>
@@ -161,14 +279,12 @@ public class Customer : MonoBehaviour
     {
         if (currentState != CustomerState.WaitingForFood)
         {
-            DebugLog("Customer was served but is not waiting for food");
+            DebugLog($"Customer was served but is not waiting for food (current state: {currentState})");
             return;
         }
 
         servedFood = food;
-        currentState = CustomerState.Eating;
-
-        animationHandler.UpdateAnimationState(currentState);
+        ChangeState(CustomerState.Eating);
 
         if (customerUI != null)
         {
@@ -188,14 +304,26 @@ public class Customer : MonoBehaviour
     {
         if (currentState != CustomerState.Eating)
         {
-            DebugLog("FinishEating called but customer is not eating");
+            DebugLog($"FinishEating called but customer is not eating (current state: {currentState})");
             return;
         }
 
         // Clean up the food and notify the station
+        CleanupFood();
+
+        // Transition to celebrating state
+        DebugLog("Finished eating, starting celebration animation");
+        ChangeState(CustomerState.Celebrating);
+    }
+
+    /// <summary>
+    /// Clean up the served food item
+    /// </summary>
+    private void CleanupFood()
+    {
         if (servedFood != null)
         {
-            // FIXED: Clear item from station first to reset its state (currentItem, isOccupied)
+            // Clear item from station first to reset its state (currentItem, isOccupied)
             if (assignedStation != null && assignedStation.CurrentItem == servedFood)
             {
                 assignedStation.ClearItem(); // Use ClearItem for system cleanup without player
@@ -211,8 +339,6 @@ public class Customer : MonoBehaviour
 
             servedFood = null;
         }
-
-        DebugLog("Finished eating, leaving restaurant");
     }
 
     /// <summary>
@@ -220,7 +346,9 @@ public class Customer : MonoBehaviour
     /// </summary>
     public void Leave(Transform doorPosition)
     {
-        currentState = CustomerState.Leaving;
+        DebugLog("Leave method called");
+
+        ChangeState(CustomerState.Leaving);
         hasReachedDestination = false;
 
         // Release from serving station
@@ -230,19 +358,48 @@ public class Customer : MonoBehaviour
         }
 
         // Move to door
-        if (followerEntity != null && doorPosition != null)
+        if (followerEntity != null)
         {
-            followerEntity.destination = doorPosition.position;
-            DebugLog("Leaving restaurant");
+            if (doorPosition != null)
+            {
+                followerEntity.destination = doorPosition.position;
+                DebugLog("Moving to door position");
+            }
+            else
+            {
+                DebugLog("Warning: No door position provided, customer may not move properly");
+            }
         }
 
-        animationHandler.UpdateAnimationState(currentState);
-
-        // Hide speech bubble (as customers will leave when the round ends, if they haven't been served yet, we'll need to hide the bubble)
+        // Hide UI elements
         if (customerUI != null)
         {
             customerUI.HideSpeechBubble();
             customerUI.HideMoneyUI();
+        }
+    }
+
+    /// <summary>
+    /// Change the customer's state and update animations
+    /// </summary>
+    private void ChangeState(CustomerState newState)
+    {
+        if (currentState == newState) return;
+
+        CustomerState oldState = currentState;
+        currentState = newState;
+        stateTransitionTime = Time.time;
+
+        DebugLog($"State changed: {oldState} -> {newState}");
+
+        // Update animation handler
+        if (animationHandler != null)
+        {
+            animationHandler.UpdateAnimationState(currentState);
+        }
+        else
+        {
+            DebugLog("Warning: AnimationHandler is null, cannot update animation state");
         }
     }
 
@@ -256,11 +413,18 @@ public class Customer : MonoBehaviour
         servedFood = null;
         currentState = CustomerState.Idle;
         hasReachedDestination = false;
+        stateTransitionTime = 0f;
 
         // Reset appearance tracking
         if (appearanceManager != null)
         {
             appearanceManager.ResetForPooling();
+        }
+
+        // Reset animation handler
+        if (animationHandler != null)
+        {
+            animationHandler.ResetForPooling();
         }
 
         DebugLog("Reset for pooling");
@@ -297,8 +461,30 @@ public class Customer : MonoBehaviour
     private void DebugLog(string message)
     {
         if (enableDebugLogs)
-            Debug.Log($"[Customer] {message}");
+            Debug.Log($"[Customer {name}] {message}");
     }
+
+    #region Debug Inspector Methods
+
+    [Button("Force Transition to WaitingForFood")]
+    private void DebugForceWaitingForFood()
+    {
+        if (Application.isPlaying)
+        {
+            TransitionToWaitingForFood();
+        }
+    }
+
+    [Button("Force Show Speech Bubble")]
+    private void DebugShowSpeechBubble()
+    {
+        if (Application.isPlaying && customerUI != null && orderRequest != null)
+        {
+            customerUI.ShowSpeechBubble(orderRequest.Icon);
+        }
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -308,8 +494,10 @@ public enum CustomerState
 {
     Idle,
     MovingToTable,
+    OrderingFood,    // New: plays greeting animation
     WaitingForFood,
     Eating,
+    Celebrating,     // New: plays celebration animation
     Leaving,
     ReadyToDespawn
 }

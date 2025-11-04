@@ -4017,7 +4017,11 @@ Animator:
   m_AnimatePhysics: 0
   m_WarningMessage: "\nBinding warning: Some generic clip(s) animate transforms that
     are already bound by a Humanoid avatar. These transforms can only be changed
-    by Humanoid clips.\n\tTransform 'Eyebrows'\n\tFrom animation clip 'Eat'"
+    by Humanoid clips.\n\tTransform 'Eyebrows'\n\tTransform 'Eyes'\n\tTransform 'Eyebrows'\n\tTransform
+    'Eyes'\n\tTransform 'Eyebrows'\n\tTransform 'Eyes'\n\tFrom animation clip 'Eat'\n\tFrom
+    animation clip 'Beckon'\n\tFrom animation clip 'Salute Stomp'\n\tFrom animation
+    clip 'Wave Over'\n\tFrom animation clip 'Dab'\n\tFrom animation clip 'Finger
+    Guns'\n\tFrom animation clip 'Spin Dance'\n\tFrom animation clip 'Twist Dance'"
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -4038,9 +4042,19 @@ MonoBehaviour:
   walkAnimationName: Walk Forwards
   idleAnimationName: Idle
   eatAnimationName: Eat
-  waitingAnimationName1: Pick Nose
-  waitingAnimationName2: Yawn
-  waitingAnimationName3: Check Watch
+  waitingAnimationNames:
+  - Yawn
+  - Check Watch
+  - Pick Nose
+  greetingAnimationNames:
+  - Beckon
+  - Salute Stomp
+  - Wave Over
+  celebrationAnimationNames:
+  - Dab
+  - Finger Guns
+  - Twist Dance
+  - Spin Dance
   waitingAnimationInterlude: 2
   currentState: 0
 --- !u!1 &5223423111452049233
@@ -5208,7 +5222,7 @@ MonoBehaviour:
   animationHandler: {fileID: 146022347534396203}
   appearanceManager: {fileID: 5880648058309877922}
   enableDebugLogs: 1
-  customerUI: {fileID: 0}
+  customerUI: {fileID: 5662934074023593896}
 --- !u!114 &5880648058309877922
 MonoBehaviour:
   m_ObjectHideFlags: 0

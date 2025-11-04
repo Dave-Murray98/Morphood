@@ -761,8 +761,7 @@ MonoBehaviour:
   servingStations: []
   doorTransform: {fileID: 774820908}
   menu:
-  - {fileID: 11400000, guid: 4cfa0f8d99f056b42827c1e1e48c486c, type: 2}
-  - {fileID: 11400000, guid: b0d955b470e078d49a3d7eb8e2fc2ac2, type: 2}
+  - {fileID: 11400000, guid: cab1a3d37b5adc0498653d3bcf03bd1b, type: 2}
   customerPrefab: {fileID: 8770045754059386278, guid: eb748091e1e2c7247a452050d3068324, type: 3}
   spawnInterval: 5
   customerEatTime: 5

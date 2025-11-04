@@ -50,6 +50,12 @@ public class CustomerManager : MonoBehaviour
     // Events - Using C# events instead of UnityEvents for better reliability
     public event Action<float> OnCustomerServedSuccessfully;
 
+    /// <summary>
+    /// Public getter for the door transform position
+    /// Used by customers when they need to leave after celebration animations
+    /// </summary>
+    public Transform DoorTransform => doorTransform;
+
     // Pooling
     private Queue<Customer> availableCustomers = new Queue<Customer>();
     private HashSet<Customer> allCustomers = new HashSet<Customer>();
@@ -229,14 +235,15 @@ public class CustomerManager : MonoBehaviour
             if (station.HasCustomer)
                 continue;
 
-            // FIXED: Also check if any active customers are still leaving from this station
-            // We don't want to spawn a new customer until the previous one has fully despawned
+            // UPDATED: Check for customers in new states (OrderingFood, Celebrating) as well
             bool hasLeavingCustomer = false;
             foreach (Customer customer in activeCustomers)
             {
                 if (customer != null &&
                     customer.AssignedStation == station &&
-                    (customer.CurrentState == CustomerState.Leaving || customer.CurrentState == CustomerState.ReadyToDespawn))
+                    (customer.CurrentState == CustomerState.Celebrating ||
+                     customer.CurrentState == CustomerState.Leaving ||
+                     customer.CurrentState == CustomerState.ReadyToDespawn))
                 {
                     hasLeavingCustomer = true;
                     break;
@@ -332,8 +339,8 @@ public class CustomerManager : MonoBehaviour
         if (customer != null && customer.CurrentState == CustomerState.Eating)
         {
             customer.FinishEating();
-            customer.Leave(doorTransform);
-            DebugLog("Customer finished eating and is leaving");
+            // UPDATED: Don't call Leave() here - let the customer handle it after celebration
+            DebugLog("Customer finished eating, starting celebration");
         }
     }
 
@@ -482,7 +489,8 @@ public class CustomerManager : MonoBehaviour
             if (customer != null)
             {
                 // Make the customer leave if they're not already leaving
-                if (customer.CurrentState != CustomerState.Leaving &&
+                if (customer.CurrentState != CustomerState.Celebrating &&
+                    customer.CurrentState != CustomerState.Leaving &&
                     customer.CurrentState != CustomerState.ReadyToDespawn)
                 {
                     customer.Leave(doorTransform);
