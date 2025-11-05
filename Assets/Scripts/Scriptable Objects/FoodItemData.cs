@@ -11,6 +11,9 @@ public class FoodItemData : ScriptableObject
     [Tooltip("The prefab that contains the visual representation (mesh, materials, etc.) - will be spawned as a child of the food item")]
     [SerializeField] private GameObject visualPrefab;
 
+    [Tooltip("Y offset position for when this food is placed on a station (can be negative or positive)")]
+    public float yPositionPlacementOffset = 0f;
+
     [Header("Basic Properties")]
     [Tooltip("The name shown to players when they interact with this food item")]
     [SerializeField] private string displayName = "Food Item";

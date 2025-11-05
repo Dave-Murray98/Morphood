@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Double Cooked Beef Patty With Cheese
   m_EditorClassIdentifier: 
   visualPrefab: {fileID: 1552348088739204, guid: 0d77f96e003fa95408d20f64373ab7af, type: 3}
+  yPositionPlacementOffset: 0.3
   displayName: Double Cooked Beef Patty With Cheese
   icon: {fileID: 21300000, guid: 92626fbc900f92f49b31f50e289eb6a3, type: 3}
   foodValue: 10

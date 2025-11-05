@@ -154,6 +154,12 @@ public abstract class BaseStation : MonoBehaviour
         item.transform.localPosition = placementOffset;
         item.transform.localRotation = Quaternion.identity;
 
+        FoodItem foodItem = item.GetComponent<FoodItem>();
+        if (foodItem != null)
+        {
+            item.transform.localPosition += Vector3.up * foodItem.FoodData.yPositionPlacementOffset;
+        }
+
         // Enable physics but make it kinematic (station controls position)
         Rigidbody rb = item.GetComponent<Rigidbody>();
         if (rb != null)
