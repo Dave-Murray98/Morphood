@@ -253,6 +253,8 @@ public class ChoppingStation : BaseStation
         // Fire event
         OnChoppingStarted?.Invoke(foodItem);
 
+        foodItem.OnProcessingStarted(FoodProcessType.Chopping);
+
         return true;
     }
 
@@ -264,6 +266,7 @@ public class ChoppingStation : BaseStation
         if (!isCurrentlyChopping) return;
 
         FoodItem foodItem = currentItem?.GetComponent<FoodItem>();
+        foodItem.OnProcessingStopped(FoodProcessType.Chopping);
 
         isCurrentlyChopping = false;
         currentChoppingPlayer.isChopping = false;
