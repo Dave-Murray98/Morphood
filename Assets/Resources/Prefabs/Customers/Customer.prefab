@@ -5579,7 +5579,7 @@ MonoBehaviour:
   animationHandler: {fileID: 146022347534396203}
   appearanceManager: {fileID: 5880648058309877922}
   feedbackManager: {fileID: 8573639663152079787}
-  enableDebugLogs: 1
+  enableDebugLogs: 0
   customerUI: {fileID: 5662934074023593896}
 --- !u!114 &5880648058309877922
 MonoBehaviour:

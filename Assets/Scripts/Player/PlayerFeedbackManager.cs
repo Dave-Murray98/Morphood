@@ -3,7 +3,8 @@ using MoreMountains.Feedbacks;
 
 /// <summary>
 /// Manages visual and haptic feedback for the player based on input conflicts.
-/// Reacts to movement and rotation conflicts using separate Feel feedbacks.
+/// Reacts to movement and rotation conflicts using separate Feel feedbacks,
+/// plus shared particle feedback for any conflict.
 /// </summary>
 public class PlayerFeedbackManager : MonoBehaviour
 {
@@ -13,6 +14,9 @@ public class PlayerFeedbackManager : MonoBehaviour
 
     [SerializeField] private MMF_Player rotationConflictFeedback;
     [Tooltip("MMF Player for rotation conflict feedback (shake, audio, visual effects, etc.)")]
+
+    [SerializeField] private MMF_Player particleConflictFeedback;
+    [Tooltip("MMF Player for particle feedback - plays when any conflict is detected")]
 
     [Header("Conflict Detection")]
     [SerializeField] private float conflictCheckInterval = 0.1f;
@@ -28,6 +32,7 @@ public class PlayerFeedbackManager : MonoBehaviour
     // Internal state
     private bool wasMovementConflictingLastFrame = false;
     private bool wasRotationConflictingLastFrame = false;
+    private bool wasAnyConflictingLastFrame = false;
 
     private void Start()
     {
@@ -45,6 +50,11 @@ public class PlayerFeedbackManager : MonoBehaviour
         if (rotationConflictFeedback == null)
         {
             Debug.LogError("[PlayerFeedbackManager] No Rotation Conflict MMF Player assigned! Please assign the rotation conflict feedback.");
+        }
+
+        if (particleConflictFeedback == null)
+        {
+            Debug.LogWarning("[PlayerFeedbackManager] No Particle Conflict MMF Player assigned. Particle feedback will be disabled.");
         }
 
         if (movementConflictFeedback == null && rotationConflictFeedback == null)
@@ -66,6 +76,7 @@ public class PlayerFeedbackManager : MonoBehaviour
         // Check current conflict states
         bool hasMovementConflict = reactToMovementConflicts && InputManager.Instance.IsMovementInputConflicting;
         bool hasRotationConflict = reactToRotationConflicts && InputManager.Instance.IsRotationInputConflicting;
+        bool hasAnyConflict = hasMovementConflict || hasRotationConflict;
 
         // Handle movement conflict changes
         if (hasMovementConflict != wasMovementConflictingLastFrame)
@@ -97,9 +108,25 @@ public class PlayerFeedbackManager : MonoBehaviour
             }
         }
 
+        // Handle particle feedback for any conflict
+        if (hasAnyConflict != wasAnyConflictingLastFrame)
+        {
+            if (hasAnyConflict)
+            {
+                StartParticleConflictFeedback();
+                DebugLog("Conflict detected - starting particle feedback");
+            }
+            else
+            {
+                StopParticleConflictFeedback();
+                DebugLog("All conflicts resolved - stopping particle feedback");
+            }
+        }
+
         // Update last frame states
         wasMovementConflictingLastFrame = hasMovementConflict;
         wasRotationConflictingLastFrame = hasRotationConflict;
+        wasAnyConflictingLastFrame = hasAnyConflict;
     }
 
     private void StartMovementConflictFeedback()
@@ -134,11 +161,28 @@ public class PlayerFeedbackManager : MonoBehaviour
         DebugLog("Stopped rotation conflict feedback");
     }
 
+    private void StartParticleConflictFeedback()
+    {
+        if (particleConflictFeedback == null) return;
+
+        particleConflictFeedback.PlayFeedbacks();
+        DebugLog("Started particle conflict feedback");
+    }
+
+    private void StopParticleConflictFeedback()
+    {
+        if (particleConflictFeedback == null) return;
+
+        particleConflictFeedback.StopFeedbacks();
+        DebugLog("Stopped particle conflict feedback");
+    }
+
     private void OnDestroy()
     {
         // Clean up
         StopMovementConflictFeedback();
         StopRotationConflictFeedback();
+        StopParticleConflictFeedback();
         CancelInvoke();
     }
 
@@ -147,6 +191,7 @@ public class PlayerFeedbackManager : MonoBehaviour
         // Stop feedbacks when disabled
         StopMovementConflictFeedback();
         StopRotationConflictFeedback();
+        StopParticleConflictFeedback();
     }
 
     #region Public Methods
@@ -174,6 +219,17 @@ public class PlayerFeedbackManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Manually trigger the particle conflict feedback (useful for testing)
+    /// </summary>
+    public void TriggerManualParticleConflictFeedback()
+    {
+        if (particleConflictFeedback == null) return;
+
+        particleConflictFeedback.PlayFeedbacks();
+        DebugLog("Manual particle conflict feedback triggered");
+    }
+
+    /// <summary>
     /// Check if movement conflict feedback is currently playing
     /// </summary>
     public bool IsMovementConflictFeedbackPlaying => movementConflictFeedback != null && movementConflictFeedback.IsPlaying;
@@ -184,9 +240,14 @@ public class PlayerFeedbackManager : MonoBehaviour
     public bool IsRotationConflictFeedbackPlaying => rotationConflictFeedback != null && rotationConflictFeedback.IsPlaying;
 
     /// <summary>
+    /// Check if particle conflict feedback is currently playing
+    /// </summary>
+    public bool IsParticleConflictFeedbackPlaying => particleConflictFeedback != null && particleConflictFeedback.IsPlaying;
+
+    /// <summary>
     /// Check if any conflict feedback is currently playing
     /// </summary>
-    public bool IsAnyConflictFeedbackPlaying => IsMovementConflictFeedbackPlaying || IsRotationConflictFeedbackPlaying;
+    public bool IsAnyConflictFeedbackPlaying => IsMovementConflictFeedbackPlaying || IsRotationConflictFeedbackPlaying || IsParticleConflictFeedbackPlaying;
 
     #endregion
 
@@ -209,6 +270,7 @@ public class PlayerFeedbackManager : MonoBehaviour
     [Header("Testing (Editor Only)")]
     [SerializeField] private bool testMovementConflictFeedback = false;
     [SerializeField] private bool testRotationConflictFeedback = false;
+    [SerializeField] private bool testParticleConflictFeedback = false;
 
     private void Update()
     {
@@ -225,6 +287,12 @@ public class PlayerFeedbackManager : MonoBehaviour
         {
             testRotationConflictFeedback = false;
             TriggerManualRotationConflictFeedback();
+        }
+
+        if (testParticleConflictFeedback)
+        {
+            testParticleConflictFeedback = false;
+            TriggerManualParticleConflictFeedback();
         }
     }
 #endif

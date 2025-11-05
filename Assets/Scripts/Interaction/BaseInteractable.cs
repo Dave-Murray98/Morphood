@@ -56,10 +56,10 @@ public abstract class BaseInteractable : MonoBehaviour, IInteractable
         // Get the outline component
         outlineComponent = GetComponent<InteractableOutline>();
 
-        if (enableOutlineHighlighting && outlineComponent == null)
-        {
-            Debug.LogWarning($"[{name}] Outline highlighting is enabled but no Outline component found! Add an Outline component for highlighting to work.");
-        }
+        // if (enableOutlineHighlighting && outlineComponent == null)
+        // {
+        //     Debug.LogWarning($"[{name}] Outline highlighting is enabled but no Outline component found! Add an Outline component for highlighting to work.");
+        // }
 
         // Initially disable the outline
         if (outlineComponent != null)
