@@ -246,6 +246,8 @@ public class CookingStation : BaseStation
         cookingStartTime = Time.time;
         cookingProgress = 0f;
 
+        currentCookingPlayer.isCooking = true;
+
         DebugLog($"Started cooking {foodItem.FoodData.DisplayName} by Player {playerEnd.PlayerNumber}");
 
         // Fire event
@@ -264,6 +266,7 @@ public class CookingStation : BaseStation
         FoodItem foodItem = currentItem?.GetComponent<FoodItem>();
 
         isCurrentlyCooking = false;
+        currentCookingPlayer.isCooking = false;
         currentCookingPlayer = null;
         cookingProgress = 0f;
 

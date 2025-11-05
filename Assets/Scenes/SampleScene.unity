@@ -914,6 +914,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 289438862}
   m_CullTransparentMesh: 1
+--- !u!114 &312026411 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2226430274346737526, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+  m_PrefabInstance: {fileID: 8237283000528516526}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &326325711 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8325934175593410518, guid: 542f2a1821528ab40b025e49bccbc75a, type: 3}
@@ -1560,6 +1571,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1926870444}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &786791088 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1773962868926041091, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+  m_PrefabInstance: {fileID: 8237283000528516526}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &789040105
 GameObject:
   m_ObjectHideFlags: 0
@@ -6025,6 +6047,14 @@ PrefabInstance:
       propertyPath: enableDebugLogs
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 704178603646354286, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: cookingFeedback
+      value: 
+      objectReference: {fileID: 786791088}
+    - target: {fileID: 704178603646354286, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: choppingFeedback
+      value: 
+      objectReference: {fileID: 312026411}
     - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: RandomizeDirection
       value: 1

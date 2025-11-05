@@ -244,6 +244,7 @@ public class ChoppingStation : BaseStation
         // Start chopping
         isCurrentlyChopping = true;
         currentChoppingPlayer = playerEnd;
+        currentChoppingPlayer.isChopping = true;
         choppingStartTime = Time.time;
         choppingProgress = 0f;
 
@@ -265,6 +266,7 @@ public class ChoppingStation : BaseStation
         FoodItem foodItem = currentItem?.GetComponent<FoodItem>();
 
         isCurrentlyChopping = false;
+        currentChoppingPlayer.isChopping = false;
         currentChoppingPlayer = null;
         choppingProgress = 0f;
 

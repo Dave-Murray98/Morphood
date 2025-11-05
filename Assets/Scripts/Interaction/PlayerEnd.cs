@@ -59,6 +59,9 @@ public class PlayerEnd : MonoBehaviour
     public System.Action<IInteractable> OnInteractionStarted;
     public System.Action<IInteractable> OnInteractionStopped;
 
+    public bool isChopping = false;
+    public bool isCooking = false;
+
     private void Start()
     {
         Initialize();

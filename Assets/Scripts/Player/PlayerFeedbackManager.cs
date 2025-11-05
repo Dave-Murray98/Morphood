@@ -2,13 +2,14 @@ using UnityEngine;
 using MoreMountains.Feedbacks;
 
 /// <summary>
-/// Manages visual and haptic feedback for the player based on input conflicts.
+/// Manages visual and haptic feedback for the player based on input conflicts and processing activities.
 /// Reacts to movement and rotation conflicts using separate Feel feedbacks,
 /// plus shared particle feedback for any conflict.
+/// NEW: Monitors PlayerEnd processing states to trigger chopping and cooking feedback.
 /// </summary>
 public class PlayerFeedbackManager : MonoBehaviour
 {
-    [Header("Feedbacks")]
+    [Header("Conflict Feedbacks")]
     [SerializeField] private MMF_Player movementConflictFeedback;
     [Tooltip("MMF Player for movement conflict feedback (shake, audio, visual effects, etc.)")]
 
@@ -18,6 +19,13 @@ public class PlayerFeedbackManager : MonoBehaviour
     [SerializeField] private MMF_Player particleConflictFeedback;
     [Tooltip("MMF Player for particle feedback - plays when any conflict is detected")]
 
+    [Header("Processing Feedbacks")]
+    [SerializeField] private MMF_Player choppingFeedback;
+    [Tooltip("MMF Player for chopping feedback (sounds, particles, shake, etc.)")]
+
+    [SerializeField] private MMF_Player cookingFeedback;
+    [Tooltip("MMF Player for cooking feedback (sounds, particles, shake, etc.)")]
+
     [Header("Conflict Detection")]
     [SerializeField] private float conflictCheckInterval = 0.1f;
     [Tooltip("How often to check for conflicts (seconds)")]
@@ -26,13 +34,31 @@ public class PlayerFeedbackManager : MonoBehaviour
     [SerializeField] private bool reactToMovementConflicts = true;
     [SerializeField] private bool reactToRotationConflicts = true;
 
+    [Header("Processing Feedback")]
+    [SerializeField] private bool enableProcessingFeedback = true;
+    [Tooltip("Whether to play feedback during food processing")]
+
+    [SerializeField] private float processingCheckInterval = 0.1f;
+    [Tooltip("How often to check for processing state changes (seconds)")]
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
-    // Internal state
+    // Internal state for conflicts
     private bool wasMovementConflictingLastFrame = false;
     private bool wasRotationConflictingLastFrame = false;
     private bool wasAnyConflictingLastFrame = false;
+
+    // Internal state for processing
+    private bool wasChoppingLastFrame = false;
+    private bool wasCookingLastFrame = false;
+    private bool isChoppingFeedbackPlaying = false;
+    private bool isCookingFeedbackPlaying = false;
+
+    // Player references for monitoring
+    private PlayerController playerController;
+    private PlayerEnd player1End;
+    private PlayerEnd player2End;
 
     private void Start()
     {
@@ -42,6 +68,24 @@ public class PlayerFeedbackManager : MonoBehaviour
     private void Initialize()
     {
         // Validate MMF Players are assigned
+        ValidateFeedbackComponents();
+
+        // Find player components
+        FindPlayerComponents();
+
+        // Start checking for conflicts and processing states
+        InvokeRepeating(nameof(CheckForConflicts), 0f, conflictCheckInterval);
+
+        if (enableProcessingFeedback)
+        {
+            InvokeRepeating(nameof(CheckForProcessingStates), 0f, processingCheckInterval);
+        }
+
+        DebugLog("PlayerFeedbackManager initialized with conflict and processing feedbacks");
+    }
+
+    private void ValidateFeedbackComponents()
+    {
         if (movementConflictFeedback == null)
         {
             Debug.LogError("[PlayerFeedbackManager] No Movement Conflict MMF Player assigned! Please assign the movement conflict feedback.");
@@ -57,17 +101,56 @@ public class PlayerFeedbackManager : MonoBehaviour
             Debug.LogWarning("[PlayerFeedbackManager] No Particle Conflict MMF Player assigned. Particle feedback will be disabled.");
         }
 
+        if (enableProcessingFeedback)
+        {
+            if (choppingFeedback == null)
+            {
+                Debug.LogWarning("[PlayerFeedbackManager] No Chopping MMF Player assigned. Chopping feedback will be disabled.");
+            }
+
+            if (cookingFeedback == null)
+            {
+                Debug.LogWarning("[PlayerFeedbackManager] No Cooking MMF Player assigned. Cooking feedback will be disabled.");
+            }
+        }
+
         if (movementConflictFeedback == null && rotationConflictFeedback == null)
         {
             enabled = false;
             return;
         }
-
-        // Start checking for conflicts
-        InvokeRepeating(nameof(CheckForConflicts), 0f, conflictCheckInterval);
-
-        DebugLog("PlayerFeedbackManager initialized with Feel feedbacks");
     }
+
+    private void FindPlayerComponents()
+    {
+        // Find the PlayerController in the scene
+        playerController = FindFirstObjectByType<PlayerController>();
+
+        if (playerController == null)
+        {
+            Debug.LogError("[PlayerFeedbackManager] No PlayerController found in scene! Processing feedback will not work.");
+            enableProcessingFeedback = false;
+            return;
+        }
+
+        // Get player ends from the controller
+        player1End = playerController.GetPlayerEnd(1);
+        player2End = playerController.GetPlayerEnd(2);
+
+        if (player1End == null)
+        {
+            Debug.LogWarning("[PlayerFeedbackManager] Player 1 End not found! Player 1 processing feedback will not work.");
+        }
+
+        if (player2End == null)
+        {
+            Debug.LogWarning("[PlayerFeedbackManager] Player 2 End not found! Player 2 processing feedback will not work.");
+        }
+
+        DebugLog($"Found PlayerController with Player1End: {(player1End != null ? "✓" : "✗")}, Player2End: {(player2End != null ? "✓" : "✗")}");
+    }
+
+    #region Conflict Detection (Existing functionality)
 
     private void CheckForConflicts()
     {
@@ -129,6 +212,53 @@ public class PlayerFeedbackManager : MonoBehaviour
         wasAnyConflictingLastFrame = hasAnyConflict;
     }
 
+    #endregion
+
+    #region Processing State Detection (NEW)
+
+    private void CheckForProcessingStates()
+    {
+        if (!enableProcessingFeedback) return;
+
+        // Handle chopping state changes
+        if (player2End.isChopping != wasChoppingLastFrame)
+        {
+            if (player2End.isChopping)
+            {
+                StartChoppingFeedback();
+                DebugLog("Chopping started");
+            }
+            else
+            {
+                StopChoppingFeedback();
+                DebugLog("Chopping stopped");
+            }
+        }
+
+        // Handle cooking state changes
+        if (player1End.isCooking != wasCookingLastFrame)
+        {
+            if (player1End.isCooking)
+            {
+                StartCookingFeedback();
+                DebugLog("Cooking started");
+            }
+            else
+            {
+                StopCookingFeedback();
+                DebugLog("Cooking stopped");
+            }
+        }
+
+        // Update last frame states
+        wasChoppingLastFrame = player2End.isChopping;
+        wasCookingLastFrame = player1End.isCooking;
+    }
+
+    #endregion
+
+    #region Conflict Feedback Methods (Existing functionality)
+
     private void StartMovementConflictFeedback()
     {
         if (movementConflictFeedback == null) return;
@@ -177,22 +307,47 @@ public class PlayerFeedbackManager : MonoBehaviour
         DebugLog("Stopped particle conflict feedback");
     }
 
-    private void OnDestroy()
+    #endregion
+
+    #region Processing Feedback Methods (NEW)
+
+    private void StartChoppingFeedback()
     {
-        // Clean up
-        StopMovementConflictFeedback();
-        StopRotationConflictFeedback();
-        StopParticleConflictFeedback();
-        CancelInvoke();
+        if (choppingFeedback == null || isChoppingFeedbackPlaying) return;
+
+        choppingFeedback.PlayFeedbacks();
+        isChoppingFeedbackPlaying = true;
+        DebugLog("Started chopping feedback");
     }
 
-    private void OnDisable()
+    private void StopChoppingFeedback()
     {
-        // Stop feedbacks when disabled
-        StopMovementConflictFeedback();
-        StopRotationConflictFeedback();
-        StopParticleConflictFeedback();
+        if (choppingFeedback == null || !isChoppingFeedbackPlaying) return;
+
+        choppingFeedback.StopFeedbacks();
+        isChoppingFeedbackPlaying = false;
+        DebugLog("Stopped chopping feedback");
     }
+
+    private void StartCookingFeedback()
+    {
+        if (cookingFeedback == null || isCookingFeedbackPlaying) return;
+
+        cookingFeedback.PlayFeedbacks();
+        isCookingFeedbackPlaying = true;
+        DebugLog("Started cooking feedback");
+    }
+
+    private void StopCookingFeedback()
+    {
+        if (cookingFeedback == null || !isCookingFeedbackPlaying) return;
+
+        cookingFeedback.StopFeedbacks();
+        isCookingFeedbackPlaying = false;
+        DebugLog("Stopped cooking feedback");
+    }
+
+    #endregion
 
     #region Public Methods
 
@@ -230,6 +385,40 @@ public class PlayerFeedbackManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Manually trigger chopping feedback (useful for testing)
+    /// </summary>
+    public void TriggerManualChoppingFeedback()
+    {
+        if (choppingFeedback == null) return;
+
+        if (isChoppingFeedbackPlaying)
+        {
+            StopChoppingFeedback();
+        }
+        else
+        {
+            StartChoppingFeedback();
+        }
+    }
+
+    /// <summary>
+    /// Manually trigger cooking feedback (useful for testing)
+    /// </summary>
+    public void TriggerManualCookingFeedback()
+    {
+        if (cookingFeedback == null) return;
+
+        if (isCookingFeedbackPlaying)
+        {
+            StopCookingFeedback();
+        }
+        else
+        {
+            StartCookingFeedback();
+        }
+    }
+
+    /// <summary>
     /// Check if movement conflict feedback is currently playing
     /// </summary>
     public bool IsMovementConflictFeedbackPlaying => movementConflictFeedback != null && movementConflictFeedback.IsPlaying;
@@ -245,9 +434,74 @@ public class PlayerFeedbackManager : MonoBehaviour
     public bool IsParticleConflictFeedbackPlaying => particleConflictFeedback != null && particleConflictFeedback.IsPlaying;
 
     /// <summary>
+    /// Check if chopping feedback is currently playing
+    /// </summary>
+    public bool IsChoppingFeedbackPlaying => isChoppingFeedbackPlaying;
+
+    /// <summary>
+    /// Check if cooking feedback is currently playing
+    /// </summary>
+    public bool IsCookingFeedbackPlaying => isCookingFeedbackPlaying;
+
+    /// <summary>
     /// Check if any conflict feedback is currently playing
     /// </summary>
     public bool IsAnyConflictFeedbackPlaying => IsMovementConflictFeedbackPlaying || IsRotationConflictFeedbackPlaying || IsParticleConflictFeedbackPlaying;
+
+    /// <summary>
+    /// Check if any processing feedback is currently playing
+    /// </summary>
+    public bool IsAnyProcessingFeedbackPlaying => IsChoppingFeedbackPlaying || IsCookingFeedbackPlaying;
+
+    /// <summary>
+    /// Check if any feedback is currently playing
+    /// </summary>
+    public bool IsAnyFeedbackPlaying => IsAnyConflictFeedbackPlaying || IsAnyProcessingFeedbackPlaying;
+
+    /// <summary>
+    /// Enable or disable processing feedback monitoring
+    /// </summary>
+    public void SetProcessingFeedbackEnabled(bool enabled)
+    {
+        enableProcessingFeedback = enabled;
+
+        if (!enabled)
+        {
+            // Stop any current processing feedback
+            StopChoppingFeedback();
+            StopCookingFeedback();
+        }
+
+        DebugLog($"Processing feedback {(enabled ? "enabled" : "disabled")}");
+    }
+
+    #endregion
+
+    #region Cleanup
+
+    private void OnDestroy()
+    {
+        // Clean up conflict feedbacks
+        StopMovementConflictFeedback();
+        StopRotationConflictFeedback();
+        StopParticleConflictFeedback();
+
+        // Clean up processing feedbacks
+        StopChoppingFeedback();
+        StopCookingFeedback();
+
+        CancelInvoke();
+    }
+
+    private void OnDisable()
+    {
+        // Stop feedbacks when disabled
+        StopMovementConflictFeedback();
+        StopRotationConflictFeedback();
+        StopParticleConflictFeedback();
+        StopChoppingFeedback();
+        StopCookingFeedback();
+    }
 
     #endregion
 
@@ -264,6 +518,7 @@ public class PlayerFeedbackManager : MonoBehaviour
     {
         // Clamp values to reasonable ranges
         conflictCheckInterval = Mathf.Max(0.01f, conflictCheckInterval);
+        processingCheckInterval = Mathf.Max(0.01f, processingCheckInterval);
     }
 
 #if UNITY_EDITOR
@@ -271,6 +526,8 @@ public class PlayerFeedbackManager : MonoBehaviour
     [SerializeField] private bool testMovementConflictFeedback = false;
     [SerializeField] private bool testRotationConflictFeedback = false;
     [SerializeField] private bool testParticleConflictFeedback = false;
+    [SerializeField] private bool testChoppingFeedback = false;
+    [SerializeField] private bool testCookingFeedback = false;
 
     private void Update()
     {
@@ -293,6 +550,18 @@ public class PlayerFeedbackManager : MonoBehaviour
         {
             testParticleConflictFeedback = false;
             TriggerManualParticleConflictFeedback();
+        }
+
+        if (testChoppingFeedback)
+        {
+            testChoppingFeedback = false;
+            TriggerManualChoppingFeedback();
+        }
+
+        if (testCookingFeedback)
+        {
+            testCookingFeedback = false;
+            TriggerManualCookingFeedback();
         }
     }
 #endif
