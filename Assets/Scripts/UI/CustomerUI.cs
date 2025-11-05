@@ -42,7 +42,6 @@ public class CustomerUI : MonoBehaviour
     {
         moneyUI.SetActive(true);
         moneyText.text = $"+${amount}";
-        customerFeedbackManager.PlayMoneyUIFeedback();
     }
 
     public void HideMoneyUI()

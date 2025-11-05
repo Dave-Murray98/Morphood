@@ -319,6 +319,11 @@ public class Customer : MonoBehaviour
             customerUI.StartCoroutine(customerUI.ShowMoneyUICoroutine(orderRequest.foodValue));
         }
 
+        if (feedbackManager != null)
+        {
+            feedbackManager.PlayMoneyFeedback();
+        }
+
         DebugLog($"Started eating {orderRequest.DisplayName}");
 
         // The CustomerManager will handle the eating duration and calling FinishEating

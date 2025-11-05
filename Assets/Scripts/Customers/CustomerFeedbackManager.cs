@@ -17,7 +17,7 @@ public class CustomerFeedbackManager : MonoBehaviour
         orderSpeechBubbleFeedback?.PlayFeedbacks();
     }
 
-    public void PlayMoneyUIFeedback()
+    public void PlayMoneyFeedback()
     {
         moneyUIFeedback?.PlayFeedbacks();
     }
