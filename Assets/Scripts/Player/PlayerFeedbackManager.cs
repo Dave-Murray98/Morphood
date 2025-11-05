@@ -1,38 +1,22 @@
 using UnityEngine;
-using DG.Tweening;
+using MoreMountains.Feedbacks;
 
 /// <summary>
 /// Manages visual and haptic feedback for the player based on input conflicts.
-/// Reacts to movement and rotation conflicts by shaking the player's body.
+/// Reacts to movement and rotation conflicts using separate Feel feedbacks.
 /// </summary>
 public class PlayerFeedbackManager : MonoBehaviour
 {
-    [Header("Shake Target")]
-    [SerializeField] private Transform playerBody;
-    [Tooltip("If not assigned, will use this GameObject's transform")]
+    [Header("Feedbacks")]
+    [SerializeField] private MMF_Player movementConflictFeedback;
+    [Tooltip("MMF Player for movement conflict feedback (shake, audio, visual effects, etc.)")]
 
-    [Header("Shake Settings")]
-    [SerializeField] private float shakeStrength = 0.3f;
-    [Tooltip("How strong the shake effect is")]
+    [SerializeField] private MMF_Player rotationConflictFeedback;
+    [Tooltip("MMF Player for rotation conflict feedback (shake, audio, visual effects, etc.)")]
 
-    [SerializeField] private int shakeVibrato = 10;
-    [Tooltip("How many shake vibrations per second")]
-
-    [SerializeField] private float shakeRandomness = 90f;
-    [Tooltip("How random the shake direction is (0-180 degrees)")]
-
-    [SerializeField] private bool snapping = false;
-    [Tooltip("Whether the shake should snap to positions or be smooth")]
-
-    [SerializeField] private bool fadeOut = true;
-    [Tooltip("Whether shake should fade out over time")]
-
-    [Header("Shake Duration")]
+    [Header("Conflict Detection")]
     [SerializeField] private float conflictCheckInterval = 0.1f;
     [Tooltip("How often to check for conflicts (seconds)")]
-
-    [SerializeField] private float shakeDuration = 0.2f;
-    [Tooltip("Duration of each shake burst")]
 
     [Header("Conflict Types")]
     [SerializeField] private bool reactToMovementConflicts = true;
@@ -42,10 +26,8 @@ public class PlayerFeedbackManager : MonoBehaviour
     [SerializeField] private bool enableDebugLogs = false;
 
     // Internal state
-    private Vector3 originalPosition;
-    private bool isCurrentlyShaking = false;
-    private bool wasConflictingLastFrame = false;
-    private Tween currentShakeTween;
+    private bool wasMovementConflictingLastFrame = false;
+    private bool wasRotationConflictingLastFrame = false;
 
     private void Start()
     {
@@ -54,194 +36,157 @@ public class PlayerFeedbackManager : MonoBehaviour
 
     private void Initialize()
     {
-        // Use this transform if no player body is assigned
-        if (playerBody == null)
+        // Validate MMF Players are assigned
+        if (movementConflictFeedback == null)
         {
-            playerBody = transform;
-            DebugLog("No player body assigned, using this GameObject's transform");
+            Debug.LogError("[PlayerFeedbackManager] No Movement Conflict MMF Player assigned! Please assign the movement conflict feedback.");
         }
 
-        // Store the original position for shake reset
-        originalPosition = playerBody.localPosition;
+        if (rotationConflictFeedback == null)
+        {
+            Debug.LogError("[PlayerFeedbackManager] No Rotation Conflict MMF Player assigned! Please assign the rotation conflict feedback.");
+        }
+
+        if (movementConflictFeedback == null && rotationConflictFeedback == null)
+        {
+            enabled = false;
+            return;
+        }
 
         // Start checking for conflicts
         InvokeRepeating(nameof(CheckForConflicts), 0f, conflictCheckInterval);
 
-        DebugLog("PlayerFeedbackManager initialized");
+        DebugLog("PlayerFeedbackManager initialized with Feel feedbacks");
     }
 
     private void CheckForConflicts()
     {
         if (InputManager.Instance == null) return;
 
-        // Check current conflict state
+        // Check current conflict states
         bool hasMovementConflict = reactToMovementConflicts && InputManager.Instance.IsMovementInputConflicting;
         bool hasRotationConflict = reactToRotationConflicts && InputManager.Instance.IsRotationInputConflicting;
-        bool hasAnyConflict = hasMovementConflict || hasRotationConflict;
 
-        // Log conflict state changes
-        if (enableDebugLogs && hasAnyConflict != wasConflictingLastFrame)
+        // Handle movement conflict changes
+        if (hasMovementConflict != wasMovementConflictingLastFrame)
         {
-            if (hasAnyConflict)
+            if (hasMovementConflict)
             {
-                string conflictType = "";
-                if (hasMovementConflict && hasRotationConflict)
-                    conflictType = "Movement + Rotation";
-                else if (hasMovementConflict)
-                    conflictType = "Movement";
-                else if (hasRotationConflict)
-                    conflictType = "Rotation";
-
-                DebugLog($"Conflict detected: {conflictType}");
+                StartMovementConflictFeedback();
+                DebugLog("Movement conflict detected");
             }
             else
             {
-                DebugLog("Conflict resolved");
+                StopMovementConflictFeedback();
+                DebugLog("Movement conflict resolved");
             }
         }
 
-        // React to conflict state
-        if (hasAnyConflict && !wasConflictingLastFrame)
+        // Handle rotation conflict changes
+        if (hasRotationConflict != wasRotationConflictingLastFrame)
         {
-            // Conflict just started
-            StartShaking();
-        }
-        else if (!hasAnyConflict && wasConflictingLastFrame)
-        {
-            // Conflict just ended
-            StopShaking();
-        }
-        else if (hasAnyConflict && isCurrentlyShaking)
-        {
-            // Conflict is ongoing - continue shaking if current shake finished
-            if (currentShakeTween == null || !currentShakeTween.IsActive())
+            if (hasRotationConflict)
             {
-                StartShaking();
+                StartRotationConflictFeedback();
+                DebugLog("Rotation conflict detected");
+            }
+            else
+            {
+                StopRotationConflictFeedback();
+                DebugLog("Rotation conflict resolved");
             }
         }
 
-        wasConflictingLastFrame = hasAnyConflict;
+        // Update last frame states
+        wasMovementConflictingLastFrame = hasMovementConflict;
+        wasRotationConflictingLastFrame = hasRotationConflict;
     }
 
-    private void StartShaking()
+    private void StartMovementConflictFeedback()
     {
-        if (playerBody == null) return;
+        if (movementConflictFeedback == null) return;
 
-        // Stop any existing shake
-        StopShaking();
-
-        // Start new shake tween
-        currentShakeTween = playerBody.DOShakePosition(
-            duration: shakeDuration,
-            strength: shakeStrength,
-            vibrato: shakeVibrato,
-            randomness: shakeRandomness,
-            snapping: snapping,
-            fadeOut: fadeOut
-        ).SetLoops(-1, LoopType.Restart); // Loop indefinitely until stopped
-
-        isCurrentlyShaking = true;
-
-        DebugLog($"Started shaking with strength: {shakeStrength}");
+        movementConflictFeedback.PlayFeedbacks();
+        DebugLog("Started movement conflict feedback");
     }
 
-    private void StopShaking()
+    private void StopMovementConflictFeedback()
     {
-        // Kill the current shake tween
-        if (currentShakeTween != null && currentShakeTween.IsActive())
-        {
-            currentShakeTween.Kill();
-        }
+        if (movementConflictFeedback == null) return;
 
-        // Return to original position smoothly
-        if (playerBody != null)
-        {
-            playerBody.DOLocalMove(originalPosition, 0.1f).SetEase(Ease.OutQuad);
-        }
+        movementConflictFeedback.StopFeedbacks();
+        DebugLog("Stopped movement conflict feedback");
+    }
 
-        isCurrentlyShaking = false;
-        currentShakeTween = null;
+    private void StartRotationConflictFeedback()
+    {
+        if (rotationConflictFeedback == null) return;
 
-        DebugLog("Stopped shaking");
+        rotationConflictFeedback.PlayFeedbacks();
+        DebugLog("Started rotation conflict feedback");
+    }
+
+    private void StopRotationConflictFeedback()
+    {
+        if (rotationConflictFeedback == null) return;
+
+        rotationConflictFeedback.StopFeedbacks();
+        DebugLog("Stopped rotation conflict feedback");
     }
 
     private void OnDestroy()
     {
-        // Clean up tweens when destroyed
-        StopShaking();
+        // Clean up
+        StopMovementConflictFeedback();
+        StopRotationConflictFeedback();
         CancelInvoke();
-
-        // Clean up any remaining DOTween operations for this transform
-        if (playerBody != null)
-        {
-            playerBody.DOKill();
-        }
-
-        DOTween.KillAll();
-        DOTween.Clear(true);
     }
 
     private void OnDisable()
     {
-        // Stop shaking when disabled
-        StopShaking();
-    }
-
-    private void OnEnable()
-    {
-        // Reset original position reference when re-enabled
-        if (playerBody != null)
-        {
-            originalPosition = playerBody.localPosition;
-        }
+        // Stop feedbacks when disabled
+        StopMovementConflictFeedback();
+        StopRotationConflictFeedback();
     }
 
     #region Public Methods
 
     /// <summary>
-    /// Manually trigger a shake effect (useful for testing or other feedback)
+    /// Manually trigger the movement conflict feedback (useful for testing)
     /// </summary>
-    public void TriggerManualShake(float duration = -1f)
+    public void TriggerManualMovementConflictFeedback()
     {
-        if (duration < 0f)
-            duration = shakeDuration;
+        if (movementConflictFeedback == null) return;
 
-        StopShaking();
-
-        if (playerBody != null)
-        {
-            playerBody.DOShakePosition(
-                duration: duration,
-                strength: shakeStrength,
-                vibrato: shakeVibrato,
-                randomness: shakeRandomness,
-                snapping: snapping,
-                fadeOut: fadeOut
-            ).OnComplete(() =>
-            {
-                playerBody.DOLocalMove(originalPosition, 0.1f).SetEase(Ease.OutQuad);
-            });
-        }
-
-        DebugLog($"Manual shake triggered for {duration} seconds");
+        movementConflictFeedback.PlayFeedbacks();
+        DebugLog("Manual movement conflict feedback triggered");
     }
 
     /// <summary>
-    /// Update shake settings at runtime
+    /// Manually trigger the rotation conflict feedback (useful for testing)
     /// </summary>
-    public void UpdateShakeSettings(float strength, int vibrato, float randomness)
+    public void TriggerManualRotationConflictFeedback()
     {
-        shakeStrength = strength;
-        shakeVibrato = vibrato;
-        shakeRandomness = randomness;
+        if (rotationConflictFeedback == null) return;
 
-        DebugLog($"Shake settings updated - Strength: {strength}, Vibrato: {vibrato}, Randomness: {randomness}");
+        rotationConflictFeedback.PlayFeedbacks();
+        DebugLog("Manual rotation conflict feedback triggered");
     }
 
     /// <summary>
-    /// Check if currently shaking
+    /// Check if movement conflict feedback is currently playing
     /// </summary>
-    public bool IsShaking => isCurrentlyShaking;
+    public bool IsMovementConflictFeedbackPlaying => movementConflictFeedback != null && movementConflictFeedback.IsPlaying;
+
+    /// <summary>
+    /// Check if rotation conflict feedback is currently playing
+    /// </summary>
+    public bool IsRotationConflictFeedbackPlaying => rotationConflictFeedback != null && rotationConflictFeedback.IsPlaying;
+
+    /// <summary>
+    /// Check if any conflict feedback is currently playing
+    /// </summary>
+    public bool IsAnyConflictFeedbackPlaying => IsMovementConflictFeedbackPlaying || IsRotationConflictFeedbackPlaying;
 
     #endregion
 
@@ -256,32 +201,30 @@ public class PlayerFeedbackManager : MonoBehaviour
     // Validate component setup in editor
     private void OnValidate()
     {
-        if (playerBody == null && Application.isPlaying)
-        {
-            playerBody = transform;
-        }
-
         // Clamp values to reasonable ranges
-        shakeStrength = Mathf.Max(0f, shakeStrength);
-        shakeVibrato = Mathf.Max(1, shakeVibrato);
-        shakeRandomness = Mathf.Clamp(shakeRandomness, 0f, 180f);
         conflictCheckInterval = Mathf.Max(0.01f, conflictCheckInterval);
-        shakeDuration = Mathf.Max(0.1f, shakeDuration);
     }
 
 #if UNITY_EDITOR
     [Header("Testing (Editor Only)")]
-    [SerializeField] private bool testShake = false;
+    [SerializeField] private bool testMovementConflictFeedback = false;
+    [SerializeField] private bool testRotationConflictFeedback = false;
 
     private void Update()
     {
         // Editor testing
         if (!Application.isPlaying) return;
 
-        if (testShake)
+        if (testMovementConflictFeedback)
         {
-            testShake = false;
-            TriggerManualShake();
+            testMovementConflictFeedback = false;
+            TriggerManualMovementConflictFeedback();
+        }
+
+        if (testRotationConflictFeedback)
+        {
+            testRotationConflictFeedback = false;
+            TriggerManualRotationConflictFeedback();
         }
     }
 #endif

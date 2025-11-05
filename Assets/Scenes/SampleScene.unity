@@ -6009,6 +6009,46 @@ PrefabInstance:
       propertyPath: enableDebugLogs
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: RandomizeDirection
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: RandomizeDirectionX
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeAltDirection.x
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeAltDirection.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeAltDirection.z
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeMainDirection.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeMainDirection.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeMainDirection.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1674307471234010963, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeRange
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1674307471234010963, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: ShakeSpeed
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 2129162520255658194, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: m_LocalPosition.x
       value: -8.17
@@ -6049,6 +6089,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3624589357929638801, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: Interruptible
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4189382202140242365, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: managedReferences[9054158419579895947].ShakeRange
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4189382202140242365, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: managedReferences[9054158419579895947].ShakeSpeed
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5387653166145602919, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: managedReferences[9054158419579895937].ShakeSpeed
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 5621029348689747670, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: m_Layer
       value: 11
@@ -6060,6 +6116,34 @@ PrefabInstance:
     - target: {fileID: 7207017035456577975, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: enableDebugLogs
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.LimitedTime
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.UniformValues
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.AmplitudeMax.x
+      value: -0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.AmplitudeMax.z
+      value: -0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.AmplitudeMin.x
+      value: -0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.AmplitudeMin.z
+      value: -0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7216147909630438920, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: PositionWiggleProperties.RelativeAmplitude
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7704830856992127133, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: m_Layer
