@@ -417,6 +417,30 @@ public class FoodItem : PickupableItem
         feedbackManager.PlayPlacementFeedback();
     }
 
+    public void OnProcessingStarted(FoodProcessType processType)
+    {
+        if (processType == FoodProcessType.Cooking)
+        {
+            feedbackManager.PlayCookingFeedback();
+        }
+        else if (processType == FoodProcessType.Chopping)
+        {
+            feedbackManager.PlayChoppingFeedback();
+        }
+    }
+
+    public void OnProcessingStopped(FoodProcessType processType)
+    {
+        if (processType == FoodProcessType.Cooking)
+        {
+            feedbackManager.StopCookingFeedback();
+        }
+        else if (processType == FoodProcessType.Chopping)
+        {
+            feedbackManager.StopChoppingFeedback();
+        }
+    }
+
     #region Outline Highlighting Override
 
     /// <summary>

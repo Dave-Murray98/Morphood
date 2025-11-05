@@ -248,6 +248,8 @@ public class CookingStation : BaseStation
 
         currentCookingPlayer.isCooking = true;
 
+        foodItem.OnProcessingStarted(FoodProcessType.Cooking);
+
         DebugLog($"Started cooking {foodItem.FoodData.DisplayName} by Player {playerEnd.PlayerNumber}");
 
         // Fire event
@@ -276,6 +278,7 @@ public class CookingStation : BaseStation
         if (foodItem != null)
         {
             OnCookingStopped?.Invoke(foodItem);
+            foodItem.OnProcessingStopped(FoodProcessType.Cooking);
         }
     }
 
