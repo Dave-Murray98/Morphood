@@ -88,8 +88,6 @@ public class InputManager : MonoBehaviour
 
     public Vector2 MovementInput { get; private set; }
     public Vector2 RotationInput { get; private set; }  // We'll use X component for rotation value
-    public float CurrentMovementSpeed { get; private set; }
-    public float CurrentRotationSpeed { get; private set; }
 
     // Conflict detection properties
     public bool IsMovementInputConflicting { get; private set; }
@@ -103,7 +101,6 @@ public class InputManager : MonoBehaviour
 
     #endregion
 
-
     #region Events
 
     public Action OnPlayer1InteractPressed;
@@ -113,15 +110,9 @@ public class InputManager : MonoBehaviour
 
     #endregion
 
-
-    [Header("Movement Settings")]
-    [SerializeField] private bool useVaryingSpeeds = true;
-    [Tooltip("Speed when players move in similar directions")]
-    [SerializeField] private float fastMovementSpeed = 8f;
-    [Tooltip("Speed when players move in different (but not opposite) directions")]
-    [SerializeField] private float slowMovementSpeed = 4f;
-    [Tooltip("Single speed used when useVaryingSpeeds is false")]
-    [SerializeField] private float moveSpeed = 6f;
+    [Header("Input Settings")]
+    [Tooltip("Minimum input value to register as intentional input")]
+    [SerializeField] private float inputDeadzone = 0.1f;
     [Tooltip("Threshold for determining opposite movement (0 = exactly opposite, 1 = any difference)")]
     [Range(0f, 1f)]
     [SerializeField] private float oppositeDirectionThreshold = 0.3f;
@@ -129,18 +120,11 @@ public class InputManager : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float similarDirectionThreshold = 0.7f;
 
-    [Header("Rotation Settings")]
-    [Tooltip("Rotation speed when only one player is rotating")]
-    [SerializeField] private float slowRotationSpeed = 90f;  // degrees per second
-    [Tooltip("Rotation speed when both players rotate in same direction")]
-    [SerializeField] private float fastRotationSpeed = 180f; // degrees per second
-
-    [Header("Input Settings")]
-    [Tooltip("Minimum input value to register as intentional input")]
-    [SerializeField] private float inputDeadzone = 0.1f;
-
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
+
+    // Reference to the PlayerMovement to send speed commands to
+    private PlayerMovement playerMovement;
 
     private void Awake()
     {
@@ -155,6 +139,29 @@ public class InputManager : MonoBehaviour
         }
 
         Initialize();
+    }
+
+    private void Start()
+    {
+        // Find the PlayerMovement component
+        // Assuming it's on a GameObject with PlayerController
+        PlayerController playerController = FindFirstObjectByType<PlayerController>();
+        if (playerController != null)
+        {
+            playerMovement = playerController.GetComponent<PlayerMovement>();
+            if (playerMovement == null)
+            {
+                Debug.LogError("[InputManager] Could not find PlayerMovement component!");
+            }
+            else
+            {
+                DebugLog("PlayerMovement reference found and connected");
+            }
+        }
+        else
+        {
+            Debug.LogError("[InputManager] Could not find PlayerController in scene!");
+        }
     }
 
     private void Initialize()
@@ -314,7 +321,7 @@ public class InputManager : MonoBehaviour
         bool player2HasMovement = p2Movement.magnitude > 0f;
 
         Vector2 combinedMovement = Vector2.zero;
-        float appliedSpeed = moveSpeed; // Default speed
+        bool useFastMovement = false;
         IsMovementInputConflicting = false;
 
         if (player1HasMovement && player2HasMovement)
@@ -326,7 +333,7 @@ public class InputManager : MonoBehaviour
             {
                 // Opposite directions - no movement, conflict detected
                 combinedMovement = Vector2.zero;
-                appliedSpeed = 0f;
+                useFastMovement = false; // Doesn't matter since no movement
                 IsMovementInputConflicting = true;
 
                 DebugLog($"Movement - Opposite directions: P1({p1Movement}) vs P2({p2Movement}), dot: {dotProduct:F2} - CONFLICT");
@@ -336,7 +343,7 @@ public class InputManager : MonoBehaviour
             {
                 // Similar directions - fast speed
                 combinedMovement = (p1Movement + p2Movement).normalized;
-                appliedSpeed = useVaryingSpeeds ? fastMovementSpeed : moveSpeed;
+                useFastMovement = true;
 
                 DebugLog($"Movement - Similar directions: P1({p1Movement}) + P2({p2Movement}), dot: {dotProduct:F2} - FAST");
 
@@ -345,7 +352,7 @@ public class InputManager : MonoBehaviour
             {
                 // Different but not opposite directions - slow speed
                 combinedMovement = (p1Movement + p2Movement).normalized;
-                appliedSpeed = useVaryingSpeeds ? slowMovementSpeed : moveSpeed;
+                useFastMovement = false;
 
                 DebugLog($"Movement - Different directions: P1({p1Movement}) + P2({p2Movement}), dot: {dotProduct:F2} - SLOW");
 
@@ -353,18 +360,23 @@ public class InputManager : MonoBehaviour
         }
         else if (player1HasMovement || player2HasMovement)
         {
-            // Only one player has input - use their direction with appropriate speed
+            // Only one player has input - use their direction with slow speed
             combinedMovement = (p1Movement + p2Movement).normalized; // One will be zero
-            appliedSpeed = useVaryingSpeeds ? slowMovementSpeed : moveSpeed;
+            useFastMovement = false;
 
-            DebugLog($"Movement - Single input: P1({p1Movement}) + P2({p2Movement}) - SINGLE");
+            DebugLog($"Movement - Single input: P1({p1Movement}) + P2({p2Movement}) - SINGLE (SLOW)");
 
         }
 
         // If neither player has input, everything stays at zero (default values)
 
         MovementInput = combinedMovement;
-        CurrentMovementSpeed = appliedSpeed;
+
+        // Tell PlayerMovement what speed type to use
+        if (playerMovement != null)
+        {
+            playerMovement.SetMovementSpeedType(useFastMovement);
+        }
     }
 
     private void CombineRotationInputs()
@@ -374,7 +386,7 @@ public class InputManager : MonoBehaviour
         float p2Rotation = Mathf.Abs(player2RotationInput) > inputDeadzone ? player2RotationInput : 0f;
 
         float combinedRotationValue = 0f;
-        float appliedRotationSpeed = 0f;
+        bool useFastRotation = false;
         IsRotationInputConflicting = false;
 
         // Check if both players are providing input
@@ -391,7 +403,7 @@ public class InputManager : MonoBehaviour
                 // Same direction: fast rotation speed
                 float averageInput = (p1Rotation + p2Rotation) * 0.5f;
                 combinedRotationValue = averageInput;
-                appliedRotationSpeed = fastRotationSpeed;
+                useFastRotation = true;
 
                 DebugLog($"Rotation - Same direction: P1({p1Rotation:F2}) + P2({p2Rotation:F2}) = {combinedRotationValue:F2} - FAST");
 
@@ -400,7 +412,7 @@ public class InputManager : MonoBehaviour
             {
                 // Opposite directions: no rotation, conflict detected
                 combinedRotationValue = 0f;
-                appliedRotationSpeed = 0f;
+                useFastRotation = false; // Doesn't matter since no rotation
                 IsRotationInputConflicting = true;
 
                 DebugLog($"Rotation - Opposite directions: P1({p1Rotation:F2}) vs P2({p2Rotation:F2}) - CONFLICT");
@@ -410,7 +422,7 @@ public class InputManager : MonoBehaviour
         {
             // Only one player has input: slow rotation speed
             combinedRotationValue = p1Rotation + p2Rotation;  // One will be 0
-            appliedRotationSpeed = slowRotationSpeed;
+            useFastRotation = false;
 
             DebugLog($"Rotation - Single input: P1({p1Rotation:F2}) + P2({p2Rotation:F2}) = {combinedRotationValue:F2} - SLOW");
 
@@ -422,8 +434,12 @@ public class InputManager : MonoBehaviour
 
         // Store results
         RotationInput = new Vector2(combinedRotationValue, 0f);
-        CurrentRotationSpeed = appliedRotationSpeed;
 
+        // Tell PlayerMovement what rotation speed type to use
+        if (playerMovement != null)
+        {
+            playerMovement.SetRotationSpeedType(useFastRotation);
+        }
     }
 
     private void UpdateInteractionHolds()
@@ -442,7 +458,6 @@ public class InputManager : MonoBehaviour
         SubscribeToUIInputActions();
         SubscribeToInteractionInputActions();
     }
-
 
     private void SubscribeToUIInputActions()
     {

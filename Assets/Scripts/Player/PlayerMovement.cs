@@ -10,25 +10,54 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
 
     private Vector2 movementInput;
-    private Vector2 rotationInput;  // NEW: Store rotation input
+    private Vector2 rotationInput;
 
     [Header("Movement")]
-    [Tooltip("This is now controlled by InputManager's speed system")]
-    [SerializeField] private float moveSpeed = 5f;  // Fallback/legacy value
-
     [Tooltip("How quickly the player reaches target speed")]
     public float acceleration = 50f;
     [Tooltip("How quickly the player stops when no input")]
     public float deceleration = 50f;
 
+    [Header("Movement Speeds")]
+    [SerializeField] private bool useVaryingSpeeds = true;
+    [Tooltip("Speed when players move in similar directions")]
+    [SerializeField] private float fastMovementSpeed = 8f;
+    [Tooltip("Speed when only one player moves or players move in different directions")]
+    [SerializeField] private float slowMovementSpeed = 4f;
+    [Tooltip("Single speed used when useVaryingSpeeds is false")]
+    [SerializeField] private float singleMovementSpeed = 6f;
+
     [Header("Rotation")]
-    [Tooltip("This is now controlled by InputManager's rotation speed system")]
-    [SerializeField] private float rotationSpeed = 90f;  // Fallback/legacy value
     [Tooltip("Minimum joystick input required to rotate")]
     [SerializeField] private float rotationDeadzone = 0.1f;
 
+    [Header("Rotation Speeds")]
+    [Tooltip("Rotation speed when both players rotate in same direction")]
+    [SerializeField] private float fastRotationSpeed = 180f; // degrees per second
+    [Tooltip("Rotation speed when only one player is rotating")]
+    [SerializeField] private float slowRotationSpeed = 90f;  // degrees per second
+    [Tooltip("Single rotation speed used when useVaryingSpeeds is false")]
+    [SerializeField] private float singleRotationSpeed = 135f; // degrees per second
+
+    [Header("Footstep Feedback")]
+    [Tooltip("How often footstep feedback plays during slow movement/rotation (in seconds)")]
+    [SerializeField] private float slowFootstepInterval = 0.6f;
+    [Tooltip("How often footstep feedback plays during fast movement/rotation (in seconds)")]
+    [SerializeField] private float fastFootstepInterval = 0.3f;
+
+    private float footstepFeedbackTimer = 0f;
+    private float currentFootstepInterval;
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
+
+    // Current speed states (set by InputManager)
+    private bool isFastMovement = false;
+    private bool isFastRotation = false;
+
+    // Calculated speeds based on current state
+    private float currentMovementSpeed;
+    private float currentRotationSpeed;
 
     public void Initialize(PlayerController controller, Rigidbody rigidbody)
     {
@@ -46,7 +75,10 @@ public class PlayerMovement : MonoBehaviour
                            RigidbodyConstraints.FreezeRotationZ;
         }
 
-        DebugLog("PlayerMovement initialized with manual rotation control");
+        // Initialize speeds and footstep interval
+        UpdateCurrentSpeeds();
+
+        DebugLog("PlayerMovement initialized with manual rotation control and dynamic speeds");
     }
 
     public void HandleMovement(Vector2 moveInput)
@@ -54,15 +86,84 @@ public class PlayerMovement : MonoBehaviour
         movementInput = moveInput;
     }
 
-    public void HandleRotation(Vector2 rotateInput)  // NEW: Handle rotation input
+    public void HandleRotation(Vector2 rotateInput)
     {
         rotationInput = rotateInput;
+    }
+
+    /// <summary>
+    /// Called by InputManager to set movement speed type
+    /// </summary>
+    /// <param name="useFastSpeed">True for fast movement, false for slow movement</param>
+    public void SetMovementSpeedType(bool useFastSpeed)
+    {
+        if (!useVaryingSpeeds)
+        {
+            // When not using varying speeds, ignore speed type changes
+            return;
+        }
+
+        if (isFastMovement != useFastSpeed)
+        {
+            isFastMovement = useFastSpeed;
+            UpdateCurrentSpeeds();
+            DebugLog($"Movement speed set to: {(useFastSpeed ? "FAST" : "SLOW")} ({currentMovementSpeed})");
+        }
+    }
+
+    /// <summary>
+    /// Called by InputManager to set rotation speed type
+    /// </summary>
+    /// <param name="useFastSpeed">True for fast rotation, false for slow rotation</param>
+    public void SetRotationSpeedType(bool useFastSpeed)
+    {
+        if (!useVaryingSpeeds)
+        {
+            // When not using varying speeds, ignore speed type changes
+            return;
+        }
+
+        if (isFastRotation != useFastSpeed)
+        {
+            isFastRotation = useFastSpeed;
+            UpdateCurrentSpeeds();
+            DebugLog($"Rotation speed set to: {(useFastSpeed ? "FAST" : "SLOW")} ({currentRotationSpeed})");
+        }
+    }
+
+    /// <summary>
+    /// Updates the current speeds and footstep interval based on current speed types
+    /// </summary>
+    private void UpdateCurrentSpeeds()
+    {
+        if (useVaryingSpeeds)
+        {
+            // Use the varying speed system
+            currentMovementSpeed = isFastMovement ? fastMovementSpeed : slowMovementSpeed;
+            currentRotationSpeed = isFastRotation ? fastRotationSpeed : slowRotationSpeed;
+
+            // Update footstep interval based on whether we're using any fast speeds
+            bool usingFastSpeed = isFastMovement || isFastRotation;
+            currentFootstepInterval = usingFastSpeed ? fastFootstepInterval : slowFootstepInterval;
+        }
+        else
+        {
+            // Use single fixed speeds regardless of cooperation
+            currentMovementSpeed = singleMovementSpeed;
+            currentRotationSpeed = singleRotationSpeed;
+
+            // Use slow footstep interval since we're not distinguishing between fast/slow
+            currentFootstepInterval = slowFootstepInterval;
+        }
+
+        DebugLog($"Speeds updated (VaryingSpeeds: {useVaryingSpeeds}) - Movement: {currentMovementSpeed}, Rotation: {currentRotationSpeed}, Footstep Interval: {currentFootstepInterval}");
     }
 
     private void FixedUpdate()
     {
         ApplyMovement();
-        ApplyRotation();  // NEW: Apply rotation in FixedUpdate for physics consistency
+        ApplyRotation();
+        UpdateFootstepFeedback();
     }
 
     private void ApplyMovement()
@@ -76,9 +177,9 @@ public class PlayerMovement : MonoBehaviour
         {
             // Map 2D input to 3D movement for top-down view
             Vector3 moveDirection = new Vector3(movementInput.x, 0, movementInput.y).normalized;
-            targetVelocity = moveDirection * moveSpeed;
+            targetVelocity = moveDirection * currentMovementSpeed;
 
-            DebugLog($"Movement Input: {movementInput}, Move Direction: {moveDirection}");
+            DebugLog($"Movement Input: {movementInput}, Move Direction: {moveDirection}, Speed: {currentMovementSpeed}");
         }
 
         // Get current horizontal velocity (ignore Y component for gravity)
@@ -105,16 +206,13 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
-        // Get dynamic rotation speed from InputManager
-        float currentRotationSpeed = InputManager.Instance?.CurrentRotationSpeed ?? rotationSpeed;
-
         // Check if there's significant rotation input and rotation is allowed
         if (rotationInput.magnitude > rotationDeadzone && currentRotationSpeed > 0f)
         {
             // Use X-axis of rotation input for rotation direction
             float rotationDirection = rotationInput.x;
 
-            // Calculate rotation amount for this frame using dynamic speed
+            // Calculate rotation amount for this frame using current rotation speed
             float rotationAmount = rotationDirection * currentRotationSpeed * Time.fixedDeltaTime;
 
             // Apply rotation around Y-axis (up/down in world space)
@@ -139,6 +237,41 @@ public class PlayerMovement : MonoBehaviour
         // If no input or rotation speed is 0, the player simply stops rotating
     }
 
+    /// <summary>
+    /// Handles footstep feedback timing when player is moving or rotating.
+    /// Uses faster intervals for fast speeds and slower intervals for slow speeds.
+    /// </summary>
+    private void UpdateFootstepFeedback()
+    {
+        // Check if player is currently moving or rotating
+        bool isMoving = movementInput.magnitude > 0.1f;
+        bool isRotating = rotationInput.magnitude > rotationDeadzone;
+        bool isActive = isMoving || isRotating;
+
+        if (isActive)
+        {
+            // Update the timer
+            footstepFeedbackTimer += Time.fixedDeltaTime;
+
+            // Check if it's time to play footstep feedback using dynamic interval
+            if (footstepFeedbackTimer >= currentFootstepInterval)
+            {
+                // Play the footstep feedback
+                feedbackManager?.PlayFootstepFeedback();
+
+                // Reset the timer
+                footstepFeedbackTimer = 0f;
+
+                DebugLog($"Footstep feedback played (interval: {currentFootstepInterval:F2}s, fast movement: {isFastMovement}, fast rotation: {isFastRotation})");
+            }
+        }
+        else
+        {
+            // Reset timer when not moving/rotating so footsteps start immediately when movement resumes
+            footstepFeedbackTimer = 0f;
+        }
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         // Play collision feedback on collision
@@ -150,4 +283,28 @@ public class PlayerMovement : MonoBehaviour
         if (enableDebugLogs)
             Debug.Log($"[PlayerMovement] {message}");
     }
+
+    #region Public Properties (for other systems to read current state)
+
+    /// <summary>
+    /// Current movement speed being used
+    /// </summary>
+    public float CurrentMovementSpeed => currentMovementSpeed;
+
+    /// <summary>
+    /// Current rotation speed being used
+    /// </summary>
+    public float CurrentRotationSpeed => currentRotationSpeed;
+
+    /// <summary>
+    /// Whether currently using fast movement speed
+    /// </summary>
+    public bool IsFastMovement => isFastMovement;
+
+    /// <summary>
+    /// Whether currently using fast rotation speed
+    /// </summary>
+    public bool IsFastRotation => isFastRotation;
+
+    #endregion
 }
