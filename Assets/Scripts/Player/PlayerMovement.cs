@@ -291,10 +291,12 @@ public class PlayerMovement : MonoBehaviour
                 averageNormal += collision.GetContact(i).normal;
             }
             averageNormal = averageNormal.normalized;
+            averageNormal.y = 0; // Keep bounce horizontal
 
             rb.AddForce(averageNormal * bounceForce, ForceMode.Impulse);
         }
     }
+
 
     private void DebugLog(string message)
     {

@@ -6171,7 +6171,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7023156212745777117, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: bounceForce
-      value: 100
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 7207017035456577975, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: enableDebugLogs
