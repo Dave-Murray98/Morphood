@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 /// <summary>
@@ -22,17 +23,14 @@ public class ChoppingStation : BaseStation
     [SerializeField] private float choppingProgress = 0f;
     [Tooltip("Current progress of the chopping process (0-1)")]
 
-    [Header("Audio & Effects")]
-    [SerializeField] private AudioSource choppingAudioSource;
-    [Tooltip("Audio source for chopping sounds")]
-
-    [SerializeField] private ParticleSystem choppingEffects;
-    [Tooltip("Particle effects for chopping process")]
+    [Header("Audio and Effects")]
+    [SerializeField] private ChoppingStationFeedbackManager feedbackManager;
+    [SerializeField] private float chopSoundInterval = 0.2f;
+    private float chopSoundTimer = 0f;
 
     // Internal state
     private PlayerEnd currentChoppingPlayer;
     private float choppingStartTime;
-    private bool wasChoppingLastFrame = false;
 
     // Events
     public System.Action<FoodItem> OnChoppingStarted;
@@ -51,33 +49,7 @@ public class ChoppingStation : BaseStation
 
         base.Initialize();
 
-        // Validate components
-        ValidateComponents();
-
         DebugLog("Chopping station ready for food processing");
-    }
-
-    private void ValidateComponents()
-    {
-        // Validate audio source
-        if (choppingAudioSource == null)
-        {
-            choppingAudioSource = GetComponent<AudioSource>();
-            if (choppingAudioSource == null)
-            {
-                DebugLog("No audio source found - chopping will be silent");
-            }
-        }
-
-        // Validate particle system
-        if (choppingEffects == null)
-        {
-            choppingEffects = GetComponentInChildren<ParticleSystem>();
-            if (choppingEffects == null)
-            {
-                DebugLog("No particle system found - chopping will have no visual effects");
-            }
-        }
     }
 
     #region Update Loop
@@ -114,33 +86,21 @@ public class ChoppingStation : BaseStation
 
     private void UpdateAudioAndEffects()
     {
-        // Start/stop audio
-        if (choppingAudioSource != null)
+        chopSoundTimer += Time.deltaTime;
+
+        if (isCurrentlyChopping)
         {
-            if (isCurrentlyChopping && !choppingAudioSource.isPlaying)
+            if (chopSoundTimer >= chopSoundInterval)
             {
-                choppingAudioSource.Play();
-            }
-            else if (!isCurrentlyChopping && choppingAudioSource.isPlaying)
-            {
-                choppingAudioSource.Stop();
+                feedbackManager.PlayChoppingFeedback();
+                chopSoundTimer = 0f;
             }
         }
-
-        // Start/stop particle effects
-        if (choppingEffects != null)
+        else if (!isCurrentlyChopping && feedbackManager.choppingFeedback.IsPlaying)
         {
-            if (isCurrentlyChopping && !choppingEffects.isPlaying)
-            {
-                choppingEffects.Play();
-            }
-            else if (!isCurrentlyChopping && choppingEffects.isPlaying)
-            {
-                choppingEffects.Stop();
-            }
+            feedbackManager.StopChoppingFeedback();
+            chopSoundTimer = 0f;
         }
-
-        wasChoppingLastFrame = isCurrentlyChopping;
     }
 
     #endregion

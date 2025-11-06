@@ -10,6 +10,9 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class PlayerEnd : MonoBehaviour
 {
+    [Header("Feedbacks")]
+    [SerializeField] private PlayerFeedbackManager feedbackManager;
+
     [Header("Player Configuration")]
     [SerializeField] private int playerNumber = 1;
     [Tooltip("Which player this end represents (1 or 2)")]
@@ -667,6 +670,8 @@ public class PlayerEnd : MonoBehaviour
         // Update highlighting since carrying state changed
         // Player now might interact with stations instead of items
         UpdateHighlightingAfterCarryStateChange();
+
+        feedbackManager.PlayPickupItemFeedback();
 
         return true;
     }

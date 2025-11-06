@@ -20,12 +20,9 @@ public class CookingStation : BaseStation
     [SerializeField] private float cookingProgress = 0f;
     [Tooltip("Current progress of the cooking process (0-1)")]
 
-    [Header("Audio & Effects")]
-    [SerializeField] private AudioSource cookingAudioSource;
-    [Tooltip("Audio source for cooking sounds")]
+    [Header("Feedbacks")]
+    [SerializeField] private CookingStationFeedbackManager feedbackManager;
 
-    [SerializeField] private ParticleSystem cookingEffects;
-    [Tooltip("Particle effects for cooking process")]
 
     // Internal state
     private PlayerEnd currentCookingPlayer;
@@ -49,34 +46,15 @@ public class CookingStation : BaseStation
 
         base.Initialize();
 
-        // Validate components
-        ValidateComponents();
+        if (feedbackManager == null)
+        {
+            feedbackManager = GetComponentInChildren<CookingStationFeedbackManager>();
+        }
 
         DebugLog("Cooking station ready for food processing");
     }
 
-    private void ValidateComponents()
-    {
-        // Validate audio source
-        if (cookingAudioSource == null)
-        {
-            cookingAudioSource = GetComponent<AudioSource>();
-            if (cookingAudioSource == null)
-            {
-                DebugLog("No audio source found - cooking will be silent");
-            }
-        }
 
-        // Validate particle system
-        if (cookingEffects == null)
-        {
-            cookingEffects = GetComponentInChildren<ParticleSystem>();
-            if (cookingEffects == null)
-            {
-                DebugLog("No particle system found - cooking will have no visual effects");
-            }
-        }
-    }
 
     #region Update Loop
 
@@ -113,28 +91,14 @@ public class CookingStation : BaseStation
     private void UpdateAudioAndEffects()
     {
         // Start/stop audio
-        if (cookingAudioSource != null)
         {
-            if (isCurrentlyCooking && !cookingAudioSource.isPlaying)
+            if (isCurrentlyCooking && !feedbackManager.cookingLoopFeedback.IsPlaying)
             {
-                cookingAudioSource.Play();
+                feedbackManager.PlayCookingFeedback();
             }
-            else if (!isCurrentlyCooking && cookingAudioSource.isPlaying)
+            else if (!isCurrentlyCooking && feedbackManager.cookingLoopFeedback.IsPlaying)
             {
-                cookingAudioSource.Stop();
-            }
-        }
-
-        // Start/stop particle effects
-        if (cookingEffects != null)
-        {
-            if (isCurrentlyCooking && !cookingEffects.isPlaying)
-            {
-                cookingEffects.Play();
-            }
-            else if (!isCurrentlyCooking && cookingEffects.isPlaying)
-            {
-                cookingEffects.Stop();
+                feedbackManager.StopCookingFeedback();
             }
         }
 
@@ -255,6 +219,8 @@ public class CookingStation : BaseStation
         // Fire event
         OnCookingStarted?.Invoke(foodItem);
 
+        feedbackManager.PlayCookingStartFeedback();
+
         return true;
     }
 
@@ -280,6 +246,8 @@ public class CookingStation : BaseStation
             OnCookingStopped?.Invoke(foodItem);
             foodItem.OnProcessingStopped(FoodProcessType.Cooking);
         }
+
+        feedbackManager.PlayCancelCookingFeedback();
     }
 
     /// <summary>
@@ -358,6 +326,8 @@ public class CookingStation : BaseStation
         {
             DebugLog("Failed to transform food item during cooking");
         }
+
+        feedbackManager.PlayCookingCompleteFeedback();
     }
 
     /// <summary>

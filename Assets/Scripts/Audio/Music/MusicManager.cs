@@ -1,4 +1,5 @@
 using System.Collections;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class MusicManager : MonoBehaviour
@@ -46,6 +47,8 @@ public class MusicManager : MonoBehaviour
     private float basePitch = 1f;
     private Coroutine pitchFadeCoroutine;
 
+    public bool playMusicOnStart = true;
+
     private void Awake()
     {
         // Singleton pattern
@@ -65,7 +68,9 @@ public class MusicManager : MonoBehaviour
     private void Start()
     {
         SetupAudioSources();
-        StartMusic();
+
+        if (playMusicOnStart)
+            StartMusic();
     }
 
     /// <summary>
@@ -116,6 +121,7 @@ public class MusicManager : MonoBehaviour
     /// <summary>
     /// Starts playing both music tracks
     /// </summary>
+    [Button]
     public void StartMusic()
     {
         if (lowIntensitySource == null || highIntensitySource == null)
@@ -140,6 +146,7 @@ public class MusicManager : MonoBehaviour
     /// <summary>
     /// Stops both music tracks
     /// </summary>
+    [Button]
     public void StopMusic()
     {
         if (lowIntensitySource != null) lowIntensitySource.Stop();

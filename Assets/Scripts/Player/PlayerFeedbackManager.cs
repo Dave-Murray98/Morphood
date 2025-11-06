@@ -28,6 +28,9 @@ public class PlayerFeedbackManager : MonoBehaviour
 
     [SerializeField] private MMF_Player collisionFeedback;
 
+    [Header("General Feedback")]
+    [SerializeField] private MMF_Player pickupItemFeedback;
+
     [Header("Conflict Detection")]
     [SerializeField] private float conflictCheckInterval = 0.1f;
     [Tooltip("How often to check for conflicts (seconds)")]
@@ -352,6 +355,14 @@ public class PlayerFeedbackManager : MonoBehaviour
     #endregion
 
     #region Public Methods
+
+    public void PlayPickupItemFeedback()
+    {
+        if (pickupItemFeedback == null) return;
+
+        pickupItemFeedback.PlayFeedbacks();
+        DebugLog("Pickup item feedback played");
+    }
 
     public void PlayCollisionFeedback()
     {
