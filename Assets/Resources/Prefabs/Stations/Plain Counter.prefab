@@ -141,11 +141,11 @@ MonoBehaviour:
   maxItemCapacity: 1
   allowPlayer1Interaction: 1
   allowPlayer2Interaction: 1
-  acceptedItemTypes: 000000000100000002000000
-  acceptAllItemTypes: 1
   enableDebugLogs: 1
   showStationGizmos: 1
   allowItemRetrieval: 1
+  enableFoodCombination: 1
+  combinationDelay: 0.5
 --- !u!114 &5649177152460526951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,6 +192,8 @@ MonoBehaviour:
     m_RotationOrder: 4
   enableDebugLogs: 1
   plainStation: {fileID: 8112744785462472798}
+  showCombinationPrompts: 1
+  enablePlainStationDebug: 0
 --- !u!114 &5183206417231731749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217,7 +219,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7037422897525931245}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: a13cb1e9a4e9f1a4a8e3d8867fae0f05, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
