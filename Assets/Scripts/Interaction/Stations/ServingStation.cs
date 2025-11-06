@@ -104,6 +104,7 @@ public class ServingStation : BaseStation
 
         // Fire success event
         OnCustomerServedSuccessfully?.Invoke();
+        foodItem.OnServed();
 
         // Notify the customer that they've been served
         if (assignedCustomer != null)

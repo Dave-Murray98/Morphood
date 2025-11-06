@@ -417,6 +417,11 @@ public class FoodItem : PickupableItem
         feedbackManager.PlayPlacementFeedback();
     }
 
+    public void OnServed()
+    {
+        feedbackManager.PlayServedFeedback();
+    }
+
     public void OnProcessingStarted(FoodProcessType processType)
     {
         if (processType == FoodProcessType.Cooking)
