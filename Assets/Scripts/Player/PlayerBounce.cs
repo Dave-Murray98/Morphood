@@ -48,6 +48,10 @@ public class PlayerBounce : MonoBehaviour
     [Tooltip("How long the bounce rotation lasts")]
     public float rotationDuration = 0.5f;
 
+    [Tooltip("Type of ease-out curve for rotation (0=Linear, 1=Quadratic, 2=Cubic, 3=Quartic)")]
+    [Range(0, 3)]
+    public int easeOutType = 1;
+
     [Header("Bounce Dampening")]
     [Tooltip("How quickly bounces lose energy over time")]
     public float bounceDampening = 0.95f;
@@ -75,7 +79,7 @@ public class PlayerBounce : MonoBehaviour
     private float currentInputMultiplier = 1f;
 
     // For bounce rotation using MoveRotation
-    private float currentBounceRotationSpeed = 0f;
+    private float initialBounceRotationSpeed = 0f; // Store the original speed for ease-out calculation
 
     public void Initialize(Rigidbody rigidbody, PlayerMovement movement, PlayerFeedbackManager feedback)
     {
@@ -270,11 +274,11 @@ public class PlayerBounce : MonoBehaviour
         // Random direction (left or right)
         float rotationDirection = Random.Range(-1f, 1f) > 0 ? 1f : -1f;
 
-        // Apply direction to speed
-        currentBounceRotationSpeed = rotationDirection * rotationSpeed;
+        // Store the initial rotation speed for ease-out calculations
+        initialBounceRotationSpeed = rotationDirection * rotationSpeed;
         rotationTimer = 0f;
 
-        DebugLog($"Bounce rotation started: {currentBounceRotationSpeed:F2} deg/s (random between {minRotationSpeed}-{maxRotationSpeed})");
+        DebugLog($"Bounce rotation started: {initialBounceRotationSpeed:F2} deg/s (random between {minRotationSpeed}-{maxRotationSpeed})");
     }
 
     /// <summary>
@@ -302,7 +306,7 @@ public class PlayerBounce : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates rotation effects during bounce
+    /// Updates rotation effects during bounce with smooth ease-out
     /// </summary>
     private void UpdateRotationEffect()
     {
@@ -311,23 +315,67 @@ public class PlayerBounce : MonoBehaviour
         rotationTimer += Time.fixedDeltaTime;
 
         // Apply rotation using MoveRotation (same as PlayerMovement)
-        if (rotationTimer < rotationDuration && Mathf.Abs(currentBounceRotationSpeed) > 0.1f)
+        if (rotationTimer < rotationDuration && Mathf.Abs(initialBounceRotationSpeed) > 0.1f)
         {
-            // Calculate rotation amount for this frame
-            float rotationAmount = currentBounceRotationSpeed * Time.fixedDeltaTime;
+            // Calculate ease-out progress (0 to 1)
+            float progress = rotationTimer / rotationDuration;
+
+            // Apply proper ease-out curve - this should feel like natural deceleration
+            float easeOutFactor = CalculateEaseOut(progress, easeOutType);
+
+            // Calculate rotation amount using the ease-out factor
+            // The rotation starts at full speed and smoothly slows down to zero
+            float effectiveRotationSpeed = initialBounceRotationSpeed * easeOutFactor;
+            float rotationAmount = effectiveRotationSpeed * Time.fixedDeltaTime;
 
             // Apply rotation around Y-axis using MoveRotation
             Quaternion rotationDelta = Quaternion.Euler(0, rotationAmount, 0);
             rb.MoveRotation(rb.rotation * rotationDelta);
 
-            // Dampen rotation speed over time
-            currentBounceRotationSpeed = Mathf.Lerp(currentBounceRotationSpeed, 0f, Time.fixedDeltaTime / rotationDuration);
+            if (enableDebugLogs && rotationTimer % 0.1f < Time.fixedDeltaTime) // Log every ~0.1 seconds
+            {
+                DebugLog($"Bounce rotation: progress={progress:F2}, ease-out={easeOutFactor:F2}, speed={effectiveRotationSpeed:F1}");
+            }
         }
         else if (rotationTimer >= rotationDuration)
         {
             // Stop rotation completely
-            currentBounceRotationSpeed = 0f;
+            initialBounceRotationSpeed = 0f;
             DebugLog("Bounce rotation ended");
+        }
+    }
+
+    /// <summary>
+    /// Calculates different types of ease-out curves for natural-feeling rotation slowdown
+    /// </summary>
+    /// <param name="t">Progress from 0 to 1</param>
+    /// <param name="type">Ease-out type (0=Linear, 1=Quadratic, 2=Cubic, 3=Quartic)</param>
+    /// <returns>Ease-out factor from 1 to 0</returns>
+    private float CalculateEaseOut(float t, int type)
+    {
+        // Clamp input to valid range
+        t = Mathf.Clamp01(t);
+
+        switch (type)
+        {
+            case 0: // Linear - constant slowdown
+                return 1f - t;
+
+            case 1: // Quadratic ease-out - starts fast, slows down smoothly
+                float inverted = 1f - t;
+                return inverted * inverted;
+
+            case 2: // Cubic ease-out - more dramatic slowdown curve
+                float inv2 = 1f - t;
+                return inv2 * inv2 * inv2;
+
+            case 3: // Quartic ease-out - very smooth, natural deceleration
+                float inv3 = 1f - t;
+                return inv3 * inv3 * inv3 * inv3;
+
+            default:
+                float defaultInv = 1f - t;
+                return defaultInv * defaultInv; // Default to quadratic
         }
     }
 
@@ -358,7 +406,7 @@ public class PlayerBounce : MonoBehaviour
         currentInputMultiplier = originalInputMultiplier;
 
         // Stop bounce rotation
-        currentBounceRotationSpeed = 0f;
+        initialBounceRotationSpeed = 0f;
 
         DebugLog("Bounce state ended, movement and rotation fully restored");
     }
