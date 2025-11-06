@@ -670,7 +670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb60d28ffa47eb45bd046dba31710aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roundTimer: 60
+  roundTimer: 400
   warmUpTime: 5
   revenueNeeded: 20
   enableTimerExtension: 0

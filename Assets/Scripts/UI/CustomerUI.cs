@@ -11,9 +11,9 @@ public class CustomerUI : MonoBehaviour
 
     [Header("Money UI")]
     [Tooltip("The amount of time the money UI is shown for")]
-    [SerializeField] private float moneyUIShowDuration = 2f;
+    // [SerializeField] private float moneyUIShowDuration = 2f;
     [SerializeField] private GameObject moneyUI;
-    [SerializeField] private TextMeshProUGUI moneyText;
+    // [SerializeField] private TextMeshProUGUI moneyText;
 
     [Header("UI Feedback")]
     [SerializeField] private CustomerFeedbackManager customerFeedbackManager;
@@ -31,18 +31,18 @@ public class CustomerUI : MonoBehaviour
         speechBubble.SetActive(false);
     }
 
-    public IEnumerator ShowMoneyUICoroutine(float amount)
-    {
-        ShowMoneyUI(amount);
-        yield return new WaitForSeconds(moneyUIShowDuration);
-        HideMoneyUI();
-    }
+    // public IEnumerator ShowMoneyUICoroutine(float amount)
+    // {
+    //     ShowMoneyUI(amount);
+    //     yield return new WaitForSeconds(moneyUIShowDuration);
+    //     HideMoneyUI();
+    // }
 
-    private void ShowMoneyUI(float amount)
-    {
-        moneyUI.SetActive(true);
-        moneyText.text = $"+${amount}";
-    }
+    // private void ShowMoneyUI(float amount)
+    // {
+    //     moneyUI.SetActive(true);
+    //     moneyText.text = $"+${amount}";
+    // }
 
     public void HideMoneyUI()
     {

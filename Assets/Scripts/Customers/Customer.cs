@@ -316,7 +316,7 @@ public class Customer : MonoBehaviour
         if (customerUI != null)
         {
             customerUI.HideSpeechBubble();
-            customerUI.StartCoroutine(customerUI.ShowMoneyUICoroutine(orderRequest.foodValue));
+            //customerUI.StartCoroutine(customerUI.ShowMoneyUICoroutine(orderRequest.foodValue));
         }
 
         if (feedbackManager != null)
