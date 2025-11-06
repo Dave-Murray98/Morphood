@@ -1,12 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// Handles player movement logic.
+/// Handles player movement logic with integrated bouncing system.
 /// </summary>
 public class PlayerMovement : MonoBehaviour
 {
     private PlayerController playerController;
     private PlayerFeedbackManager feedbackManager;
+    private PlayerBounce bouncingSystem; // New bouncing system
     private Rigidbody rb;
 
     private Vector2 movementInput;
@@ -48,10 +49,6 @@ public class PlayerMovement : MonoBehaviour
     private float footstepFeedbackTimer = 0f;
     private float currentFootstepInterval;
 
-    [Header("Bounce Settings")]
-    [Tooltip("Multiplier for bounce force when colliding with walls")]
-    [SerializeField] private float bounceForce = 5f;
-
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
@@ -71,6 +68,15 @@ public class PlayerMovement : MonoBehaviour
         if (feedbackManager == null)
             feedbackManager = playerController.GetComponent<PlayerFeedbackManager>();
 
+        // Initialize or get the bouncing system
+        if (bouncingSystem == null)
+            bouncingSystem = GetComponent<PlayerBounce>();
+
+        if (bouncingSystem != null)
+        {
+            bouncingSystem.Initialize(rb, this, feedbackManager);
+        }
+
         // IMPORTANT: Freeze ALL rotation axes - we'll handle rotation manually
         if (rb != null)
         {
@@ -82,7 +88,7 @@ public class PlayerMovement : MonoBehaviour
         // Initialize speeds and footstep interval
         UpdateCurrentSpeeds();
 
-        DebugLog("PlayerMovement initialized with manual rotation control and dynamic speeds");
+        DebugLog("PlayerMovement initialized with manual rotation control and improved bouncing system");
     }
 
     public void HandleMovement(Vector2 moveInput)
@@ -174,6 +180,9 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
+        // Get input multiplier from bouncing system (reduces input during bounces)
+        float inputMultiplier = bouncingSystem != null ? bouncingSystem.GetInputMultiplier() : 1f;
+
         // Calculate target velocity from input
         Vector3 targetVelocity = Vector3.zero;
 
@@ -181,9 +190,12 @@ public class PlayerMovement : MonoBehaviour
         {
             // Map 2D input to 3D movement for top-down view
             Vector3 moveDirection = new Vector3(movementInput.x, 0, movementInput.y).normalized;
-            targetVelocity = moveDirection * currentMovementSpeed;
 
-            DebugLog($"Movement Input: {movementInput}, Move Direction: {moveDirection}, Speed: {currentMovementSpeed}");
+            // Apply input multiplier to reduce movement during bounces
+            float effectiveSpeed = currentMovementSpeed * inputMultiplier;
+            targetVelocity = moveDirection * effectiveSpeed;
+
+            DebugLog($"Movement Input: {movementInput}, Move Direction: {moveDirection}, Speed: {effectiveSpeed} (multiplier: {inputMultiplier:F2})");
         }
 
         // Get current horizontal velocity (ignore Y component for gravity)
@@ -191,11 +203,33 @@ public class PlayerMovement : MonoBehaviour
         Vector3 currentHorizontalVelocity = new Vector3(currentVelocity.x, 0, currentVelocity.z);
         Vector3 targetHorizontalVelocity = new Vector3(targetVelocity.x, 0, targetVelocity.z);
 
+        // If we're bouncing, reduce the effectiveness of player input
+        if (bouncingSystem != null && bouncingSystem.IsBouncing)
+        {
+            // During bouncing, player input has less influence on changing direction
+            Vector3 bounceDirection = bouncingSystem.BounceDirection;
+
+            // Blend between bounce direction and player input based on input multiplier
+            Vector3 blendedTarget = Vector3.Lerp(
+                currentHorizontalVelocity.normalized * currentHorizontalVelocity.magnitude,
+                targetHorizontalVelocity,
+                inputMultiplier
+            );
+
+            targetHorizontalVelocity = blendedTarget;
+        }
+
         // Calculate velocity difference
         Vector3 horizontalVelocityDifference = targetHorizontalVelocity - currentHorizontalVelocity;
 
         // Choose acceleration or deceleration based on input
         float currentAcceleration = movementInput.magnitude > 0.1f ? acceleration : deceleration;
+
+        // Reduce acceleration during bounces to make recovery feel more gradual
+        if (bouncingSystem != null && bouncingSystem.IsBouncing)
+        {
+            currentAcceleration *= inputMultiplier;
+        }
 
         // Calculate force from velocity difference
         Vector3 force = horizontalVelocityDifference * currentAcceleration;
@@ -210,14 +244,20 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
+        // Get input multiplier from bouncing system
+        float inputMultiplier = bouncingSystem != null ? bouncingSystem.GetInputMultiplier() : 1f;
+
         // Check if there's significant rotation input and rotation is allowed
         if (rotationInput.magnitude > rotationDeadzone && currentRotationSpeed > 0f)
         {
             // Use X-axis of rotation input for rotation direction
             float rotationDirection = rotationInput.x;
 
+            // Apply input multiplier to reduce rotation during bounces
+            float effectiveRotationSpeed = currentRotationSpeed * inputMultiplier;
+
             // Calculate rotation amount for this frame using current rotation speed
-            float rotationAmount = rotationDirection * currentRotationSpeed * Time.fixedDeltaTime;
+            float rotationAmount = rotationDirection * effectiveRotationSpeed * Time.fixedDeltaTime;
 
             // Apply rotation around Y-axis (up/down in world space)
             Quaternion rotationDelta = Quaternion.Euler(0, rotationAmount, 0);
@@ -227,7 +267,7 @@ public class PlayerMovement : MonoBehaviour
 
             if (enableDebugLogs)
             {
-                DebugLog($"Rotation Input: {rotationInput.x:F2}, Rotation Speed: {currentRotationSpeed:F1}, Amount: {rotationAmount:F2}");
+                DebugLog($"Rotation Input: {rotationInput.x:F2}, Effective Speed: {effectiveRotationSpeed:F1}, Amount: {rotationAmount:F2}");
             }
         }
         else if (currentRotationSpeed <= 0f && rotationInput.magnitude > rotationDeadzone)
@@ -252,13 +292,18 @@ public class PlayerMovement : MonoBehaviour
         bool isRotating = rotationInput.magnitude > rotationDeadzone;
         bool isActive = isMoving || isRotating;
 
+        // Don't play footsteps as frequently during bounces
+        bool isBouncing = bouncingSystem != null && bouncingSystem.IsBouncing;
+        float footstepMultiplier = isBouncing ? 2f : 1f; // Double the interval during bounces
+
         if (isActive)
         {
             // Update the timer
             footstepFeedbackTimer += Time.fixedDeltaTime;
 
             // Check if it's time to play footstep feedback using dynamic interval
-            if (footstepFeedbackTimer >= currentFootstepInterval)
+            float effectiveInterval = currentFootstepInterval * footstepMultiplier;
+            if (footstepFeedbackTimer >= effectiveInterval)
             {
                 // Play the footstep feedback
                 feedbackManager?.PlayFootstepFeedback();
@@ -266,7 +311,7 @@ public class PlayerMovement : MonoBehaviour
                 // Reset the timer
                 footstepFeedbackTimer = 0f;
 
-                DebugLog($"Footstep feedback played (interval: {currentFootstepInterval:F2}s, fast movement: {isFastMovement}, fast rotation: {isFastRotation})");
+                DebugLog($"Footstep feedback played (interval: {effectiveInterval:F2}s, bouncing: {isBouncing})");
             }
         }
         else
@@ -278,25 +323,17 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Play collision feedback on collision
-        feedbackManager?.PlayCollisionFeedback();
-
-        // Apply bounce force
-        if (rb != null && collision.contactCount > 0)
+        // Use the improved bouncing system instead of the old bounce force
+        if (bouncingSystem != null)
         {
-            // Get the average contact normal (direction away from the collision surface)
-            Vector3 averageNormal = Vector3.zero;
-            for (int i = 0; i < collision.contactCount; i++)
-            {
-                averageNormal += collision.GetContact(i).normal;
-            }
-            averageNormal = averageNormal.normalized;
-            averageNormal.y = 0; // Keep bounce horizontal
-
-            rb.AddForce(averageNormal * bounceForce, ForceMode.Impulse);
+            bouncingSystem.HandleBounceCollision(collision);
+        }
+        else
+        {
+            // Fallback: just play collision feedback
+            feedbackManager?.PlayCollisionFeedback();
         }
     }
-
 
     private void DebugLog(string message)
     {
@@ -325,6 +362,11 @@ public class PlayerMovement : MonoBehaviour
     /// Whether currently using fast rotation speed
     /// </summary>
     public bool IsFastRotation => isFastRotation;
+
+    /// <summary>
+    /// Whether the player is currently bouncing
+    /// </summary>
+    public bool IsBouncing => bouncingSystem != null && bouncingSystem.IsBouncing;
 
     #endregion
 }

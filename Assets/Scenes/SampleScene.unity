@@ -6161,6 +6161,22 @@ PrefabInstance:
       propertyPath: managedReferences[9054158425446678665].ResetTargetValuesAfterShake
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3977550026287515209, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: enableDebugLogs
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3977550026287515209, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: maximumBounceSpeed
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 3977550026287515209, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: minimumBounceForce
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3977550026287515209, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: minimumBounceSpeed
+      value: 0.3
+      objectReference: {fileID: 0}
     - target: {fileID: 5621029348689747670, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: m_Layer
       value: 11
@@ -6171,7 +6187,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7023156212745777117, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: bounceForce
-      value: 1000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: 7207017035456577975, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: enableDebugLogs

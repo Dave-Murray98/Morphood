@@ -3169,6 +3169,7 @@ GameObject:
   - component: {fileID: 76243260790496718}
   - component: {fileID: 7023156212745777117}
   - component: {fileID: 704178603646354286}
+  - component: {fileID: 3977550026287515209}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -3285,8 +3286,6 @@ MonoBehaviour:
   singleRotationSpeed: 135
   slowFootstepInterval: 0.6
   fastFootstepInterval: 0.3
-  bounceForce: 5
-  bounceRestitution: 0.8
   enableDebugLogs: 0
 --- !u!114 &704178603646354286
 MonoBehaviour:
@@ -3319,6 +3318,33 @@ MonoBehaviour:
   testParticleConflictFeedback: 0
   testChoppingFeedback: 0
   testCookingFeedback: 0
+--- !u!114 &3977550026287515209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8170028891222769459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae3a0ee74ed520748b06e15737b686ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bounciness: 0.7
+  minimumBounceSpeed: 2
+  maximumBounceSpeed: 15
+  velocityInfluence: 0.8
+  movementRestrictionTime: 0.3
+  inputReductionDuringBounce: 0.2
+  fadeOutRestriction: 1
+  enableBounceRotation: 1
+  rotationMultiplier: 100
+  rotationDuration: 0.5
+  randomRotationDirection: 0
+  bounceDampening: 0.95
+  minimumVelocityThreshold: 0.5
+  enableDebugLogs: 0
+  showDebugGizmos: 0
 --- !u!1 &8533982922331685067
 GameObject:
   m_ObjectHideFlags: 0
