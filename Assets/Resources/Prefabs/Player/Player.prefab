@@ -401,7 +401,6 @@ GameObject:
   - component: {fileID: 8803586035022272188}
   - component: {fileID: 4704714544625187283}
   - component: {fileID: 4556509746048940629}
-  - component: {fileID: 7602762428189359399}
   m_Layer: 0
   m_Name: Eyes
   m_TagString: Untagged
@@ -477,29 +476,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &7602762428189359399
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3490802390287830189}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &3668345611137123502
 GameObject:
   m_ObjectHideFlags: 0
@@ -2528,7 +2504,6 @@ GameObject:
   - component: {fileID: 1635088711410126661}
   - component: {fileID: 2832490804967576992}
   - component: {fileID: 6704875204950559930}
-  - component: {fileID: 5317736414622610324}
   m_Layer: 0
   m_Name: Eyes
   m_TagString: Untagged
@@ -2604,29 +2579,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &5317736414622610324
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7672667553614600738}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &7703551448556721255
 GameObject:
   m_ObjectHideFlags: 0
@@ -3321,12 +3273,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 848de9694acc71d43b0fd220b9c8cb70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
   acceleration: 50
   deceleration: 50
-  rotationSpeed: 90
+  useVaryingSpeeds: 1
+  fastMovementSpeed: 8
+  slowMovementSpeed: 4
+  singleMovementSpeed: 6
   rotationDeadzone: 0.1
-  footstepFeedbackInterval: 0.25
+  fastRotationSpeed: 180
+  slowRotationSpeed: 90
+  singleRotationSpeed: 135
+  slowFootstepInterval: 0.6
+  fastFootstepInterval: 0.3
+  bounceForce: 5
+  bounceRestitution: 0.8
   enableDebugLogs: 0
 --- !u!114 &704178603646354286
 MonoBehaviour:

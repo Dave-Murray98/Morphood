@@ -51,8 +51,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("Bounce Settings")]
     [Tooltip("Multiplier for bounce force when colliding with walls")]
     [SerializeField] private float bounceForce = 5f;
-    [Tooltip("How much of the incoming velocity is preserved during bounce (0-1)")]
-    [SerializeField] [Range(0f, 1f)] private float bounceRestitution = 0.8f;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
@@ -294,25 +292,7 @@ public class PlayerMovement : MonoBehaviour
             }
             averageNormal = averageNormal.normalized;
 
-            // Get current velocity
-            Vector3 currentVelocity = rb.linearVelocity;
-
-            // Calculate the velocity component along the collision normal
-            float velocityAlongNormal = Vector3.Dot(currentVelocity, averageNormal);
-
-            // Only bounce if moving towards the surface (negative dot product)
-            if (velocityAlongNormal < 0)
-            {
-                // Calculate reflection: reflected = velocity - 2 * (velocity · normal) * normal
-                // Apply restitution to simulate energy loss during bounce
-                Vector3 reflectedVelocity = currentVelocity - (1f + bounceRestitution) * velocityAlongNormal * averageNormal;
-
-                // Apply the bounce by adding the reflected velocity with the bounce force multiplier
-                Vector3 bounceVelocity = reflectedVelocity * bounceForce;
-                rb.linearVelocity = bounceVelocity;
-
-                DebugLog($"Bounce applied! Normal: {averageNormal}, Bounce velocity: {bounceVelocity}");
-            }
+            rb.AddForce(averageNormal * bounceForce, ForceMode.Impulse);
         }
     }
 
