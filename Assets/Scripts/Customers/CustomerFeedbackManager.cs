@@ -4,7 +4,9 @@ using UnityEngine;
 public class CustomerFeedbackManager : MonoBehaviour
 {
     [SerializeField] private MMF_Player celebrationFeedback;
-    [SerializeField] private MMF_Player orderSpeechBubbleFeedback;
+    [SerializeField] private MMF_Player showOrderSpeechBubbleFeedback;
+    [SerializeField] private MMF_Player hideOrderSpeechBubbleFeedback;
+
     [SerializeField] private MMF_Player moneyUIFeedback;
 
     public void PlayCelebrationFeedback()
@@ -12,9 +14,14 @@ public class CustomerFeedbackManager : MonoBehaviour
         celebrationFeedback?.PlayFeedbacks();
     }
 
-    public void PlayOrderSpeechBubbleFeedback()
+    public void PlayShowSpeechBubbleFeedback()
     {
-        orderSpeechBubbleFeedback?.PlayFeedbacks();
+        showOrderSpeechBubbleFeedback?.PlayFeedbacks();
+    }
+
+    public void PlayHideSpeechBubbleFeedback()
+    {
+        hideOrderSpeechBubbleFeedback?.PlayFeedbacks();
     }
 
     public void PlayMoneyFeedback()

@@ -64,7 +64,7 @@ public class Customer : MonoBehaviour
 
         if (customerUI != null)
         {
-            customerUI.HideSpeechBubble();
+            customerUI.HideSpeechBubbleImmediate();
             customerUI.HideMoneyUI();
         }
 
@@ -98,7 +98,9 @@ public class Customer : MonoBehaviour
 
         if (customerUI != null)
         {
-            customerUI.HideSpeechBubble();
+            if (customerUI.speechBubble.activeInHierarchy)
+                customerUI.HideSpeechBubbleImmediate();
+
             customerUI.HideMoneyUI();
         }
 
@@ -408,7 +410,9 @@ public class Customer : MonoBehaviour
         // Hide UI elements
         if (customerUI != null)
         {
-            customerUI.HideSpeechBubble();
+            if (customerUI.speechBubble.activeInHierarchy)
+                customerUI.HideSpeechBubble();
+
             customerUI.HideMoneyUI();
         }
     }
