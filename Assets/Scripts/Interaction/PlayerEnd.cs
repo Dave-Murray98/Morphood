@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -651,6 +652,11 @@ public class PlayerEnd : MonoBehaviour
         {
             col.enabled = false;
         }
+
+        FoodItem foodItem = obj.GetComponent<FoodItem>();
+
+        if (foodItem != null)
+            foodItem.feedbackManager.PlayCollisionFeedback();
 
         // Add to inventory
         heldObjects.Add(obj);

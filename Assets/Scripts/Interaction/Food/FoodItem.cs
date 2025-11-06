@@ -22,7 +22,7 @@ public class FoodItem : PickupableItem
     [Tooltip("Whether this item is managed by the pooling system (set automatically)")]
 
     [Header("Feedback")]
-    [SerializeField] private FoodItemFeedbackManager feedbackManager;
+    public FoodItemFeedbackManager feedbackManager;
 
     // Internal components
     private FoodItemInteractable foodInteractable;
