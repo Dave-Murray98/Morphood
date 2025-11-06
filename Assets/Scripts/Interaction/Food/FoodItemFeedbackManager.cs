@@ -12,6 +12,8 @@ public class FoodItemFeedbackManager : MonoBehaviour
 
     public MMF_Player servedFeedback;
 
+    public MMF_Player collisionFeedback;
+
     public void PlayPlacementFeedback()
     {
         if (placementFeedback != null)
@@ -46,5 +48,11 @@ public class FoodItemFeedbackManager : MonoBehaviour
     {
         if (choppingFeedback != null)
             choppingFeedback.StopFeedbacks();
+    }
+
+    public void PlayCollisionFeedback()
+    {
+        if (collisionFeedback != null)
+            collisionFeedback.PlayFeedbacks();
     }
 }

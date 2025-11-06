@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private PlayerController playerController;
+    private PlayerFeedbackManager feedbackManager;
     private Rigidbody rb;
 
     private Vector2 movementInput;
@@ -33,6 +34,9 @@ public class PlayerMovement : MonoBehaviour
     {
         playerController = controller;
         rb = rigidbody;
+
+        if (feedbackManager == null)
+            feedbackManager = playerController.GetComponent<PlayerFeedbackManager>();
 
         // IMPORTANT: Freeze ALL rotation axes - we'll handle rotation manually
         if (rb != null)
@@ -133,6 +137,12 @@ public class PlayerMovement : MonoBehaviour
             }
         }
         // If no input or rotation speed is 0, the player simply stops rotating
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Play collision feedback on collision
+        feedbackManager?.PlayCollisionFeedback();
     }
 
     private void DebugLog(string message)

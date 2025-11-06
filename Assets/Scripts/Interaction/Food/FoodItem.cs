@@ -61,6 +61,18 @@ public class FoodItem : PickupableItem
         }
     }
 
+    protected override bool PerformInteraction(PlayerEnd playerEnd)
+    {
+        feedbackManager.PlayCollisionFeedback();
+        return base.PerformInteraction(playerEnd);
+    }
+
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        feedbackManager.PlayCollisionFeedback();
+    }
+
     /// <summary>
     /// Initialize the food item (called on Start for non-pooled items, or when retrieved from pool)
     /// </summary>
@@ -275,6 +287,7 @@ public class FoodItem : PickupableItem
             if (transformedItem != null)
             {
                 DebugLog($"Transformed food to {transformedItem.FoodData.DisplayName} using {processType}");
+                feedbackManager.PlayCollisionFeedback();
                 return true;
             }
         }
@@ -284,6 +297,7 @@ public class FoodItem : PickupableItem
             foodData = resultData;
             ApplyFoodData();
             DebugLog($"Transformed food to {foodData.DisplayName} using {processType} (no pooling)");
+            feedbackManager.PlayCollisionFeedback();
             return true;
         }
 
@@ -419,6 +433,7 @@ public class FoodItem : PickupableItem
 
     public void OnServed()
     {
+        //feedbackManager.PlayPlacementFeedback();
         feedbackManager.PlayServedFeedback();
     }
 

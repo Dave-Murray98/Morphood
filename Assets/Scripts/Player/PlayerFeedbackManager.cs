@@ -26,6 +26,8 @@ public class PlayerFeedbackManager : MonoBehaviour
     [SerializeField] private MMF_Player cookingFeedback;
     [Tooltip("MMF Player for cooking feedback (sounds, particles, shake, etc.)")]
 
+    [SerializeField] private MMF_Player collisionFeedback;
+
     [Header("Conflict Detection")]
     [SerializeField] private float conflictCheckInterval = 0.1f;
     [Tooltip("How often to check for conflicts (seconds)")]
@@ -350,6 +352,14 @@ public class PlayerFeedbackManager : MonoBehaviour
     #endregion
 
     #region Public Methods
+
+    public void PlayCollisionFeedback()
+    {
+        if (collisionFeedback == null) return;
+
+        collisionFeedback.PlayFeedbacks();
+        DebugLog("Collision feedback played");
+    }
 
     /// <summary>
     /// Manually trigger the movement conflict feedback (useful for testing)

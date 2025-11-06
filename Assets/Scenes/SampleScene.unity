@@ -670,7 +670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb60d28ffa47eb45bd046dba31710aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roundTimer: 400
+  roundTimer: 20
   warmUpTime: 5
   revenueNeeded: 20
   enableTimerExtension: 0
@@ -3688,6 +3688,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4084308545564022, guid: dd783139013f6a74da9cbfe9dcd03590, type: 3}
   m_PrefabInstance: {fileID: 1508548598}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1511831336 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7349249064359042186, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+  m_PrefabInstance: {fileID: 8237283000528516526}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1525281852
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6055,6 +6066,10 @@ PrefabInstance:
       propertyPath: choppingFeedback
       value: 
       objectReference: {fileID: 312026411}
+    - target: {fileID: 704178603646354286, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
+      propertyPath: collisionFeedback
+      value: 
+      objectReference: {fileID: 1511831336}
     - target: {fileID: 1352783828409906151, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: RandomizeDirection
       value: 1
