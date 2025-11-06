@@ -48,6 +48,10 @@ public class PlayerMovement : MonoBehaviour
     private float footstepFeedbackTimer = 0f;
     private float currentFootstepInterval;
 
+    [Header("Bounce Settings")]
+    [Tooltip("Multiplier for bounce force when colliding with walls")]
+    [SerializeField] private float bounceForce = 5f;
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = false;
 
@@ -276,6 +280,20 @@ public class PlayerMovement : MonoBehaviour
     {
         // Play collision feedback on collision
         feedbackManager?.PlayCollisionFeedback();
+
+        // Apply bounce force
+        if (rb != null && collision.contactCount > 0)
+        {
+            // Get the average contact normal (direction away from the collision surface)
+            Vector3 averageNormal = Vector3.zero;
+            for (int i = 0; i < collision.contactCount; i++)
+            {
+                averageNormal += collision.GetContact(i).normal;
+            }
+            averageNormal = averageNormal.normalized;
+
+            rb.AddForce(averageNormal * bounceForce, ForceMode.Impulse);
+        }
     }
 
     private void DebugLog(string message)
