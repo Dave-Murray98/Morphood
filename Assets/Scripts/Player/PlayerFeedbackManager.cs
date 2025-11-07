@@ -12,6 +12,8 @@ public class PlayerFeedbackManager : MonoBehaviour
     [Header("Conflict Feedbacks")]
     [SerializeField] private MMF_Player movementConflictFeedback;
     [Tooltip("MMF Player for movement conflict feedback (shake, audio, visual effects, etc.)")]
+    [SerializeField] private MMF_Player onMovementConflictEndFeedback;
+    [Tooltip("MMF Player for movement conflict end feedback")]
 
     [SerializeField] private MMF_Player rotationConflictFeedback;
     [Tooltip("MMF Player for rotation conflict feedback (shake, audio, visual effects, etc.)")]
@@ -208,6 +210,7 @@ public class PlayerFeedbackManager : MonoBehaviour
             else
             {
                 StopParticleConflictFeedback();
+                PlayOnMovementConflictEndFeedback();
                 DebugLog("All conflicts resolved - stopping particle feedback");
             }
         }
@@ -311,6 +314,14 @@ public class PlayerFeedbackManager : MonoBehaviour
 
         particleConflictFeedback.StopFeedbacks();
         DebugLog("Stopped particle conflict feedback");
+    }
+
+    private void PlayOnMovementConflictEndFeedback()
+    {
+        if (onMovementConflictEndFeedback == null) return;
+
+        onMovementConflictEndFeedback.PlayFeedbacks();
+        DebugLog("Played movement conflict end feedback");
     }
 
     #endregion

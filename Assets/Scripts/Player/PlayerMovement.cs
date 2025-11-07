@@ -207,8 +207,6 @@ public class PlayerMovement : MonoBehaviour
         if (bouncingSystem != null && bouncingSystem.IsBouncing)
         {
             // During bouncing, player input has less influence on changing direction
-            Vector3 bounceDirection = bouncingSystem.BounceDirection;
-
             // Blend between bounce direction and player input based on input multiplier
             Vector3 blendedTarget = Vector3.Lerp(
                 currentHorizontalVelocity.normalized * currentHorizontalVelocity.magnitude,

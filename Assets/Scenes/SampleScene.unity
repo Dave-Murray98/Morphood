@@ -6157,10 +6157,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2226430274346737526, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
-      propertyPath: managedReferences[9054158425446678665].ResetTargetValuesAfterShake
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3977550026287515209, guid: 5a28472e8c6c89644900f3be8e72fc42, type: 3}
       propertyPath: enableDebugLogs
       value: 1
