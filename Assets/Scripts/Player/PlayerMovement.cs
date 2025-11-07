@@ -323,7 +323,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Use the improved bouncing system instead of the old bounce force
+        FoodItem food = collision.gameObject.GetComponent<FoodItem>();
+
+        if (food != null)
+            return; // Ignore food collisions
+
+
         if (bouncingSystem != null)
         {
             bouncingSystem.HandleBounceCollision(collision);

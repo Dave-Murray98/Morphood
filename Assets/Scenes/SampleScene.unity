@@ -530,9 +530,9 @@ MonoBehaviour:
   fadeDuration: 1
   enablePitchEscalation: 1
   maxPitchMultiplier: 1.5
-  pitchFadeDuration: 1.5
+  pitchFadeDuration: 3
   isHighIntensity: 0
-  playMusicOnStart: 0
+  playMusicOnStart: 1
 --- !u!1 &173585164
 GameObject:
   m_ObjectHideFlags: 0
@@ -671,10 +671,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fb60d28ffa47eb45bd046dba31710aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roundTimer: 20
+  roundTimer: 30
   warmUpTime: 5
   revenueNeeded: 20
-  enableTimerExtension: 0
+  enableTimerExtension: 1
   extensionTriggerTime: 10
   timeSlowMultiplier: 0.7
   timerText: {fileID: 7169440202349861764}
