@@ -682,6 +682,7 @@ MonoBehaviour:
   resultPanel: {fileID: 1815519492}
   resultText: {fileID: 7169440202349861762}
   startRoundButton: {fileID: 538353095}
+  uiFeedbackManager: {fileID: 7169440202349861765}
 --- !u!4 &223124187
 Transform:
   m_ObjectHideFlags: 0
@@ -4183,6 +4184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d31b95187a4aa9648a5aa83c8f2bdc2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  uiFeedbackManager: {fileID: 7169440202349861765}
   isPaused: 0
 --- !u!1 &1788691888
 GameObject:
@@ -5706,6 +5708,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7169440202349861765 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8193126061303446005, guid: b945b601daec27b468942efb1b5264ff, type: 3}
+  m_PrefabInstance: {fileID: 7169440202349861761}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86e4e5fdbf3ba244ab917542132188ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!4 &7524951331683871051 stripped

@@ -4,6 +4,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [Header("UI")]
+    [SerializeField] private UIFeedbackManager uiFeedbackManager;
+
     [Header("Game State")]
     public bool isPaused = false;
 
@@ -32,6 +35,8 @@ public class GameManager : MonoBehaviour
             Time.timeScale = 0f;
             GameEvents.TriggerGamePaused();
         }
+
+        uiFeedbackManager.PlayButtonFeedback();
     }
 
     /// <summary>
@@ -45,6 +50,8 @@ public class GameManager : MonoBehaviour
             Time.timeScale = 1f;
             GameEvents.TriggerGameResumed();
         }
+
+        uiFeedbackManager.PlayButtonFeedback();
     }
 
     /// <summary>

@@ -31,6 +31,9 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] private Button startRoundButton;
 
+    [Header("UI Feedback")]
+    [SerializeField] private UIFeedbackManager uiFeedbackManager;
+
     // Round state
     private bool isRoundActive = false;
     private bool isWarmUpActive = false;
@@ -120,6 +123,8 @@ public class RoundManager : MonoBehaviour
 
         // Hide start round button
         DisplayStartRoundButton(false);
+
+        uiFeedbackManager.PlayButtonFeedback();
     }
 
     private IEnumerator RoundCoroutine()
