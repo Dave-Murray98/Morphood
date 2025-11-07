@@ -323,6 +323,7 @@ public class Customer : MonoBehaviour
 
         if (feedbackManager != null)
         {
+            feedbackManager.PlayOnServedFeedback();
             feedbackManager.PlayMoneyFeedback();
         }
 

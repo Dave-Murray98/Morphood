@@ -6,6 +6,7 @@ public class CustomerFeedbackManager : MonoBehaviour
     [SerializeField] private MMF_Player celebrationFeedback;
     [SerializeField] private MMF_Player showOrderSpeechBubbleFeedback;
     [SerializeField] private MMF_Player hideOrderSpeechBubbleFeedback;
+    [SerializeField] private MMF_Player onServedFeedback;
 
     [SerializeField] private MMF_Player moneyUIFeedback;
 
@@ -27,5 +28,10 @@ public class CustomerFeedbackManager : MonoBehaviour
     public void PlayMoneyFeedback()
     {
         moneyUIFeedback?.PlayFeedbacks();
+    }
+
+    public void PlayOnServedFeedback()
+    {
+        onServedFeedback?.PlayFeedbacks();
     }
 }
