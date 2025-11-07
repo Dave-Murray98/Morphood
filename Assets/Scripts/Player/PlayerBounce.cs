@@ -39,8 +39,12 @@ public class PlayerBounce : MonoBehaviour
     [Tooltip("Enable rotation effects during bounces")]
     public bool enableBounceRotation = true;
 
+    [Tooltip("Transform for fart particles that should point opposite to bounce direction")]
+    public Transform fartParticles;  // Add this line
+
     [Tooltip("Minimum rotation speed (degrees per second)")]
     public float minRotationSpeed = 720f;
+
 
     [Tooltip("Maximum rotation speed (degrees per second)")]
     public float maxRotationSpeed = 1440f;
@@ -79,7 +83,12 @@ public class PlayerBounce : MonoBehaviour
     private float currentInputMultiplier = 1f;
 
     // For bounce rotation using MoveRotation
-    private float initialBounceRotationSpeed = 0f; // Store the original speed for ease-out calculation
+    private float initialBounceRotationSpeed = 0f;
+
+    // Add these new variables for particle rotation tracking
+    private bool shouldMaintainParticleDirection = false;
+    private Quaternion targetParticleRotation = Quaternion.identity;
+    private Quaternion playerRotationAtBounceStart = Quaternion.identity;
 
     public void Initialize(Rigidbody rigidbody, PlayerMovement movement, PlayerFeedbackManager feedback)
     {
@@ -278,7 +287,60 @@ public class PlayerBounce : MonoBehaviour
         initialBounceRotationSpeed = rotationDirection * rotationSpeed;
         rotationTimer = 0f;
 
+        // Store the player's rotation at the start of bounce for particle counter-rotation
+        playerRotationAtBounceStart = transform.rotation;
+
+        // Rotate fart particles to point opposite to bounce direction
+        RotateFartParticles(bounceVelocity);
+
         DebugLog($"Bounce rotation started: {initialBounceRotationSpeed:F2} deg/s (random between {minRotationSpeed}-{maxRotationSpeed})");
+    }
+
+    /// <summary>
+    /// Rotates the fart particles to point opposite to the bounce direction
+    /// </summary>
+    private void RotateFartParticles(Vector3 bounceVelocity)
+    {
+        // Check if we have a fart particles transform assigned
+        if (fartParticles == null) return;
+
+        // Get the opposite direction of the bounce (where particles should point)
+        Vector3 oppositeDirection = -bounceVelocity.normalized;
+
+        // We only care about horizontal movement, so zero out the Y component
+        oppositeDirection.y = 0;
+
+        // Make sure we have a valid direction
+        if (oppositeDirection.magnitude < 0.001f)
+        {
+            DebugLog("No valid horizontal bounce direction for particle rotation");
+            return;
+        }
+
+        // Calculate the angle around the Y-axis (for Z-axis pointing)
+        float targetAngle = Mathf.Atan2(oppositeDirection.x, oppositeDirection.z) * Mathf.Rad2Deg;
+
+        // Store the target rotation in world space
+        targetParticleRotation = Quaternion.Euler(0, targetAngle, 0);
+
+        // Apply the initial rotation
+        fartParticles.rotation = targetParticleRotation;
+
+        // Enable continuous particle direction maintenance
+        shouldMaintainParticleDirection = true;
+
+        DebugLog($"Fart particles rotated to point opposite to bounce direction. Bounce: {bounceVelocity.normalized}, Opposite: {oppositeDirection}, Angle: {targetAngle:F1}°");
+    }
+
+    /// <summary>
+    /// Maintains the fart particles pointing in the correct direction despite player rotation
+    /// </summary>
+    private void MaintainParticleDirection()
+    {
+        if (!shouldMaintainParticleDirection || fartParticles == null) return;
+
+        // Keep the particles pointing in the same world direction regardless of player rotation
+        fartParticles.rotation = targetParticleRotation;
     }
 
     /// <summary>
@@ -314,6 +376,9 @@ public class PlayerBounce : MonoBehaviour
 
         rotationTimer += Time.fixedDeltaTime;
 
+        // Maintain particle direction throughout the bounce
+        MaintainParticleDirection();
+
         // Apply rotation using MoveRotation (same as PlayerMovement)
         if (rotationTimer < rotationDuration && Mathf.Abs(initialBounceRotationSpeed) > 0.1f)
         {
@@ -324,7 +389,6 @@ public class PlayerBounce : MonoBehaviour
             float easeOutFactor = CalculateEaseOut(progress, easeOutType);
 
             // Calculate rotation amount using the ease-out factor
-            // The rotation starts at full speed and smoothly slows down to zero
             float effectiveRotationSpeed = initialBounceRotationSpeed * easeOutFactor;
             float rotationAmount = effectiveRotationSpeed * Time.fixedDeltaTime;
 
@@ -332,7 +396,7 @@ public class PlayerBounce : MonoBehaviour
             Quaternion rotationDelta = Quaternion.Euler(0, rotationAmount, 0);
             rb.MoveRotation(rb.rotation * rotationDelta);
 
-            if (enableDebugLogs && rotationTimer % 0.1f < Time.fixedDeltaTime) // Log every ~0.1 seconds
+            if (enableDebugLogs && rotationTimer % 0.1f < Time.fixedDeltaTime)
             {
                 DebugLog($"Bounce rotation: progress={progress:F2}, ease-out={easeOutFactor:F2}, speed={effectiveRotationSpeed:F1}");
             }
@@ -396,7 +460,6 @@ public class PlayerBounce : MonoBehaviour
             rb.linearVelocity = new Vector3(dampenedVelocity.x, currentVelocity.y, dampenedVelocity.z);
         }
     }
-
     /// <summary>
     /// Ends the bounce state and restores normal movement
     /// </summary>
@@ -408,7 +471,10 @@ public class PlayerBounce : MonoBehaviour
         // Stop bounce rotation
         initialBounceRotationSpeed = 0f;
 
-        DebugLog("Bounce state ended, movement and rotation fully restored");
+        // Stop maintaining particle direction
+        shouldMaintainParticleDirection = false;
+
+        //DebugLog("Bounce state ended, movement and rotation fully restored");
     }
 
     /// <summary>
