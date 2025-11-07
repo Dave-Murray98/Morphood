@@ -139,6 +139,8 @@ public class RoundManager : MonoBehaviour
             yield return null;
         }
 
+        uiFeedbackManager.PlayRoundStartFeedback();
+
         isWarmUpActive = false;
 
         // === ROUND ACTIVE PHASE ===
@@ -229,6 +231,15 @@ public class RoundManager : MonoBehaviour
             resultPanel.SetActive(true);
             resultText.text = passed ? "ROUND PASSED!" : "ROUND FAILED!";
             resultText.color = passed ? Color.green : Color.red;
+        }
+
+        if (passed)
+        {
+            uiFeedbackManager.PlayRoundEndSuccessFeedback();
+        }
+        else
+        {
+            uiFeedbackManager.PlayRoundEndFailureFeedback();
         }
 
         UpdateUI();

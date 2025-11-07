@@ -6511,6 +6511,7 @@ MonoBehaviour:
         - {fileID: 8300000, guid: 087c4b5499fe1b94bb8254b53948046b, type: 3}
         - {fileID: 8300000, guid: e266bab8c76a8af4798848cfc96d8eaa, type: 3}
         - {fileID: 8300000, guid: 74f8957bb7b488f45a8b86563cce8af2, type: 3}
+        - {fileID: 8300000, guid: 6e39c4e31b5c51541b0ac455eb49ead4, type: 3}
         TestPlayButton:
           ButtonText: Debug Play Sound
         TestStopButton:
