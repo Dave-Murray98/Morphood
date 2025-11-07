@@ -4709,7 +4709,7 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 2226430274346737526}
         DebugActive: 0
-        TargetShaker: {fileID: 0}
+        TargetShaker: {fileID: 6353164777241989855}
         Duration: 0.1
         ResetShakerValuesAfterShake: 1
         ResetTargetValuesAfterShake: 1

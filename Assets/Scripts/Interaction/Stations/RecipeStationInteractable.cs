@@ -18,6 +18,9 @@ public class RecipeStationInteractable : BaseInteractable
     [SerializeField] private bool recipeIsVisible = false;
     [Tooltip("Current visibility state of the recipe")]
 
+    [Header("Feedback")]
+    [SerializeField] private RecipeStationFeedbackManager feedbackManager;
+
     // Track which player is currently viewing the recipe
     private PlayerEnd viewingPlayer;
 
@@ -39,7 +42,7 @@ public class RecipeStationInteractable : BaseInteractable
         // Initialize recipe as hidden
         if (recipeImage != null)
         {
-            SetRecipeVisibility(false);
+            recipeImage.SetActive(false);
         }
     }
 
@@ -118,7 +121,15 @@ public class RecipeStationInteractable : BaseInteractable
         if (recipeImage == null) return;
 
         recipeIsVisible = visible;
-        recipeImage.SetActive(visible);
+
+        if (visible)
+        {
+            feedbackManager?.PlayShowRecipeUIFeedback();
+        }
+        else
+        {
+            feedbackManager?.PlayHideRecipeUIFeedback();
+        }
 
         DebugLog($"Recipe visibility set to {visible}");
     }
