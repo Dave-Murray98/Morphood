@@ -12,17 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d305f1832c2c8e549a0afeb080a10838, type: 3}
   m_Name: Recipe Combination Generator
   m_EditorClassIdentifier: 
-  finalDish: {fileID: 11400000, guid: b0d955b470e078d49a3d7eb8e2fc2ac2, type: 2}
-  baseIngredients:
-  - {fileID: 11400000, guid: 62d566bcb4342104bb172046f232533d, type: 2}
-  - {fileID: 11400000, guid: 457d1bd3f7deaef4fa2907d7c787b651, type: 2}
+  finalDish: {fileID: 11400000, guid: 4cfa0f8d99f056b42827c1e1e48c486c, type: 2}
+  baseIngredients: []
   combinationDatabase: {fileID: 11400000, guid: c492f2355f06c3e4291071ea52425588, type: 2}
   recipeStages:
   - stageNumber: 1
     isFinalStage: 0
     combinations:
-    - ingredientDisplay: Chopped Tomato + Chopped Lettuce
-      ingredient1: {fileID: 11400000, guid: 62d566bcb4342104bb172046f232533d, type: 2}
-      ingredient2: {fileID: 11400000, guid: 457d1bd3f7deaef4fa2907d7c787b651, type: 2}
-      result: {fileID: 11400000, guid: b0d955b470e078d49a3d7eb8e2fc2ac2, type: 2}
+    - ingredientDisplay: Cheese + Chopped Bun
+      ingredient1: {fileID: 11400000, guid: 2ac3c9162ae854040bc64a88c6e24eba, type: 2}
+      ingredient2: {fileID: 11400000, guid: 20d1e60d5ca366049b747d4731e5362d, type: 2}
+      result: {fileID: 0}
+    - ingredientDisplay: Cheese + Cooked Beef Patty
+      ingredient1: {fileID: 11400000, guid: 2ac3c9162ae854040bc64a88c6e24eba, type: 2}
+      ingredient2: {fileID: 11400000, guid: dcff0e499ff767848b968e25127f186c, type: 2}
+      result: {fileID: 0}
+    - ingredientDisplay: Chopped Bun + Cooked Beef Patty
+      ingredient1: {fileID: 11400000, guid: 20d1e60d5ca366049b747d4731e5362d, type: 2}
+      ingredient2: {fileID: 11400000, guid: dcff0e499ff767848b968e25127f186c, type: 2}
+      result: {fileID: 0}
+    - ingredientDisplay: Cooked Beef Patty + Cooked Beef Patty
+      ingredient1: {fileID: 11400000, guid: dcff0e499ff767848b968e25127f186c, type: 2}
+      ingredient2: {fileID: 11400000, guid: dcff0e499ff767848b968e25127f186c, type: 2}
+      result: {fileID: 0}
   enableDebugLogs: 1
