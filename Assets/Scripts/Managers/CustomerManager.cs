@@ -16,7 +16,7 @@ public class CustomerManager : MonoBehaviour
     [SerializeField] private List<ServingStation> servingStations = new List<ServingStation>();
     [Tooltip("All serving stations in the restaurant")]
 
-    [SerializeField] private Transform doorTransform;
+    [SerializeField] private Transform customerSpawnPosition;
     [Tooltip("Position where customers spawn and leave")]
 
     [Header("Menu Configuration")]
@@ -54,7 +54,7 @@ public class CustomerManager : MonoBehaviour
     /// Public getter for the door transform position
     /// Used by customers when they need to leave after celebration animations
     /// </summary>
-    public Transform DoorTransform => doorTransform;
+    public Transform DoorTransform => customerSpawnPosition;
 
     // Pooling
     private Queue<Customer> availableCustomers = new Queue<Customer>();
@@ -115,7 +115,7 @@ public class CustomerManager : MonoBehaviour
             Debug.LogWarning("[CustomerManager] No serving stations assigned!");
         }
 
-        if (doorTransform == null)
+        if (customerSpawnPosition == null)
         {
             Debug.LogWarning("[CustomerManager] No door transform assigned!");
         }
@@ -264,7 +264,7 @@ public class CustomerManager : MonoBehaviour
     /// </summary>
     private void SpawnCustomer(ServingStation station)
     {
-        if (station == null || doorTransform == null || menu.Count == 0)
+        if (station == null || customerSpawnPosition == null || menu.Count == 0)
         {
             DebugLog("Cannot spawn customer - missing configuration");
             return;
@@ -279,8 +279,9 @@ public class CustomerManager : MonoBehaviour
         }
 
         // Position at door
-        customer.transform.position = doorTransform.position;
-        customer.transform.rotation = doorTransform.rotation;
+        customer.transform.position = customerSpawnPosition.position;
+        customer.transform.rotation = customerSpawnPosition.rotation;
+        Debug.Log($"Spawned customer at {customer.transform.position}, door at {customerSpawnPosition.position}");
 
         // Set active
         customer.gameObject.SetActive(true);
@@ -292,7 +293,7 @@ public class CustomerManager : MonoBehaviour
         station.AssignCustomer(customer, orderRequest);
 
         // Tell customer to move to the station
-        customer.AssignToStation(station, orderRequest, doorTransform);
+        customer.AssignToStation(station, orderRequest, customerSpawnPosition);
 
         // Subscribe to serving events - Store the handler so we can properly unsubscribe later
         Action eventHandler = () => HandleCustomerServed(customer);
@@ -493,7 +494,7 @@ public class CustomerManager : MonoBehaviour
                     customer.CurrentState != CustomerState.Leaving &&
                     customer.CurrentState != CustomerState.ReadyToDespawn)
                 {
-                    customer.Leave(doorTransform);
+                    customer.Leave(customerSpawnPosition);
                 }
             }
         }

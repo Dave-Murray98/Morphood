@@ -405,7 +405,7 @@ public class PlayerBounce : MonoBehaviour
         {
             // Stop rotation completely
             initialBounceRotationSpeed = 0f;
-            DebugLog("Bounce rotation ended");
+            // DebugLog("Bounce rotation ended");
         }
     }
 
@@ -498,7 +498,7 @@ public class PlayerBounce : MonoBehaviour
     private void DebugLog(string message)
     {
         if (enableDebugLogs)
-            Debug.Log($"[ImprovedPlayerBouncing] {message}");
+            Debug.Log($"[PlayerBounce] {message}");
     }
 
     private void OnDrawGizmos()
