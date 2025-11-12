@@ -289,7 +289,7 @@ public class RoundManager : MonoBehaviour
         }
         else
         {
-            timerText.text = "Press Start";
+            timerText.text = "Time: 00:00";
         }
     }
 
